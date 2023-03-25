@@ -3,7 +3,6 @@
 [![lint](https://github.com/vladopajic/go-test-coverage/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/lint.yml)
 [![test](https://github.com/vladopajic/go-test-coverage/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/test.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vladopajic/go-test-coverage?cache=v1)](https://goreportcard.com/report/github.com/vladopajic/go-test-coverage)
-[![codecov](https://codecov.io/gh/vladopajic/go-test-coverage/branch/main/graph/badge.svg?token=WYCKb1MLgl)](https://codecov.io/gh/vladopajic/go-test-coverage)
 [![GoDoc](https://godoc.org/github.com/vladopajic/go-test-coverage?status.svg)](https://godoc.org/github.com/vladopajic/go-test-coverage)
 [![Release](https://img.shields.io/github/release/vladopajic/go-test-coverage.svg?style=flat-square)](https://github.com/vladopajic/go-test-coverage/releases/latest)
 
@@ -14,18 +13,18 @@
 
 ```yml
 name: Go test coverage check
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-go@v3
-      
-      - name: test (generate coverage)
-        run: go test ./... -coverprofile=./cover.out
+runs-on: ubuntu-latest
+steps:
+  - uses: actions/checkout@v3
+  - uses: actions/setup-go@v3
+  
+  - name: test (generate coverage)
+    run: go test ./... -coverprofile=./cover.out
 
-      - name: check test coverage
-        uses: vladopajic/go-test-coverage@v1
-        with:
-          config: ./.testcoverage.yml  # (config file is mandatory)
+  - name: check test coverage
+    uses: vladopajic/go-test-coverage@v1
+    with:
+      config: ./.testcoverage.yml  # (config file is mandatory)
 ```
 
 ### Config
