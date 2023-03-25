@@ -1,0 +1,115 @@
+run:
+  deadline: 5m
+
+linters:
+  enable:
+    # - exhaustivestruct (too exhaustive)
+    # - gci
+    # - godot (too nit picking)
+    # - ireturn  (we like when function returns interface)
+    # - varnamelen  (we can handle this in code review step)
+    - asasalint
+    - asciicheck
+    - bidichk
+    - bodyclose
+    - containedctx
+    - contextcheck
+    - cyclop
+    - depguard
+    - dogsled
+    - dupl
+    - durationcheck
+    - errcheck
+    - errchkjson
+    - errname
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godox
+    - goerr113
+    - gofmt
+    - gofumpt
+    - goheader
+    - goimports
+    - gomnd
+    - gomoddirectives
+    - gomodguard
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - lll
+    - maintidx
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - nilnil
+    - nlreturn
+    - noctx
+    - nolintlint
+    - nonamedreturns
+    - paralleltest
+    - prealloc
+    - predeclared
+    - promlinter
+    - reassign
+    - revive
+    - staticcheck
+    - stylecheck
+    - tagliatelle
+    - tenv
+    - testpackage
+    - thelper
+    - tparallel
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - wrapcheck
+    - wsl
+
+linters-settings:
+  nolintlint:
+    require-explanation: true
+  maintidx:
+    under: 40
+  misspell:
+    locale: US
+  govet:
+    check-shadowing: true
+    enable-all: true
+  lll:
+    line-length: 96
+    tab-width: 1
+  nlreturn:
+    block-size: 5
+  goimports:
+    local-prefixes: github.com/vladopajic/go-test-coverage
+  wsl:
+    enforce-err-cuddling: true
+
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - funlen      ## Function length is okay due to many tests cases
+        - wrapcheck   ## No need to check wrapping errors in tests
+        - maintidx    ## Test are okay to be long
+
+    - path: export_test\.go
+      linters:
+        - revive      ## Disabling linter because we intentionally want to use unexported types in tests
