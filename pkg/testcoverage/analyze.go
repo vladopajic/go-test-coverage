@@ -1,31 +1,24 @@
 package testcoverage
 
 import (
-	"bufio"
-	"fmt"
-	"io"
-	"os"
 	"strings"
-	"text/tabwriter"
 )
 
 type AnalyzeResult struct {
-	FilesBelowThreshold    int
-	PackagesBelowThreshold int
+	FilesBelowThreshold    []CoverageStats
+	PackagesBelowThreshold []CoverageStats
 	MeetsTotalCoverage     bool
 	TotalCoverage          int
 }
 
 func (r *AnalyzeResult) Pass() bool {
-	return r.MeetsTotalCoverage && r.FilesBelowThreshold == 0 && r.PackagesBelowThreshold == 0
+	return r.MeetsTotalCoverage &&
+		len(r.FilesBelowThreshold) == 0 &&
+		len(r.PackagesBelowThreshold) == 0
 }
 
-//nolint:wsl // relax
 func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 	thr := cfg.Threshold
-
-	out := bufio.NewWriter(os.Stdout)
-	defer out.Flush()
 
 	filesBelowThreshold := checkCoverageStatsBelowThreshold(coverageStats, thr.File)
 	packagesBelowThreshold := checkCoverageStatsBelowThreshold(
@@ -34,49 +27,23 @@ func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 	totalStats := calcTotalStats(coverageStats)
 	meetsTotalCoverage := totalStats.CoveredPercentage() >= thr.Total
 
-	fmt.Fprintf(out, "Files test coverage meeting the threshold\t(%d%%): ", thr.File)
-	if len(filesBelowThreshold) > 0 {
-		fmt.Fprintf(out, "FAIL")
-		report(out, filesBelowThreshold, cfg.LocalPrefix)
-	} else {
-		fmt.Fprintf(out, "PASS")
+	localPrefix := cfg.LocalPrefix
+	if localPrefix != "" && (strings.LastIndex(localPrefix, "/") != len(localPrefix)-1) {
+		localPrefix += "/"
 	}
-
-	fmt.Fprintf(out, "\nPackages test coverage meeting the threshold\t(%d%%): ", thr.Package)
-	if len(packagesBelowThreshold) > 0 {
-		fmt.Fprintf(out, "FAIL")
-		report(out, packagesBelowThreshold, cfg.LocalPrefix)
-	} else {
-		fmt.Fprintf(out, "PASS")
-	}
-
-	fmt.Fprintf(out, "\nTotal test coverage meeting the threshold\t(%d%%): ", thr.Total)
-	if !meetsTotalCoverage {
-		fmt.Fprintf(out, "FAIL")
-	} else {
-		fmt.Fprintf(out, "PASS")
-	}
-
-	fmt.Fprintf(out, "\nTotal test coverage: %d%%\n", totalStats.CoveredPercentage())
 
 	return AnalyzeResult{
-		FilesBelowThreshold:    len(filesBelowThreshold),
-		PackagesBelowThreshold: len(packagesBelowThreshold),
+		FilesBelowThreshold:    stripLocalPrefix(filesBelowThreshold, localPrefix),
+		PackagesBelowThreshold: stripLocalPrefix(packagesBelowThreshold, localPrefix),
 		MeetsTotalCoverage:     meetsTotalCoverage,
 		TotalCoverage:          totalStats.CoveredPercentage(),
 	}
 }
 
-func report(w io.Writer, coverageStats []CoverageStats, localPrefix string) {
-	localPrefix += "/"
-
-	tabber := tabwriter.NewWriter(w, 1, 8, 1, '\t', 0) //nolint:gomnd // relax
-	defer tabber.Flush()
-
-	for _, stats := range coverageStats {
-		name := strings.Replace(stats.name, localPrefix, "", 1)
-		fmt.Fprintf(tabber, "\n%s\t%d%%", name, stats.CoveredPercentage())
+func stripLocalPrefix(coverageStats []CoverageStats, localPrefix string) []CoverageStats {
+	for i, stats := range coverageStats {
+		coverageStats[i].name = strings.Replace(stats.name, localPrefix, "", 1)
 	}
 
-	fmt.Fprintf(tabber, "\n")
+	return coverageStats
 }

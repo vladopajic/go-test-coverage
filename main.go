@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
@@ -28,13 +27,12 @@ func main() {
 		os.Exit(1)
 	}
 
-	result := testcoverage.Analyze(*cfg, stats)
+	result := testcoverage.Analyze(cfg, stats)
 
-	if envName := cfg.TotalCoverageEnvName; envName != "" {
-		err := os.Setenv(envName, strconv.Itoa(result.TotalCoverage))
-		if err != nil {
-			fmt.Printf("failed to set total coverage to env variable: %v\n", err)
-		}
+	testcoverage.ReportForHuman(result, cfg)
+
+	if cfg.GithubActionOutput {
+		testcoverage.ReportForGithubAction(result, cfg)
 	}
 
 	if !result.Pass() {
@@ -44,7 +42,7 @@ func main() {
 
 var errConfigNotSpecified = fmt.Errorf("-config argument not specified")
 
-func readConfig() (*testcoverage.Config, error) {
+func readConfig() (testcoverage.Config, error) {
 	configPath := ""
 	flag.StringVar(
 		&configPath,
@@ -55,17 +53,17 @@ func readConfig() (*testcoverage.Config, error) {
 	flag.Parse()
 
 	if configPath == "" {
-		return nil, errConfigNotSpecified
+		return testcoverage.Config{}, errConfigNotSpecified
 	}
 
 	cfg, err := testcoverage.ConfigFromFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed loading config from file: %w", err)
+		return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
 	}
 
 	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("config file is not valid: %w", err)
+		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
 	}
 
-	return cfg, nil
+	return *cfg, nil
 }
