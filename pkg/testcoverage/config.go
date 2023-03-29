@@ -38,6 +38,7 @@ func NewConfig() Config {
 			Package: defaultPackageThreshold,
 			Total:   defaultTotalThreshold,
 		},
+		GithubActionOutput: true,
 	}
 }
 
