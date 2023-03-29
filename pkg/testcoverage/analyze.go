@@ -9,8 +9,19 @@ import (
 	"text/tabwriter"
 )
 
+type AnalyzeResult struct {
+	FilesBelowThreshold    int
+	PackagesBelowThreshold int
+	MeetsTotalCoverage     bool
+	TotalCoverage          int
+}
+
+func (r *AnalyzeResult) Pass() bool {
+	return r.MeetsTotalCoverage && r.FilesBelowThreshold == 0 && r.PackagesBelowThreshold == 0
+}
+
 //nolint:wsl // relax
-func Analyze(cfg Config, coverageStats []CoverageStats) bool {
+func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 	thr := cfg.Threshold
 
 	out := bufio.NewWriter(os.Stdout)
@@ -48,7 +59,12 @@ func Analyze(cfg Config, coverageStats []CoverageStats) bool {
 
 	fmt.Fprintf(out, "\nTotal test coverage: %d%%\n", totalStats.CoveredPercentage())
 
-	return len(filesBelowThreshold) == 0 && len(packagesBelowThreshold) == 0 && meetsTotalCoverage
+	return AnalyzeResult{
+		FilesBelowThreshold:    len(filesBelowThreshold),
+		PackagesBelowThreshold: len(packagesBelowThreshold),
+		MeetsTotalCoverage:     meetsTotalCoverage,
+		TotalCoverage:          totalStats.CoveredPercentage(),
+	}
 }
 
 func report(w io.Writer, coverageStats []CoverageStats, localPrefix string) {

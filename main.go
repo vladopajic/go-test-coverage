@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
@@ -27,7 +28,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	if ok := testcoverage.Analyze(*cfg, stats); !ok {
+	result := testcoverage.Analyze(*cfg, stats)
+
+	if envName := cfg.TotalCoverageEnvName; envName != "" {
+		err := os.Setenv(envName, strconv.Itoa(result.TotalCoverage))
+		if err != nil {
+			fmt.Printf("failed to set total coverage to env variable: %v\n", err)
+		}
+	}
+
+	if !result.Pass() {
 		os.Exit(1)
 	}
 }

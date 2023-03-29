@@ -19,9 +19,10 @@ const (
 )
 
 type Config struct {
-	Profile     string    `yaml:"profile"`
-	LocalPrefix string    `yaml:"localPrefix"`
-	Threshold   Threshold `yaml:"threshold"`
+	Profile              string    `yaml:"profile"`
+	LocalPrefix          string    `yaml:"localPrefix"`
+	Threshold            Threshold `yaml:"threshold"`
+	TotalCoverageEnvName string    `yaml:"totalCoverageEnvName"`
 }
 
 type Threshold struct {
