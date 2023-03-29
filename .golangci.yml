@@ -92,6 +92,8 @@ linters-settings:
   govet:
     check-shadowing: true
     enable-all: true
+    disable:
+     - fieldalignment
   lll:
     line-length: 96
     tab-width: 1

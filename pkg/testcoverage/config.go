@@ -19,9 +19,10 @@ const (
 )
 
 type Config struct {
-	Profile     string    `yaml:"profile"`
-	LocalPrefix string    `yaml:"localPrefix"`
-	Threshold   Threshold `yaml:"threshold"`
+	Profile            string    `yaml:"profile"`
+	LocalPrefix        string    `yaml:"localPrefix"`
+	Threshold          Threshold `yaml:"threshold"`
+	GithubActionOutput bool      `yaml:"githubActionOutput"`
 }
 
 type Threshold struct {
@@ -37,6 +38,7 @@ func NewConfig() Config {
 			Package: defaultPackageThreshold,
 			Total:   defaultTotalThreshold,
 		},
+		GithubActionOutput: true,
 	}
 }
 

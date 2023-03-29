@@ -27,14 +27,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	if ok := testcoverage.Analyze(*cfg, stats); !ok {
+	result := testcoverage.Analyze(cfg, stats)
+
+	testcoverage.ReportForHuman(result, cfg)
+
+	if cfg.GithubActionOutput {
+		testcoverage.ReportForGithubAction(result, cfg)
+	}
+
+	if !result.Pass() {
 		os.Exit(1)
 	}
 }
 
 var errConfigNotSpecified = fmt.Errorf("-config argument not specified")
 
-func readConfig() (*testcoverage.Config, error) {
+func readConfig() (testcoverage.Config, error) {
 	configPath := ""
 	flag.StringVar(
 		&configPath,
@@ -45,17 +53,17 @@ func readConfig() (*testcoverage.Config, error) {
 	flag.Parse()
 
 	if configPath == "" {
-		return nil, errConfigNotSpecified
+		return testcoverage.Config{}, errConfigNotSpecified
 	}
 
 	cfg, err := testcoverage.ConfigFromFile(configPath)
 	if err != nil {
-		return nil, fmt.Errorf("failed loading config from file: %w", err)
+		return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
 	}
 
 	if err := cfg.Validate(); err != nil {
-		return nil, fmt.Errorf("config file is not valid: %w", err)
+		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
 	}
 
-	return cfg, nil
+	return *cfg, nil
 }
