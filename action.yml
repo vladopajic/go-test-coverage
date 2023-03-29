@@ -10,7 +10,7 @@ outputs:
     description: Holds total coverage value.
 runs:
   using: docker
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v1.0.0
+  image: docker://ghcr.io/vladopajic/go-test-coverage:v1.0.1
   args:
     - -config=${{ inputs.config }}
 branding:
