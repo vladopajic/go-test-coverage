@@ -35,13 +35,13 @@ Example of [.testcoverage.yml](./.testcoverage.example.yml) config file.
 # Path to coverprofile file (output of `go test -coverprofile` command)
 profile: cover.out
 
-# (optional; default true)
+# (optional; default false)
 # When set to `true` tool will output github-action friendly outputs
-githubActionOutput: true
+github-action-output: true
 
 # (optional) 
 # When specified reported file paths will not contain local prefix in the output
-localPrefix: "github.com/org/project"
+local-prefix: "github.com/org/project"
 
 # Holds coverage thresholds percentages, values should be in range [0-100]
 threshold:

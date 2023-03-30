@@ -20,9 +20,9 @@ const (
 
 type Config struct {
 	Profile            string    `yaml:"profile"`
-	LocalPrefix        string    `yaml:"localPrefix"`
+	LocalPrefix        string    `yaml:"local-prefix"`
 	Threshold          Threshold `yaml:"threshold"`
-	GithubActionOutput bool      `yaml:"githubActionOutput"`
+	GithubActionOutput bool      `yaml:"github-action-output"`
 }
 
 type Threshold struct {
