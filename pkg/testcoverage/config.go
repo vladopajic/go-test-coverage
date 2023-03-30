@@ -63,18 +63,16 @@ func (c Config) Validate() error {
 	return nil
 }
 
-func ConfigFromFile(filename string) (*Config, error) {
-	cfg := NewConfig()
-
+func ConfigFromFile(cfg *Config, filename string) error {
 	source, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("failed reading file: %w", err)
+		return fmt.Errorf("failed reading file: %w", err)
 	}
 
-	err = yaml.Unmarshal(source, &cfg)
+	err = yaml.Unmarshal(source, cfg)
 	if err != nil {
-		return nil, fmt.Errorf("failed parsing config file: %w", err)
+		return fmt.Errorf("failed parsing config file: %w", err)
 	}
 
-	return &cfg, nil
+	return nil
 }

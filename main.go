@@ -1,17 +1,54 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
+	"strconv"
+	"time"
+
+	"github.com/alexflint/go-arg"
 
 	"github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
 
-// Version is the git reference injected at build
+// Version value is injected at build time
 //
 //nolint:gochecknoglobals // must be global var
 var Version string
+
+//nolint:gochecknoinits // relax
+func init() {
+	if Version == "" {
+		Version = "unknown-" + strconv.Itoa(int(time.Now().Unix()))
+	}
+}
+
+type args struct {
+	ConfigPath         string `arg:"-c,--config"`
+	Profile            string `arg:"-p,--profile" help:"path to coverage profile"`
+	LocalPrefix        string `arg:"-l,--local-prefix"`
+	GithubActionOutput bool   `arg:"-o,--github-action-output"`
+	ThresholdFile      int    `arg:"-f,--threshold-file"`
+	ThresholdPackage   int    `arg:"-k,--threshold-package"`
+	ThresholdTotal     int    `arg:"-t,--threshold-total"`
+}
+
+func (args) Version() string {
+	return "go-test-coverage " + Version
+}
+
+func (a *args) toConfig() testcoverage.Config {
+	cfg := testcoverage.NewConfig()
+
+	cfg.Profile = a.Profile
+	cfg.GithubActionOutput = a.GithubActionOutput
+	cfg.LocalPrefix = a.LocalPrefix
+	cfg.Threshold.File = a.ThresholdFile
+	cfg.Threshold.Package = a.ThresholdPackage
+	cfg.Threshold.Total = a.ThresholdTotal
+
+	return cfg
+}
 
 //nolint:forbidigo // relax
 func main() {
@@ -46,30 +83,28 @@ func main() {
 	}
 }
 
-var errConfigNotSpecified = fmt.Errorf("-config argument not specified")
-
 func readConfig() (testcoverage.Config, error) {
-	configPath := ""
-	flag.StringVar(
-		&configPath,
-		"config",
-		"",
-		"testcoverage config file",
-	)
-	flag.Parse()
-
-	if configPath == "" {
-		return testcoverage.Config{}, errConfigNotSpecified
+	cfg := testcoverage.NewConfig()
+	cmdArgs := args{
+		GithubActionOutput: cfg.GithubActionOutput,
+		ThresholdFile:      cfg.Threshold.File,
+		ThresholdPackage:   cfg.Threshold.Package,
+		ThresholdTotal:     cfg.Threshold.Total,
 	}
+	arg.MustParse(&cmdArgs)
 
-	cfg, err := testcoverage.ConfigFromFile(configPath)
-	if err != nil {
-		return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
+	if cmdArgs.ConfigPath != "" {
+		err := testcoverage.ConfigFromFile(&cfg, cmdArgs.ConfigPath)
+		if err != nil {
+			return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
+		}
+	} else {
+		cfg = cmdArgs.toConfig()
 	}
 
 	if err := cfg.Validate(); err != nil {
 		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
 	}
 
-	return *cfg, nil
+	return cfg, nil
 }
