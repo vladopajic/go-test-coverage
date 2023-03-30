@@ -60,28 +60,66 @@ func report(w io.Writer, coverageStats []CoverageStats) {
 	fmt.Fprintf(tabber, "\n")
 }
 
-//nolint:lll // relax
 func ReportForGithubAction(result AnalyzeResult, cfg Config) {
 	out := bufio.NewWriter(os.Stdout)
 	defer out.Flush()
 
-	{
-		msg := fmt.Sprintf("::set-output name=total_coverage::%s\n", strconv.Itoa(result.TotalCoverage))
-		fmt.Fprint(out, msg)
+	reportLineError := func(file, title, msg string) {
+		fmt.Fprintf(out, "::error file=%s,title=%s,line=1::%s\n", file, title, msg)
+	}
+	reportError := func(title, msg string) {
+		fmt.Fprintf(out, "::error title=%s::%s\n", title, msg)
 	}
 
 	for _, stats := range result.FilesBelowThreshold {
-		msg := fmt.Sprintf("::error file=%s,line=1::File test coverage below threshold of (%d%%)\n", stats.name, cfg.Threshold.File)
-		fmt.Fprint(out, msg)
+		title := "File test coverage below threshold"
+		c := stats.CoveredPercentage()
+		t := cfg.Threshold.File
+		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
+		reportLineError(stats.name, title, msg)
 	}
 
 	for _, stats := range result.PackagesBelowThreshold {
-		msg := fmt.Sprintf("::error ::Package (%s) test coverage below threshold of (%d%%)\n", stats.name, cfg.Threshold.Package)
-		fmt.Fprint(out, msg)
+		title := "Package test coverage below threshold"
+		c := stats.CoveredPercentage()
+		t := cfg.Threshold.Package
+		msg := fmt.Sprintf("package: %s; coverage: %d%%; threshold: %d%%", stats.name, c, t)
+		reportError(title, msg)
 	}
 
 	if !result.MeetsTotalCoverage {
-		msg := fmt.Sprintf("::error ::Total coverage below threshold of (%d%%)\n", cfg.Threshold.Total)
-		fmt.Fprint(out, msg)
+		title := "Total test coverage below threshold"
+		c := result.TotalCoverage
+		t := cfg.Threshold.Total
+		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
+		reportError(title, msg)
 	}
+}
+
+func SetGithubActionOutput(result AnalyzeResult) error {
+	githubOutputFile, err := openGitHubOutput(os.Getenv("GITHUB_OUTPUT"))
+	if err != nil {
+		return fmt.Errorf("could not open GITHUB_OUTPUT file: %w", err)
+	}
+	defer githubOutputFile.Close()
+
+	err = setOutput(githubOutputFile, "total_coverage", strconv.Itoa(result.TotalCoverage))
+	if err != nil {
+		return fmt.Errorf("failed setting github output: %w", err)
+	}
+
+	return nil
+}
+
+func openGitHubOutput(p string) (io.WriteCloser, error) {
+	//nolint:gomnd,wrapcheck //relax
+	return os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+}
+
+func setOutput(file io.Writer, name, value string) error {
+	if _, err := file.Write([]byte(fmt.Sprintf("%s=%s\n", name, value))); err != nil {
+		return fmt.Errorf("failed writing to file: %w", err)
+	}
+
+	return nil
 }

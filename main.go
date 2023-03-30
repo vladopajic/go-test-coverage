@@ -33,6 +33,12 @@ func main() {
 
 	if cfg.GithubActionOutput {
 		testcoverage.ReportForGithubAction(result, cfg)
+
+		err := testcoverage.SetGithubActionOutput(result)
+		if err != nil {
+			fmt.Printf("failed setting github action output: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	if !result.Pass() {
