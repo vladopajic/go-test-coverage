@@ -31,7 +31,7 @@ outputs:
     description: Holds total coverage value.
 runs:
   using: docker
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.0.1
+  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.0.0
   args:
     - -config=${{ inputs.config }}
     - -profile=${{ inputs.profile }}
