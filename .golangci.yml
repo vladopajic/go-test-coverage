@@ -69,7 +69,6 @@ linters:
     - revive
     - staticcheck
     - stylecheck
-    - tagliatelle
     - tenv
     - testpackage
     - thelper
