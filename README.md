@@ -22,12 +22,12 @@ steps:
     run: go test ./... -coverprofile=./cover.out
 
   - name: check test coverage
-    uses: vladopajic/go-test-coverage@v1
+    uses: vladopajic/go-test-coverage@v2
     with:
       # Configure with config file (option 1, has priority over option 2)
       config: ./.testcoverage.yml
       
-      # Or specify each config value (option 2)
+      # Specify each config value (option 2)
       # `config` input has to be empty in order for these inputs to be used
       profile: cover.out
       local-prefix: github.com/org/project
