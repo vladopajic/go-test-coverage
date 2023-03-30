@@ -5,26 +5,32 @@ inputs:
   config:
     description: Path of configuration file.
     required: false
+    default: "''"
     type: string
   profile:
     description: Path of coverage profile file.
     required: false
+    default: "''"
     type: string
   local-prefix:
     description: When specified reported file paths will not contain local prefix in the output.
     required: false
+    default: "''"
     type: string
   threshold-file:
     description: The minimum coverage that each file should have.
     required: false
+    default: 0
     type: number
   threshold-package:
     description: The minimum coverage that each package should have.
     required: false
+    default: 0
     type: number
   threshold-total:
     description: The minimum total coverage project should have.
     required: false
+    default: 50
     type: number
 outputs:
   total_coverage:

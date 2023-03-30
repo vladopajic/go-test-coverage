@@ -40,9 +40,9 @@ func (args) Version() string {
 func (a *args) toConfig() testcoverage.Config {
 	cfg := testcoverage.NewConfig()
 
-	cfg.Profile = a.Profile
+	cfg.Profile = fromMagicToEmpty(a.Profile)
 	cfg.GithubActionOutput = a.GithubActionOutput
-	cfg.LocalPrefix = a.LocalPrefix
+	cfg.LocalPrefix = fromMagicToEmpty(a.LocalPrefix)
 	cfg.Threshold.File = a.ThresholdFile
 	cfg.Threshold.Package = a.ThresholdPackage
 	cfg.Threshold.Total = a.ThresholdTotal
@@ -93,8 +93,9 @@ func readConfig() (testcoverage.Config, error) {
 	}
 	arg.MustParse(&cmdArgs)
 
-	if cmdArgs.ConfigPath != "" {
-		err := testcoverage.ConfigFromFile(&cfg, cmdArgs.ConfigPath)
+	cfgPath := fromMagicToEmpty(cmdArgs.ConfigPath)
+	if cfgPath != "" {
+		err := testcoverage.ConfigFromFile(&cfg, cfgPath)
 		if err != nil {
 			return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
 		}
@@ -107,4 +108,12 @@ func readConfig() (testcoverage.Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func fromMagicToEmpty(s string) string {
+	if s == `''` {
+		return ""
+	}
+
+	return s
 }
