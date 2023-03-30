@@ -27,28 +27,18 @@ jobs:
           imageVer=${image:(-6)}
           echo "Image version: $imageVer, Release version: ${{ env.RELEASE_VERSION }}"
           [[ "$imageVer" == "${{ env.RELEASE_VERSION }}" ]]
-      
-      - name: Install gox
-        run: go install github.com/mitchellh/gox@v1.0.1
-
-      - name: Build cross-platform binaries
-        env:
-          PLATFORMS: darwin/amd64 darwin/arm64 windows/amd64 linux/amd64 linux/arm64
-          OUTPUT_PATH_FORMAT: ./bin/${{ env.RELEASE_VERSION }}/{{.OS}}/{{.Arch}}/go-test-coverage
-        run: |
-          gox -osarch="${PLATFORMS}" -ldflags "-X main.Version=${RELEASE_VERSION}" -output "${OUTPUT_PATH_FORMAT}"
-      
+            
       - name: Update the major version tag
         id: majorver
-        uses: actions/publish-action@v0.1.0
+        uses: actions/publish-action@v0.2.2
         with:
           source-tag: ${{ env.RELEASE_VERSION }}
 
       - name: Setup buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v2
 
       - name: Login to GitHub container registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
