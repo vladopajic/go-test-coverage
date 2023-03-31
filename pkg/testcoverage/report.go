@@ -9,10 +9,10 @@ import (
 	"text/tabwriter"
 )
 
-func ReportForHuman(result AnalyzeResult, cfg Config) {
+func ReportForHuman(w io.Writer, result AnalyzeResult, cfg Config) {
 	thr := cfg.Threshold
 
-	out := bufio.NewWriter(os.Stdout)
+	out := bufio.NewWriter(w)
 	defer out.Flush()
 
 	{
