@@ -34,13 +34,13 @@ func GenerateCoverageStats(profileFileName string) ([]CoverageStats, error) {
 		}
 
 		s := CoverageStats{
-			name: profile.FileName,
+			Name: profile.FileName,
 		}
 
 		for _, f := range funcs {
 			c, t := f.coverage(profile)
-			s.total += t
-			s.covered += c
+			s.Total += t
+			s.Covered += c
 		}
 
 		fileStats = append(fileStats, s)
@@ -50,18 +50,18 @@ func GenerateCoverageStats(profileFileName string) ([]CoverageStats, error) {
 }
 
 type CoverageStats struct {
-	name    string
-	total   int64
-	covered int64
+	Name    string
+	Total   int64
+	Covered int64
 }
 
 func (s *CoverageStats) CoveredPercentage() int {
-	if s.total == 0 {
+	if s.Total == 0 {
 		return 0
 	}
 
 	//nolint:gomnd // relax
-	return int(math.Round((float64(s.covered*100) / float64(s.total))))
+	return int(math.Round((float64(s.Covered*100) / float64(s.Total))))
 }
 
 // findFuncs parses the file and returns a slice of FuncExtent descriptors.
@@ -179,8 +179,8 @@ func calcTotalStats(coverageStats []CoverageStats) CoverageStats {
 	totalStats := CoverageStats{}
 
 	for _, stats := range coverageStats {
-		totalStats.total += stats.total
-		totalStats.covered += stats.covered
+		totalStats.Total += stats.Total
+		totalStats.Covered += stats.Covered
 	}
 
 	return totalStats
@@ -190,17 +190,17 @@ func makePackageStats(coverageStats []CoverageStats) []CoverageStats {
 	packageStats := make(map[string]CoverageStats)
 
 	for _, stats := range coverageStats {
-		pkg := packageForFile(stats.name)
+		pkg := packageForFile(stats.Name)
 
 		var pkgStats CoverageStats
 		if s, ok := packageStats[pkg]; ok {
 			pkgStats = s
 		} else {
-			pkgStats = CoverageStats{name: pkg}
+			pkgStats = CoverageStats{Name: pkg}
 		}
 
-		pkgStats.total += stats.total
-		pkgStats.covered += stats.covered
+		pkgStats.Total += stats.Total
+		pkgStats.Covered += stats.Covered
 		packageStats[pkg] = pkgStats
 	}
 

@@ -54,14 +54,14 @@ func report(w io.Writer, coverageStats []CoverageStats) {
 	fmt.Fprintf(tabber, "\n\nIssues with:")
 
 	for _, stats := range coverageStats {
-		fmt.Fprintf(tabber, "\n%s\t%d%%", stats.name, stats.CoveredPercentage())
+		fmt.Fprintf(tabber, "\n%s\t%d%%", stats.Name, stats.CoveredPercentage())
 	}
 
 	fmt.Fprintf(tabber, "\n")
 }
 
-func ReportForGithubAction(result AnalyzeResult, cfg Config) {
-	out := bufio.NewWriter(os.Stdout)
+func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
+	out := bufio.NewWriter(w)
 	defer out.Flush()
 
 	reportLineError := func(file, title, msg string) {
@@ -76,14 +76,14 @@ func ReportForGithubAction(result AnalyzeResult, cfg Config) {
 		c := stats.CoveredPercentage()
 		t := cfg.Threshold.File
 		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
-		reportLineError(stats.name, title, msg)
+		reportLineError(stats.Name, title, msg)
 	}
 
 	for _, stats := range result.PackagesBelowThreshold {
 		title := "Package test coverage below threshold"
 		c := stats.CoveredPercentage()
 		t := cfg.Threshold.Package
-		msg := fmt.Sprintf("package: %s; coverage: %d%%; threshold: %d%%", stats.name, c, t)
+		msg := fmt.Sprintf("package: %s; coverage: %d%%; threshold: %d%%", stats.Name, c, t)
 		reportError(title, msg)
 	}
 
@@ -116,9 +116,9 @@ func openGitHubOutput(p string) (io.WriteCloser, error) {
 	return os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 }
 
-func setOutput(file io.Writer, name, value string) error {
-	if _, err := file.Write([]byte(fmt.Sprintf("%s=%s\n", name, value))); err != nil {
-		return fmt.Errorf("failed writing to file: %w", err)
+func setOutput(w io.Writer, name, value string) error {
+	if _, err := w.Write([]byte(fmt.Sprintf("%s=%s\n", name, value))); err != nil {
+		return fmt.Errorf("Write failed: %w", err)
 	}
 
 	return nil

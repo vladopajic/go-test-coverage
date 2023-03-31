@@ -69,7 +69,7 @@ func main() {
 	testcoverage.ReportForHuman(result, cfg)
 
 	if cfg.GithubActionOutput {
-		testcoverage.ReportForGithubAction(result, cfg)
+		testcoverage.ReportForGithubAction(os.Stdout, result, cfg)
 
 		err := testcoverage.SetGithubActionOutput(result)
 		if err != nil {

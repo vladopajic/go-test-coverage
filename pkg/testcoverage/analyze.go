@@ -42,7 +42,7 @@ func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 
 func stripLocalPrefix(coverageStats []CoverageStats, localPrefix string) []CoverageStats {
 	for i, stats := range coverageStats {
-		coverageStats[i].name = strings.Replace(stats.name, localPrefix, "", 1)
+		coverageStats[i].Name = strings.Replace(stats.Name, localPrefix, "", 1)
 	}
 
 	return coverageStats
