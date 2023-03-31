@@ -118,7 +118,7 @@ func openGitHubOutput(p string) (io.WriteCloser, error) {
 
 func setOutput(w io.Writer, name, value string) error {
 	if _, err := w.Write([]byte(fmt.Sprintf("%s=%s\n", name, value))); err != nil {
-		return fmt.Errorf("Write failed: %w", err)
+		return fmt.Errorf("failed write: %w", err)
 	}
 
 	return nil

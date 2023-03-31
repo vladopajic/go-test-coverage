@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+
 	. "github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
 
