@@ -2,12 +2,62 @@ package testcoverage_test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
+
+func Test_ReportForHumann(t *testing.T) {
+	t.Parallel()
+
+	localPrefix := "organization.org/" + randName()
+
+	// No errors
+	buf := &bytes.Buffer{}
+	ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: true}, Config{})
+	assertHumanReport(t, buf.Bytes(), 3, 0)
+
+	// Total coverage error
+	buf = &bytes.Buffer{}
+	ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: false}, Config{})
+	assertHumanReport(t, buf.Bytes(), 2, 1)
+
+	// File coverage error
+	buf = &bytes.Buffer{}
+	result := Analyze(
+		Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
+		mergeCoverageStats(
+			makeCoverageStats(localPrefix, 9),
+			makeCoverageStats(localPrefix, 10),
+		),
+	)
+	ReportForHuman(buf, result, Config{})
+	assertHumanReport(t, buf.Bytes(), 2, 1)
+
+	// Package coverage error
+	buf = &bytes.Buffer{}
+	result = Analyze(
+		Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
+		mergeCoverageStats(
+			makeCoverageStats(localPrefix, 9),
+			makeCoverageStats(localPrefix, 10),
+		),
+	)
+	ReportForHuman(buf, result, Config{})
+	assertHumanReport(t, buf.Bytes(), 2, 1)
+}
+
+func assertHumanReport(t *testing.T, output []byte, passCount, failCount int) {
+	t.Helper()
+
+	outputStr := string(output)
+
+	assert.Equal(t, passCount, strings.Count(outputStr, "PASS"))
+	assert.Equal(t, failCount, strings.Count(outputStr, "FAIL"))
+}
 
 func Test_ReportForGithubAction(t *testing.T) {
 	t.Parallel()

@@ -58,27 +58,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	stats, err := testcoverage.GenerateCoverageStats(cfg.Profile)
-	if err != nil {
-		fmt.Printf("failed to generate coverage statistics: %v\n", err)
-		os.Exit(1)
-	}
-
-	result := testcoverage.Analyze(cfg, stats)
-
-	testcoverage.ReportForHuman(result, cfg)
-
-	if cfg.GithubActionOutput {
-		testcoverage.ReportForGithubAction(os.Stdout, result, cfg)
-
-		err := testcoverage.SetGithubActionOutput(result)
-		if err != nil {
-			fmt.Printf("failed setting github action output: %v\n", err)
-			os.Exit(1)
-		}
-	}
-
-	if !result.Pass() {
+	result, err := testcoverage.Check(os.Stdout, cfg)
+	if err != nil || !result.Pass() {
 		os.Exit(1)
 	}
 }
