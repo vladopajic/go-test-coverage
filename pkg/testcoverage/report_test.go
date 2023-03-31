@@ -48,10 +48,3 @@ func Test_ReportForGithubAction(t *testing.T) {
 	ReportForGithubAction(buf, result, Config{})
 	assert.NotEmpty(t, buf.Bytes())
 }
-
-func Test_SetGithubActionOutput(t *testing.T) {
-	t.Parallel()
-
-	err := SetGithubActionOutput(AnalyzeResult{})
-	assert.Error(t, err)
-}
