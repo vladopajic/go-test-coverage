@@ -2,7 +2,6 @@ package testcoverage_test
 
 import (
 	"bytes"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -126,10 +125,10 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		err := os.Setenv(GaOutputFileEnv, testFile)
 		assert.NoError(t, err)
 
-		err = SetGithubActionOutput(AnalyzeResult{TotalCoverage: 100})
+		err = SetGithubActionOutput(AnalyzeResult{})
 		assert.NoError(t, err)
 
-		contentBytes, err := ioutil.ReadFile(testFile)
+		contentBytes, err := os.ReadFile(testFile)
 		assert.NoError(t, err)
 
 		content := string(contentBytes)

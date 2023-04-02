@@ -133,15 +133,18 @@ func setOutput(w io.Writer, name, value string) error {
 	return nil
 }
 
+//nolint:gomnd // relax
 func coverageColor(coverage int) string {
-	if coverage >= 100 {
+	switch {
+	case coverage >= 100:
 		return "#44cc11" // green
-	} else if coverage >= 90 {
+	case coverage >= 90:
 		return "#97ca00" // light green
-	} else if coverage >= 80 {
+	case coverage >= 80:
 		return "#dfb317" // yellow
-	} else if coverage >= 70 {
+	case coverage >= 70:
 		return "#fa7739" // orange
+	default:
+		return "#e05d44" // red
 	}
-	return "#e05d44" // red
 }
