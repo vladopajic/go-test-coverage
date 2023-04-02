@@ -21,7 +21,7 @@ jobs:
         id: coverage
         uses: vladopajic/go-test-coverage@v2
         with:
-          config: ./.github/workflows/.testcoverage.yml
+          config: ./.github/.testcoverage.yml
       - name: make coverage badge
         uses: action-badges/core@0.2.2
         if: contains(github.ref, 'main')
