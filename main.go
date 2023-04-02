@@ -38,7 +38,7 @@ func (args) Version() string {
 }
 
 func (a *args) toConfig() testcoverage.Config {
-	cfg := testcoverage.NewConfig()
+	cfg := testcoverage.Config{}
 
 	cfg.Profile = fromMagicToEmpty(a.Profile)
 	cfg.GithubActionOutput = a.GithubActionOutput
@@ -65,7 +65,7 @@ func main() {
 }
 
 func readConfig() (testcoverage.Config, error) {
-	cfg := testcoverage.NewConfig()
+	cfg := testcoverage.Config{}
 	cmdArgs := args{
 		GithubActionOutput: cfg.GithubActionOutput,
 		ThresholdFile:      cfg.Threshold.File,
