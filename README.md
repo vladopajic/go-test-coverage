@@ -10,7 +10,7 @@
 
 `go-test-coverage` is tool which reports issues when test coverage of a file or package is below set threshold.
 
-### Usage
+## Usage
 
 ```yml
 name: Go test coverage check
@@ -19,7 +19,7 @@ steps:
   - uses: actions/checkout@v3
   - uses: actions/setup-go@v3
   
-  - name: test (generate coverage)
+  - name: generate test coverage
     run: go test ./... -coverprofile=./cover.out
 
   - name: check test coverage
@@ -37,8 +37,8 @@ steps:
       threshold-total: 95
 ```
 
-### Config
-Example of [.testcoverage.yml](./.testcoverage.example.yml) config file.
+## Config
+Example of [.testcoverage.yml](./.testcoverage.example.yml) config file:
 
 ```yml
 # (mandatory) 
@@ -67,6 +67,59 @@ threshold:
   # The minimum total coverage project should have
   total: 95
 ```
+
+## Badge
+
+Generate self hosted coverage badge with `go-test-coverage` and `action-badges/core`. 
+
+Example:
+
+```yml
+name: Go test coverage check
+runs-on: ubuntu-latest
+steps:
+  - uses: actions/checkout@v3
+  - uses: actions/setup-go@v3
+  
+  - name: generate test generate coverage
+    run: go test ./... -coverprofile=./cover.out
+
+  - name: check test coverage
+    id: coverage
+    uses: vladopajic/go-test-coverage@v2
+    with:
+      profile: cover.out
+      local-prefix: github.com/org/project
+      threshold-file: 80
+      threshold-package: 80
+      threshold-total: 95
+  
+  - name: make coverage badge
+    uses: action-badges/core@0.2.2
+    if: contains(github.ref, 'main')
+    with:
+      label: coverage
+      message: ${{ steps.coverage.outputs.badge-text }}
+      message-color: ${{ steps.coverage.outputs.badge-color }}
+      file-name: coverage.svg
+      badge-branch: badges ## orphan branch where badge will be committed
+      github-token: "${{ secrets.GITHUB_TOKEN }}"
+```
+
+Orphan branch needs to be created prior to running workflow, to create an orphan branch manually:
+
+```
+git checkout --orphan badges
+git rm -rf .
+rm -f .gitignore
+echo '# Badges' > README.md
+git add README.md
+git commit -m 'init'
+git push origin badges
+```
+
+Lastly, check output of 'make coverage badge' step to see markdown snippet which can be added to README.md. 
+
 
 ## Contribution
 

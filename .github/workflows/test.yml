@@ -15,7 +15,7 @@ jobs:
           go-version-file: go.mod
       - name: test
         run: go test -timeout=30s -race -count=10 -failfast ./...
-      - name: generate coverage
+      - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
       - name: check test coverage
         id: coverage
@@ -27,8 +27,8 @@ jobs:
         if: contains(github.ref, 'main')
         with:
           label: coverage
-          message: ${{ steps.coverage.outputs.total_coverage }}%
-          message-color: blue
+          message: ${{ steps.coverage.outputs.badge-text }}
+          message-color: ${{ steps.coverage.outputs.badge-color }}
           file-name: coverage.svg
           badge-branch: badges
           github-token: "${{ secrets.GITHUB_TOKEN }}"
