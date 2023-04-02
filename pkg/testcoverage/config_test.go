@@ -8,24 +8,11 @@ import (
 	. "github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
 
-func Test_NewConfig(t *testing.T) {
-	t.Parallel()
-
-	cfg := NewConfig()
-
-	assert.Empty(t, cfg.Profile)
-	assert.Empty(t, cfg.LocalPrefix)
-	assert.False(t, cfg.GithubActionOutput)
-	assert.Equal(t, DefaultFileThreshold, cfg.Threshold.File)
-	assert.Equal(t, DefaultPackageThreshold, cfg.Threshold.Package)
-	assert.Equal(t, DefaultTotalThreshold, cfg.Threshold.Total)
-}
-
 func Test_Config_Validate(t *testing.T) {
 	t.Parallel()
 
 	newValidCfg := func() Config {
-		cfg := NewConfig()
+		cfg := Config{}
 		cfg.Profile = "cover.out"
 
 		return cfg
@@ -66,9 +53,8 @@ func Test_Config_Validate(t *testing.T) {
 func Test_ConfigFromFile(t *testing.T) {
 	t.Parallel()
 
-	cfg := NewConfig()
-	cfgBefore := NewConfig()
+	cfg := Config{}
 	err := ConfigFromFile(&cfg, t.TempDir())
 	assert.Error(t, err)
-	assert.Equal(t, cfgBefore, cfg)
+	assert.Equal(t, Config{}, cfg)
 }
