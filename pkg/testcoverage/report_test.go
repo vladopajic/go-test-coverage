@@ -19,45 +19,55 @@ func Test_ReportForHumann(t *testing.T) {
 	// No errors
 	buf := &bytes.Buffer{}
 	ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: true}, Config{})
-	assertHumanReport(t, buf.Bytes(), 3, 0)
+	assertHumanReport(t, buf.String(), 3, 0)
 
 	// Total coverage error
 	buf = &bytes.Buffer{}
 	ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: false}, Config{})
-	assertHumanReport(t, buf.Bytes(), 2, 1)
+	assertHumanReport(t, buf.String(), 2, 1)
 
 	// File coverage error
 	buf = &bytes.Buffer{}
+	statsWithError := makeCoverageStats(localPrefix, 0, 9)
 	result := Analyze(
 		Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
 		mergeCoverageStats(
-			makeCoverageStats(localPrefix, 9),
-			makeCoverageStats(localPrefix, 10),
+			statsWithError,
+			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
 	ReportForHuman(buf, result, Config{})
-	assertHumanReport(t, buf.Bytes(), 2, 1)
+	assertHumanReport(t, buf.String(), 2, 1)
+	// assertContainsStatNames(t, buf.String(), statsWithError)
 
 	// Package coverage error
 	buf = &bytes.Buffer{}
+	statsWithError = makeCoverageStats(localPrefix, 0, 9)
 	result = Analyze(
 		Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
 		mergeCoverageStats(
-			makeCoverageStats(localPrefix, 9),
-			makeCoverageStats(localPrefix, 10),
+			statsWithError,
+			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
 	ReportForHuman(buf, result, Config{})
-	assertHumanReport(t, buf.Bytes(), 2, 1)
+	assertHumanReport(t, buf.String(), 2, 1)
+	// assertContainsStatNames(t, buf.String(), MakePackageStats(statsWithError))
 }
 
-func assertHumanReport(t *testing.T, output []byte, passCount, failCount int) {
+func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
 	t.Helper()
 
-	outputStr := string(output)
+	assert.Equal(t, passCount, strings.Count(content, "PASS"))
+	assert.Equal(t, failCount, strings.Count(content, "FAIL"))
+}
 
-	assert.Equal(t, passCount, strings.Count(outputStr, "PASS"))
-	assert.Equal(t, failCount, strings.Count(outputStr, "FAIL"))
+func assertContainsStatNames(t *testing.T, content string, stats []CoverageStats) {
+	t.Helper()
+
+	for _, stat := range stats {
+		assert.Equal(t, 1, strings.Count(content, stat.Name))
+	}
 }
 
 func Test_ReportForGithubAction(t *testing.T) {
@@ -69,35 +79,53 @@ func Test_ReportForGithubAction(t *testing.T) {
 	buf := &bytes.Buffer{}
 	ReportForGithubAction(buf, AnalyzeResult{MeetsTotalCoverage: true}, Config{})
 	assert.Empty(t, buf.Bytes())
+	assertGithubActionErrorsCount(t, buf.String(), 0)
 
 	// Total coverage error
 	buf = &bytes.Buffer{}
 	ReportForGithubAction(buf, AnalyzeResult{MeetsTotalCoverage: false}, Config{})
-	assert.NotEmpty(t, buf.Bytes())
+	assertGithubActionErrorsCount(t, buf.String(), 1)
 
 	// File coverage error
 	buf = &bytes.Buffer{}
+	statsWithError := makeCoverageStats(localPrefix, 0, 9)
 	result := Analyze(
 		Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
 		mergeCoverageStats(
-			makeCoverageStats(localPrefix, 9),
-			makeCoverageStats(localPrefix, 10),
+			statsWithError,
+			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
 	ReportForGithubAction(buf, result, Config{})
-	assert.NotEmpty(t, buf.Bytes())
+	assertGithubActionErrorsCount(t, buf.String(), len(statsWithError))
 
 	// Package coverage error
 	buf = &bytes.Buffer{}
+	statsWithError = makeCoverageStats(localPrefix, 0, 9)
 	result = Analyze(
 		Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
 		mergeCoverageStats(
-			makeCoverageStats(localPrefix, 9),
-			makeCoverageStats(localPrefix, 10),
+			statsWithError,
+			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
 	ReportForGithubAction(buf, result, Config{})
-	assert.NotEmpty(t, buf.Bytes())
+	//assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
+
+	// Total coverage error
+	buf = &bytes.Buffer{}
+	result = Analyze(
+		Config{LocalPrefix: localPrefix, Threshold: Threshold{Total: 10}},
+		makeCoverageStats(localPrefix, 0, 9),
+	)
+	ReportForGithubAction(buf, result, Config{})
+	assertGithubActionErrorsCount(t, buf.String(), 1)
+}
+
+func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
+	t.Helper()
+
+	assert.Equal(t, count, strings.Count(content, "::error"))
 }
 
 func Test_SetGithubActionOutput(t *testing.T) {
@@ -132,5 +160,19 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
+	}
+}
+
+func Test_CoverageColor(t *testing.T) {
+	t.Parallel()
+
+	{ // Assert that there are 5 colors for coverage [0-101]
+		colors := make(map[string]struct{})
+		for i := 0; i <= 101; i++ {
+			color := CoverageColor(i)
+			colors[color] = struct{}{}
+		}
+
+		assert.Len(t, colors, 5)
 	}
 }

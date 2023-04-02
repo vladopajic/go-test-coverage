@@ -10,34 +10,58 @@ import (
 )
 
 func mergeCoverageStats(a, b []CoverageStats) []CoverageStats {
-	a = append(a, b...)
-	return a
+	r := make([]CoverageStats, 0, len(a)+len(b))
+	r = append(r, a...)
+	r = append(r, b...)
+	return r
 }
 
-func makeCoverageStats(localPrefix string, coverage int) []CoverageStats {
-	const minElements = 100
+func makeCoverageStats(localPrefix string, minc, maxc int) []CoverageStats {
+	const count = 100
 
-	result := make([]CoverageStats, 0, minElements)
+	coverageGen := makeCoverageGenFn(minc, maxc)
+	result := make([]CoverageStats, 0, count)
 
-	for len(result) < minElements {
+	for {
 		pkg := randPackageName(localPrefix)
 		for c := rand.Int31n(10); c >= 0; c-- { //nolint:gosec //relax
-			file := randFileName(pkg)
-			result = append(result, randCoverageStats(file, coverage))
+			total, covered := coverageGen()
+			stat := CoverageStats{
+				Name:    randFileName(pkg),
+				Covered: covered,
+				Total:   total,
+			}
+			result = append(result, stat)
+
+			if len(result) == count {
+				return result
+			}
 		}
 	}
-
-	return result
 }
 
-func randCoverageStats(name string, coverage int) CoverageStats {
-	total := rand.Intn(500) + 1 //nolint:gosec //relax
-	factor := float64(coverage) / 100
+func makeCoverageGenFn(min, max int) func() (total, covered int64) {
+	coveredPercentage := func(t, c int64) int {
+		if t == 0 {
+			return 0
+		}
 
-	return CoverageStats{
-		Name:    name,
-		Covered: int64(math.Ceil((float64(total) * factor))),
-		Total:   int64(total),
+		//nolint:gomnd // relax
+		return int(math.Round((float64(c*100) / float64(t))))
+	}
+
+	return func() (total, covered int64) {
+		tc := float64(rand.Intn(max-min+1) + min)
+
+		for {
+			covered = int64(rand.Intn(200)) //nolint:gosec //relax
+			total = int64(math.Floor(float64(100*float64(covered)) / tc))
+
+			cp := coveredPercentage(total, covered)
+			if cp >= min && cp <= max {
+				return
+			}
+		}
 	}
 }
 
@@ -54,7 +78,7 @@ func randFileName(pkg string) string {
 }
 
 func randName() string {
-	buf := make([]byte, rand.Int31n(10)+4) //nolint:gosec //relax
+	buf := make([]byte, rand.Int31n(10)+10) //nolint:gosec //relax
 
 	_, err := crand.Read(buf)
 	if err != nil {

@@ -28,7 +28,7 @@ func Test_Analyze(t *testing.T) {
 
 		result := Analyze(
 			Config{LocalPrefix: localPrefix, Threshold: Threshold{Total: 10}},
-			makeCoverageStats(localPrefix, 10),
+			makeCoverageStats(localPrefix, 10, 100),
 		)
 		assert.True(t, result.Pass())
 		assertNoLocalPrefix(t, result, localPrefix)
@@ -39,7 +39,7 @@ func Test_Analyze(t *testing.T) {
 
 		result := Analyze(
 			Config{LocalPrefix: localPrefix, Threshold: Threshold{Total: 10}},
-			makeCoverageStats(localPrefix, 9),
+			makeCoverageStats(localPrefix, 0, 9),
 		)
 		assert.False(t, result.Pass())
 		assertNoLocalPrefix(t, result, localPrefix)
@@ -50,7 +50,7 @@ func Test_Analyze(t *testing.T) {
 
 		result := Analyze(
 			Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
-			makeCoverageStats(localPrefix, 10),
+			makeCoverageStats(localPrefix, 10, 100),
 		)
 		assert.True(t, result.Pass())
 		assertNoLocalPrefix(t, result, localPrefix)
@@ -62,8 +62,8 @@ func Test_Analyze(t *testing.T) {
 		result := Analyze(
 			Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
 			mergeCoverageStats(
-				makeCoverageStats(localPrefix, 9),
-				makeCoverageStats(localPrefix, 10),
+				makeCoverageStats(localPrefix, 0, 9),
+				makeCoverageStats(localPrefix, 10, 100),
 			),
 		)
 		assert.NotEmpty(t, result.FilesBelowThreshold)
@@ -77,7 +77,7 @@ func Test_Analyze(t *testing.T) {
 
 		result := Analyze(
 			Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
-			makeCoverageStats(localPrefix, 10),
+			makeCoverageStats(localPrefix, 10, 100),
 		)
 		assert.True(t, result.Pass())
 		assertNoLocalPrefix(t, result, localPrefix)
@@ -89,8 +89,8 @@ func Test_Analyze(t *testing.T) {
 		result := Analyze(
 			Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
 			mergeCoverageStats(
-				makeCoverageStats(localPrefix, 9),
-				makeCoverageStats(localPrefix, 10),
+				makeCoverageStats(localPrefix, 0, 9),
+				makeCoverageStats(localPrefix, 10, 100),
 			),
 		)
 		assert.Empty(t, result.FilesBelowThreshold)

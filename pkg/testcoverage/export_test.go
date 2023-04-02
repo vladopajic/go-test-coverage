@@ -9,3 +9,8 @@ const (
 	GaOutputBadgeColor      = gaOutputBadgeColor
 	GaOutputBadgeText       = gaOutputBadgeText
 )
+
+var (
+	CoverageColor    = coverageColor
+	MakePackageStats = makePackageStats
+)
