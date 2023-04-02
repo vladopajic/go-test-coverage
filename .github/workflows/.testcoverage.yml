@@ -6,4 +6,4 @@ local-prefix: "github.com/vladopajic/go-test-coverage"
 threshold:
   file: 0
   package: 0
-  total: 55
+  total: 63
