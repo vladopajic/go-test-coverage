@@ -9,7 +9,7 @@ import (
 	. "github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
 
-func mergeCoverageStats(a, b []CoverageStats) []CoverageStats {
+func mergeStats(a, b []CoverageStats) []CoverageStats {
 	r := make([]CoverageStats, 0, len(a)+len(b))
 	r = append(r, a...)
 	r = append(r, b...)
@@ -17,7 +17,7 @@ func mergeCoverageStats(a, b []CoverageStats) []CoverageStats {
 	return r
 }
 
-func makeCoverageStats(localPrefix string, minc, maxc int) []CoverageStats {
+func randStats(localPrefix string, minc, maxc int) []CoverageStats {
 	const count = 100
 
 	coverageGen := makeCoverageGenFn(minc, maxc)
@@ -26,7 +26,7 @@ func makeCoverageStats(localPrefix string, minc, maxc int) []CoverageStats {
 	for {
 		pkg := randPackageName(localPrefix)
 
-		for c := rand.Int31n(10); c >= 0; c-- { //nolint:gosec //relax
+		for c := rand.Int31n(10); c >= 0; c-- {
 			total, covered := coverageGen()
 			stat := CoverageStats{
 				Name:    randFileName(pkg),
@@ -42,7 +42,6 @@ func makeCoverageStats(localPrefix string, minc, maxc int) []CoverageStats {
 	}
 }
 
-//nolint:gosec // relax
 func makeCoverageGenFn(min, max int) func() (total, covered int64) {
 	coveredPercentage := func(t, c int64) int {
 		if t == 0 {
@@ -80,7 +79,7 @@ func randFileName(pkg string) string {
 }
 
 func randName() string {
-	buf := make([]byte, rand.Int31n(10)+10) //nolint:gosec //relax
+	buf := make([]byte, rand.Int31n(10)+10)
 
 	_, err := crand.Read(buf)
 	if err != nil {

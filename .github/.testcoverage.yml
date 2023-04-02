@@ -4,6 +4,4 @@ profile: cover.out
 github-action-output: true
 local-prefix: "github.com/vladopajic/go-test-coverage"
 threshold:
-  file: 0
-  package: 0
-  total: 65
+  total: 92

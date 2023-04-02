@@ -12,7 +12,7 @@ import (
 func Test_Analyze(t *testing.T) {
 	t.Parallel()
 
-	localPrefix := "organization.org/" + randName()
+	prefix := "organization.org/" + randName()
 
 	t.Run("nil coverage stats", func(t *testing.T) {
 		t.Parallel()
@@ -27,88 +27,94 @@ func Test_Analyze(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: localPrefix, Threshold: Threshold{Total: 10}},
-			makeCoverageStats(localPrefix, 10, 100),
+			Config{LocalPrefix: prefix, Threshold: Threshold{Total: 10}},
+			randStats(prefix, 10, 100),
 		)
 		assert.True(t, result.Pass())
-		assertNoLocalPrefix(t, result, localPrefix)
+		assertPrefix(t, result, prefix, false)
+
+		result = Analyze(
+			Config{Threshold: Threshold{Total: 10}},
+			randStats(prefix, 10, 100),
+		)
+		assert.True(t, result.Pass())
+		assertPrefix(t, result, prefix, true)
 	})
 
 	t.Run("total coverage below threshold", func(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: localPrefix, Threshold: Threshold{Total: 10}},
-			makeCoverageStats(localPrefix, 0, 9),
+			Config{Threshold: Threshold{Total: 10}},
+			randStats(prefix, 0, 9),
 		)
 		assert.False(t, result.Pass())
-		assertNoLocalPrefix(t, result, localPrefix)
 	})
 
 	t.Run("files coverage above threshold", func(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
-			makeCoverageStats(localPrefix, 10, 100),
+			Config{LocalPrefix: prefix, Threshold: Threshold{File: 10}},
+			randStats(prefix, 10, 100),
 		)
 		assert.True(t, result.Pass())
-		assertNoLocalPrefix(t, result, localPrefix)
+		assertPrefix(t, result, prefix, false)
 	})
 
 	t.Run("files coverage below threshold", func(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
-			mergeCoverageStats(
-				makeCoverageStats(localPrefix, 0, 9),
-				makeCoverageStats(localPrefix, 10, 100),
+			Config{Threshold: Threshold{File: 10}},
+			mergeStats(
+				randStats(prefix, 0, 9),
+				randStats(prefix, 10, 100),
 			),
 		)
 		assert.NotEmpty(t, result.FilesBelowThreshold)
 		assert.Empty(t, result.PackagesBelowThreshold)
 		assert.False(t, result.Pass())
-		assertNoLocalPrefix(t, result, localPrefix)
+		assertPrefix(t, result, prefix, true)
 	})
 
 	t.Run("package coverage above threshold", func(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
-			makeCoverageStats(localPrefix, 10, 100),
+			Config{LocalPrefix: prefix, Threshold: Threshold{Package: 10}},
+			randStats(prefix, 10, 100),
 		)
 		assert.True(t, result.Pass())
-		assertNoLocalPrefix(t, result, localPrefix)
+		assertPrefix(t, result, prefix, false)
 	})
 
 	t.Run("package coverage below threshold", func(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
-			mergeCoverageStats(
-				makeCoverageStats(localPrefix, 0, 9),
-				makeCoverageStats(localPrefix, 10, 100),
+			Config{Threshold: Threshold{Package: 10}},
+			mergeStats(
+				randStats(prefix, 0, 9),
+				randStats(prefix, 10, 100),
 			),
 		)
 		assert.Empty(t, result.FilesBelowThreshold)
 		assert.NotEmpty(t, result.PackagesBelowThreshold)
 		assert.False(t, result.Pass())
-		assertNoLocalPrefix(t, result, localPrefix)
+		assertPrefix(t, result, prefix, true)
 	})
 }
 
-func assertNoLocalPrefix(t *testing.T, result AnalyzeResult, localPrefix string) {
+func assertPrefix(t *testing.T, result AnalyzeResult, prefix string, has bool) {
 	t.Helper()
 
-	noLocalPrefix := func(stats []CoverageStats) {
+	checkPrefix := func(stats []CoverageStats) {
 		for _, stat := range stats {
-			assert.False(t, strings.Contains(stat.Name, localPrefix))
+			assert.Equal(t, has, strings.Contains(stat.Name, prefix))
 		}
 	}
 
-	noLocalPrefix(result.FilesBelowThreshold)
-	noLocalPrefix(result.PackagesBelowThreshold)
+	checkPrefix(result.FilesBelowThreshold)
+	checkPrefix(result.PackagesBelowThreshold)
 }

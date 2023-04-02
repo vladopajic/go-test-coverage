@@ -10,9 +10,7 @@ import (
 	"text/tabwriter"
 )
 
-func ReportForHuman(w io.Writer, result AnalyzeResult, cfg Config) {
-	thr := cfg.Threshold
-
+func ReportForHuman(w io.Writer, result AnalyzeResult, thr Threshold) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
@@ -61,7 +59,7 @@ func reportIssuesForHuman(w io.Writer, coverageStats []CoverageStats) {
 	fmt.Fprintf(tabber, "\n")
 }
 
-func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
+func ReportForGithubAction(w io.Writer, result AnalyzeResult, thr Threshold) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
@@ -75,7 +73,7 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
 	for _, stats := range result.FilesBelowThreshold {
 		title := "File test coverage below threshold"
 		c := stats.CoveredPercentage()
-		t := cfg.Threshold.File
+		t := thr.File
 		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
 		reportLineError(stats.Name, title, msg)
 	}
@@ -83,7 +81,7 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
 	for _, stats := range result.PackagesBelowThreshold {
 		title := "Package test coverage below threshold"
 		c := stats.CoveredPercentage()
-		t := cfg.Threshold.Package
+		t := thr.Package
 		msg := fmt.Sprintf("package: %s; coverage: %d%%; threshold: %d%%", stats.Name, c, t)
 		reportError(title, msg)
 	}
@@ -91,7 +89,7 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
 	if !result.MeetsTotalCoverage {
 		title := "Total test coverage below threshold"
 		c := result.TotalCoverage
-		t := cfg.Threshold.Total
+		t := thr.Total
 		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
 		reportError(title, msg)
 	}

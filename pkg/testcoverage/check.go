@@ -6,7 +6,7 @@ import (
 )
 
 func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
-	stats, err := GenerateCoverageStats(cfg.Profile)
+	stats, err := GenerateCoverageStats(cfg)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
 		return AnalyzeResult{}, err
@@ -14,10 +14,10 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 
 	result := Analyze(cfg, stats)
 
-	ReportForHuman(w, result, cfg)
+	ReportForHuman(w, result, cfg.Threshold)
 
 	if cfg.GithubActionOutput {
-		ReportForGithubAction(w, result, cfg)
+		ReportForGithubAction(w, result, cfg.Threshold)
 
 		err := SetGithubActionOutput(result)
 		if err != nil {
