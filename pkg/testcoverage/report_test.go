@@ -106,10 +106,7 @@ func Test_SetGithubActionOutput(t *testing.T) {
 	// When test is execute in Github workflow GITHUB_OUTPUT env value will be set.
 	// It necessary to preserve this value after test has ended.
 	defaultFileVal := os.Getenv(GaOutputFileEnv)
-	defer func() {
-		err := os.Setenv(GaOutputFileEnv, defaultFileVal)
-		assert.NoError(t, err)
-	}()
+	defer assert.NoError(t, os.Setenv(GaOutputFileEnv, defaultFileVal))
 
 	{ // Assert case when file is not set in env
 		err := os.Setenv(GaOutputFileEnv, "")
