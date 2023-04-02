@@ -28,31 +28,32 @@ func Test_ReportForHumann(t *testing.T) {
 
 	// File coverage error
 	buf = &bytes.Buffer{}
+	cfg := Config{Threshold: Threshold{File: 10}}
 	statsWithError := makeCoverageStats(localPrefix, 0, 9)
 	result := Analyze(
-		Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
+		cfg,
 		mergeCoverageStats(
 			statsWithError,
 			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
-	ReportForHuman(buf, result, Config{})
+	ReportForHuman(buf, result, cfg)
 	assertHumanReport(t, buf.String(), 2, 1)
-	// assertContainsStatNames(t, buf.String(), statsWithError)
+	assertContainsStatNames(t, buf.String(), statsWithError)
 
 	// Package coverage error
 	buf = &bytes.Buffer{}
+	cfg = Config{Threshold: Threshold{Package: 10}}
 	statsWithError = makeCoverageStats(localPrefix, 0, 9)
 	result = Analyze(
-		Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
+		cfg,
 		mergeCoverageStats(
 			statsWithError,
 			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
-	ReportForHuman(buf, result, Config{})
+	ReportForHuman(buf, result, cfg)
 	assertHumanReport(t, buf.String(), 2, 1)
-	// assertContainsStatNames(t, buf.String(), MakePackageStats(statsWithError))
 }
 
 func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
@@ -88,34 +89,39 @@ func Test_ReportForGithubAction(t *testing.T) {
 
 	// File coverage error
 	buf = &bytes.Buffer{}
+	cfg := Config{Threshold: Threshold{File: 10}}
 	statsWithError := makeCoverageStats(localPrefix, 0, 9)
 	result := Analyze(
-		Config{LocalPrefix: localPrefix, Threshold: Threshold{File: 10}},
+		cfg,
 		mergeCoverageStats(
 			statsWithError,
 			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
-	ReportForGithubAction(buf, result, Config{})
+	ReportForGithubAction(buf, result, cfg)
 	assertGithubActionErrorsCount(t, buf.String(), len(statsWithError))
+	assertContainsStatNames(t, buf.String(), statsWithError)
 
 	// Package coverage error
 	buf = &bytes.Buffer{}
+	cfg = Config{Threshold: Threshold{Package: 10}}
 	statsWithError = makeCoverageStats(localPrefix, 0, 9)
 	result = Analyze(
-		Config{LocalPrefix: localPrefix, Threshold: Threshold{Package: 10}},
+		cfg,
 		mergeCoverageStats(
 			statsWithError,
 			makeCoverageStats(localPrefix, 10, 100),
 		),
 	)
-	ReportForGithubAction(buf, result, Config{})
-	//assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
+	ReportForGithubAction(buf, result, cfg)
+	// assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
+	// assertContainsStatNames(t, buf.String(), MakePackageStats(statsWithError))
 
 	// Total coverage error
 	buf = &bytes.Buffer{}
+	cfg = Config{Threshold: Threshold{Total: 10}}
 	result = Analyze(
-		Config{LocalPrefix: localPrefix, Threshold: Threshold{Total: 10}},
+		cfg,
 		makeCoverageStats(localPrefix, 0, 9),
 	)
 	ReportForGithubAction(buf, result, Config{})
