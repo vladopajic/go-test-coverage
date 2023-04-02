@@ -69,7 +69,7 @@ jobs:
         run: echo "Previous step should have failed" && exit 1
 
       - name: "check: test output values"
-        if: ${{ steps.test-2.outputs.total-coverage == '' ||  steps.test-2.outputs.badge-text == '' || steps.test-2.outputs.badge-color == '' }
+        if: ${{ steps.test-2.outputs.total-coverage == '' ||  steps.test-2.outputs.badge-text == '' || steps.test-2.outputs.badge-color == '' }}
         shell: bash
         run: echo "Previous step should have output values" && exit 1
 
