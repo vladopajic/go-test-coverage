@@ -2,6 +2,8 @@ package testcoverage_test
 
 import (
 	"bytes"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 
@@ -97,4 +99,42 @@ func Test_ReportForGithubAction(t *testing.T) {
 	)
 	ReportForGithubAction(buf, result, Config{})
 	assert.NotEmpty(t, buf.Bytes())
+}
+
+func Test_SetGithubActionOutput(t *testing.T) {
+	t.Parallel()
+
+	// When test is execute in Github workflow GITHUB_OUTPUT env value will be set.
+	// It necessary to preserve this value after test has ended.
+	defaultFileVal := os.Getenv(GaOutputFileEnv)
+	defer func() {
+		err := os.Setenv(GaOutputFileEnv, defaultFileVal)
+		assert.NoError(t, err)
+	}()
+
+	{ // Assert case when file is not set in env
+		err := os.Setenv(GaOutputFileEnv, "")
+		assert.NoError(t, err)
+
+		err = SetGithubActionOutput(AnalyzeResult{})
+		assert.Error(t, err)
+	}
+
+	{ // Assert case when file is set
+		testFile := t.TempDir() + "/ga.output"
+
+		err := os.Setenv(GaOutputFileEnv, testFile)
+		assert.NoError(t, err)
+
+		err = SetGithubActionOutput(AnalyzeResult{TotalCoverage: 100})
+		assert.NoError(t, err)
+
+		contentBytes, err := ioutil.ReadFile(testFile)
+		assert.NoError(t, err)
+
+		content := string(contentBytes)
+		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
+		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
+		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
+	}
 }
