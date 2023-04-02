@@ -17,10 +17,10 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Set RELEASE_VERSION ENV var
+      - name: set RELEASE_VERSION ENV var
         run: echo "RELEASE_VERSION=${GITHUB_REF:10}" >> $GITHUB_ENV
 
-      - name: Ensure container version is updated to release version
+      - name: ensure container version is updated to release version
         run: |
           image=$(yq '.runs.image' action.yml)
           echo "Image: $image"
@@ -28,23 +28,20 @@ jobs:
           echo "Image version: $imageVer, Release version: ${{ env.RELEASE_VERSION }}"
           [[ "$imageVer" == "${{ env.RELEASE_VERSION }}" ]]
             
-      - name: Update the major version tag
+      - name: update the major version tag
         id: majorver
         uses: actions/publish-action@v0.2.2
         with:
           source-tag: ${{ env.RELEASE_VERSION }}
 
-      - name: Setup buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to GitHub container registry
+      - name: login to GitHub container registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: build and push
         uses: docker/build-push-action@v4
         with:
           push: true

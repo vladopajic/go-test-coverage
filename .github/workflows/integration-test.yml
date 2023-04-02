@@ -10,28 +10,26 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v3
+      
       - name: setup go
         uses: actions/setup-go@v3
         with:
           go-version-file: go.mod
 
-      - name: Set action image version to dev
+      - name: set action image version to dev
         run: |
           yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
           image=$(yq '.runs.image' action.yml)
           echo "Image: $image"
 
-      - name: Setup buildx
-        uses: docker/setup-buildx-action@v2
-
-      - name: Login to GitHub container registry
+      - name: login to GitHub container registry
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push
+      - name: build and push
         uses: docker/build-push-action@v4
         with:
           push: true
@@ -43,27 +41,43 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
 
-      - name: Test total coverage 0% (config)
+      ## Test 1
+
+      - name: "test: total coverage 0% (config)"
         uses: ./
+        id: test-1
         with:
           config: ./.github/workflows/testdata/zero.yml
+      
+      - name: "check: test output values"
+        if: ${{ steps.test-1.outputs.total-coverage == '' ||  steps.test-1.outputs.badge-text == '' || steps.test-1.outputs.badge-color == '' }}
+        shell: bash
+        run: echo "Previous step should have output values" && exit 1
 
-      - name: Test total coverage 100% (config)
+      ## Test 2
+
+      - name: "test: total coverage 100% (config)"
         uses: ./
-        id: should-fail-1
+        id: test-2
         continue-on-error: true
         with:
           config: ./.github/workflows/testdata/total100.yml
       
-      - name: Check previous step failed
-        if: steps.should-fail-1.outcome != 'failure'
+      - name: "check: test should have failed"
+        if: steps.test-2.outcome != 'failure'
         shell: bash
-        run: |
-          echo "Previous step should have failed"
-          exit 1
+        run: echo "Previous step should have failed" && exit 1
 
-      - name: Test total coverage 0% (inputs)
+      - name: "check: test output values"
+        if: ${{ steps.test-2.outputs.total-coverage == '' ||  steps.test-2.outputs.badge-text == '' || steps.test-2.outputs.badge-color == '' }}
+        shell: bash
+        run: echo "Previous step should have output values" && exit 1
+
+      ## Test 3
+
+      - name: "test: total coverage 0% (inputs)"
         uses: ./
+        id: test-3
         with:
           profile: cover.out
           local-prefix: "github.com/vladopajic/go-test-coverage"
@@ -71,9 +85,11 @@ jobs:
           threshold-package: 0
           threshold-total: 0
 
-      - name: Test total coverage 100% (inputs)
+      ## Test 4
+
+      - name: "test: total coverage 100% (inputs)"
         uses: ./
-        id: should-fail-2
+        id: test-4
         continue-on-error: true
         with:
           profile: cover.out
@@ -82,9 +98,7 @@ jobs:
           threshold-package: 0
           threshold-total: 100
       
-      - name: Check previous step failed
-        if: steps.should-fail-2.outcome != 'failure'
+      - name: "check: test should have failed"
+        if: steps.test-4.outcome != 'failure'
         shell: bash
-        run: |
-          echo "Previous step should have failed"
-          exit 1
+        run: echo "Previous step should have failed" && exit 1

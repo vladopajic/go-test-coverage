@@ -99,9 +99,9 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
 
 const (
 	gaOutputFileEnv       = "GITHUB_OUTPUT"
-	gaOutputTotalCoverage = "total_coverage"
-	gaOutputBadgeColor    = "badge_color"
-	gaOutputBadgeText     = "badge_text"
+	gaOutputTotalCoverage = "total-coverage"
+	gaOutputBadgeColor    = "badge-color"
+	gaOutputBadgeText     = "badge-text"
 )
 
 func SetGithubActionOutput(result AnalyzeResult) error {

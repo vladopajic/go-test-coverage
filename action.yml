@@ -33,8 +33,12 @@ inputs:
     default: 50
     type: number
 outputs:
-  total_coverage:
+  total-coverage:
     description: Holds total coverage value.
+  badge-text:
+    description: Holds badge text value.
+  badge-color:
+    description: Holds badge color value.
 runs:
   using: docker
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.0.0
