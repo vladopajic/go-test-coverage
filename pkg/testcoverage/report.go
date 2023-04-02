@@ -2,6 +2,7 @@ package testcoverage
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -19,7 +20,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult, cfg Config) {
 		fmt.Fprintf(out, "Files meeting coverage threshold of (%d%%):\t", thr.File)
 		if len(result.FilesBelowThreshold) > 0 {
 			fmt.Fprintf(out, "FAIL")
-			report(out, result.FilesBelowThreshold)
+			reportIssuesForHuman(out, result.FilesBelowThreshold)
 		} else {
 			fmt.Fprintf(out, "PASS")
 		}
@@ -29,7 +30,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult, cfg Config) {
 		fmt.Fprintf(out, "\nPackages meeting coverage threshold of (%d%%):\t", thr.Package)
 		if len(result.PackagesBelowThreshold) > 0 {
 			fmt.Fprintf(out, "FAIL")
-			report(out, result.PackagesBelowThreshold)
+			reportIssuesForHuman(out, result.PackagesBelowThreshold)
 		} else {
 			fmt.Fprintf(out, "PASS")
 		}
@@ -47,7 +48,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult, cfg Config) {
 	fmt.Fprintf(out, "\nTotal test coverage: %d%%\n", result.TotalCoverage)
 }
 
-func report(w io.Writer, coverageStats []CoverageStats) {
+func reportIssuesForHuman(w io.Writer, coverageStats []CoverageStats) {
 	tabber := tabwriter.NewWriter(w, 1, 8, 1, '\t', 0) //nolint:gomnd // relax
 	defer tabber.Flush()
 
@@ -96,19 +97,27 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult, cfg Config) {
 	}
 }
 
+const (
+	gaOutputFileEnv       = "GITHUB_OUTPUT"
+	gaOutputTotalCoverage = "total_coverage"
+	gaOutputBadgeColor    = "badge_color"
+	gaOutputBadgeText     = "badge_text"
+)
+
 func SetGithubActionOutput(result AnalyzeResult) error {
-	githubOutputFile, err := openGitHubOutput(os.Getenv("GITHUB_OUTPUT"))
+	file, err := openGitHubOutput(os.Getenv(gaOutputFileEnv))
 	if err != nil {
-		return fmt.Errorf("could not open GITHUB_OUTPUT file: %w", err)
+		return fmt.Errorf("could not open GitHub output file: %w", err)
 	}
-	defer githubOutputFile.Close()
+	defer file.Close()
 
-	err = setOutput(githubOutputFile, "total_coverage", strconv.Itoa(result.TotalCoverage))
-	if err != nil {
-		return fmt.Errorf("failed setting github output: %w", err)
-	}
+	totalText := strconv.Itoa(result.TotalCoverage)
 
-	return nil
+	return errors.Join(
+		setOutput(file, gaOutputTotalCoverage, totalText),
+		setOutput(file, gaOutputBadgeColor, coverageColor(result.TotalCoverage)),
+		setOutput(file, gaOutputBadgeText, totalText+"%"),
+	)
 }
 
 func openGitHubOutput(p string) (io.WriteCloser, error) {
@@ -118,8 +127,24 @@ func openGitHubOutput(p string) (io.WriteCloser, error) {
 
 func setOutput(w io.Writer, name, value string) error {
 	if _, err := w.Write([]byte(fmt.Sprintf("%s=%s\n", name, value))); err != nil {
-		return fmt.Errorf("failed write: %w", err)
+		return fmt.Errorf("failed setting github output [var=%s]: %w", name, err)
 	}
 
 	return nil
+}
+
+//nolint:gomnd // relax
+func coverageColor(coverage int) string {
+	switch {
+	case coverage >= 100:
+		return "#44cc11" // green
+	case coverage >= 90:
+		return "#97ca00" // light green
+	case coverage >= 80:
+		return "#dfb317" // yellow
+	case coverage >= 70:
+		return "#fa7739" // orange
+	default:
+		return "#e05d44" // red
+	}
 }

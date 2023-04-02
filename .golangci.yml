@@ -114,3 +114,4 @@ issues:
     - path: export_test\.go
       linters:
         - revive      ## Disabling linter because we intentionally want to use unexported types in tests
+        - gochecknoglobals ## Global values are useful when exporting functions
