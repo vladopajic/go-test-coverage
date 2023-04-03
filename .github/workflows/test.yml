@@ -14,7 +14,7 @@ jobs:
         with:
           go-version-file: go.mod
       - name: test
-        run: go test -timeout=30s -race -count=10 -failfast ./...
+        run: make test
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
       - name: check test coverage

@@ -6,16 +6,15 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
-	"math"
+	"os"
 	"path/filepath"
-	"strings"
 
 	"golang.org/x/tools/cover"
 )
 
 //nolint:wrapcheck // relax
-func GenerateCoverageStats(profileFileName string) ([]CoverageStats, error) {
-	profiles, err := cover.ParseProfiles(profileFileName)
+func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
+	profiles, err := cover.ParseProfiles(cfg.Profile)
 	if err != nil {
 		return nil, err
 	}
@@ -23,7 +22,7 @@ func GenerateCoverageStats(profileFileName string) ([]CoverageStats, error) {
 	fileStats := make([]CoverageStats, 0, len(profiles))
 
 	for _, profile := range profiles {
-		file, err := findFile(profile.FileName)
+		file, err := findFile(profile.FileName, cfg.LocalPrefix)
 		if err != nil {
 			return nil, err
 		}
@@ -49,19 +48,21 @@ func GenerateCoverageStats(profileFileName string) ([]CoverageStats, error) {
 	return fileStats, nil
 }
 
-type CoverageStats struct {
-	Name    string
-	Total   int64
-	Covered int64
-}
-
-func (s *CoverageStats) CoveredPercentage() int {
-	if s.Total == 0 {
-		return 0
+// findFile finds the location of the named file in GOROOT, GOPATH etc.
+func findFile(file, prefix string) (string, error) {
+	noPrefixName := stripPrefix(file, prefix)
+	if _, err := os.Stat(noPrefixName); err == nil {
+		return noPrefixName, nil
 	}
 
-	//nolint:gomnd // relax
-	return int(math.Round((float64(s.Covered*100) / float64(s.Total))))
+	dir, file := filepath.Split(file)
+
+	pkg, err := build.Import(dir, ".", build.FindOnly)
+	if err != nil {
+		return "", fmt.Errorf("can't find %q: %w", file, err)
+	}
+
+	return filepath.Join(pkg.Dir, file), nil
 }
 
 // findFuncs parses the file and returns a slice of FuncExtent descriptors.
@@ -146,77 +147,4 @@ func (f *FuncExtent) coverage(profile *cover.Profile) (int64, int64) {
 	}
 
 	return covered, total
-}
-
-// findFile finds the location of the named file in GOROOT, GOPATH etc.
-func findFile(file string) (string, error) {
-	dir, file := filepath.Split(file)
-
-	pkg, err := build.Import(dir, ".", build.FindOnly)
-	if err != nil {
-		return "", fmt.Errorf("can't find %q: %w", file, err)
-	}
-
-	return filepath.Join(pkg.Dir, file), nil
-}
-
-func checkCoverageStatsBelowThreshold(
-	coverageStats []CoverageStats,
-	threshold int,
-) []CoverageStats {
-	belowThreshold := make([]CoverageStats, 0)
-
-	for _, stats := range coverageStats {
-		if stats.CoveredPercentage() < threshold {
-			belowThreshold = append(belowThreshold, stats)
-		}
-	}
-
-	return belowThreshold
-}
-
-func calcTotalStats(coverageStats []CoverageStats) CoverageStats {
-	totalStats := CoverageStats{}
-
-	for _, stats := range coverageStats {
-		totalStats.Total += stats.Total
-		totalStats.Covered += stats.Covered
-	}
-
-	return totalStats
-}
-
-func makePackageStats(coverageStats []CoverageStats) []CoverageStats {
-	packageStats := make(map[string]CoverageStats)
-
-	for _, stats := range coverageStats {
-		pkg := packageForFile(stats.Name)
-
-		var pkgStats CoverageStats
-		if s, ok := packageStats[pkg]; ok {
-			pkgStats = s
-		} else {
-			pkgStats = CoverageStats{Name: pkg}
-		}
-
-		pkgStats.Total += stats.Total
-		pkgStats.Covered += stats.Covered
-		packageStats[pkg] = pkgStats
-	}
-
-	packageStatsSlice := make([]CoverageStats, 0, len(packageStats))
-	for _, stats := range packageStats {
-		packageStatsSlice = append(packageStatsSlice, stats)
-	}
-
-	return packageStatsSlice
-}
-
-func packageForFile(filename string) string {
-	i := strings.LastIndex(filename, "/")
-	if i == -1 {
-		return filename
-	}
-
-	return filename[:i]
 }

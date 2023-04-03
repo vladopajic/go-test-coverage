@@ -110,6 +110,11 @@ issues:
         - funlen      ## Function length is okay due to many tests cases
         - wrapcheck   ## No need to check wrapping errors in tests
         - maintidx    ## Test are okay to be long
+    
+    - linters:
+        - gosec
+      path: _test\.go
+      text: "G404"   ## allow weak rand in tests
 
     - path: export_test\.go
       linters:
