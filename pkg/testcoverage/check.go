@@ -28,3 +28,21 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 
 	return result, nil
 }
+
+func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
+	thr := cfg.Threshold
+
+	filesBelowThreshold := checkCoverageStatsBelowThreshold(coverageStats, thr.File)
+	packagesBelowThreshold := checkCoverageStatsBelowThreshold(
+		makePackageStats(coverageStats), thr.Package,
+	)
+	totalStats := calcTotalStats(coverageStats)
+	meetsTotalCoverage := totalStats.CoveredPercentage() >= thr.Total
+
+	return AnalyzeResult{
+		FilesBelowThreshold:    stripPrefixFromStats(filesBelowThreshold, cfg.LocalPrefix),
+		PackagesBelowThreshold: stripPrefixFromStats(packagesBelowThreshold, cfg.LocalPrefix),
+		MeetsTotalCoverage:     meetsTotalCoverage,
+		TotalCoverage:          totalStats.CoveredPercentage(),
+	}
+}

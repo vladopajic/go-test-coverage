@@ -48,6 +48,23 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 	return fileStats, nil
 }
 
+// findFile finds the location of the named file in GOROOT, GOPATH etc.
+func findFile(file, prefix string) (string, error) {
+	noPrefixName := stripPrefix(file, prefix)
+	if _, err := os.Stat(noPrefixName); err == nil {
+		return noPrefixName, nil
+	}
+
+	dir, file := filepath.Split(file)
+
+	pkg, err := build.Import(dir, ".", build.FindOnly)
+	if err != nil {
+		return "", fmt.Errorf("can't find %q: %w", file, err)
+	}
+
+	return filepath.Join(pkg.Dir, file), nil
+}
+
 // findFuncs parses the file and returns a slice of FuncExtent descriptors.
 func findFuncs(name string) ([]*FuncExtent, error) {
 	fset := token.NewFileSet()
@@ -130,21 +147,4 @@ func (f *FuncExtent) coverage(profile *cover.Profile) (int64, int64) {
 	}
 
 	return covered, total
-}
-
-// findFile finds the location of the named file in GOROOT, GOPATH etc.
-func findFile(file, prefix string) (string, error) {
-	noPrefixName := stripPrefix(file, prefix)
-	if _, err := os.Stat(noPrefixName); err == nil {
-		return noPrefixName, nil
-	}
-
-	dir, file := filepath.Split(file)
-
-	pkg, err := build.Import(dir, ".", build.FindOnly)
-	if err != nil {
-		return "", fmt.Errorf("can't find %q: %w", file, err)
-	}
-
-	return filepath.Join(pkg.Dir, file), nil
 }

@@ -93,3 +93,29 @@ func packageForFile(filename string) string {
 
 	return filename[:i]
 }
+
+func stripPrefixFromStats(coverageStats []CoverageStats, localPrefix string) []CoverageStats {
+	ret := make([]CoverageStats, len(coverageStats))
+
+	for i, stats := range coverageStats {
+		ret[i] = CoverageStats{
+			Name:    stripPrefix(stats.Name, localPrefix),
+			Total:   stats.Total,
+			Covered: stats.Covered,
+		}
+	}
+
+	return ret
+}
+
+func stripPrefix(name, prefix string) string {
+	if prefix == "" {
+		return name
+	}
+
+	if string(prefix[len(prefix)-1]) != "/" {
+		prefix += "/"
+	}
+
+	return strings.Replace(name, prefix, "", 1)
+}

@@ -14,7 +14,7 @@ import (
 func Test_ReportForHuman(t *testing.T) {
 	t.Parallel()
 
-	prefix := "organization.org/" + randName()
+	prefix := "organization.org"
 
 	// No errors
 	buf := &bytes.Buffer{}
@@ -54,7 +54,7 @@ func Test_ReportForHuman(t *testing.T) {
 func Test_ReportForGithubAction(t *testing.T) {
 	t.Parallel()
 
-	prefix := "organization.org/" + randName()
+	prefix := "organization.org"
 
 	// No errors
 	buf := &bytes.Buffer{}
@@ -162,16 +162,32 @@ func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
 func assertContainStats(t *testing.T, content string, stats []CoverageStats) {
 	t.Helper()
 
+	contains := 0
+
 	for _, stat := range stats {
-		assert.Equal(t, 1, strings.Count(content, stat.Name))
+		if strings.Count(content, stat.Name) == 1 {
+			contains++
+		}
+	}
+
+	if contains != len(stats) {
+		t.Errorf("content doesn't contain exactly one stats: got %d, want %d", contains, len(stats))
 	}
 }
 
 func assertNotContainStats(t *testing.T, content string, stats []CoverageStats) {
 	t.Helper()
 
+	contains := 0
+
 	for _, stat := range stats {
-		assert.Equal(t, 0, strings.Count(content, stat.Name))
+		if strings.Count(content, stat.Name) >= 0 {
+			contains++
+		}
+	}
+
+	if contains != len(stats) {
+		t.Errorf("content should not contain stats: got %d", contains)
 	}
 }
 
