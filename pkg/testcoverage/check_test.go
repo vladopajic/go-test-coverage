@@ -195,16 +195,3 @@ func Test_Analyze(t *testing.T) {
 		assertPrefix(t, result, prefix, true)
 	})
 }
-
-func assertPrefix(t *testing.T, result AnalyzeResult, prefix string, has bool) {
-	t.Helper()
-
-	checkPrefix := func(stats []CoverageStats) {
-		for _, stat := range stats {
-			assert.Equal(t, has, strings.Contains(stat.Name, prefix))
-		}
-	}
-
-	checkPrefix(result.FilesBelowThreshold)
-	checkPrefix(result.PackagesBelowThreshold)
-}

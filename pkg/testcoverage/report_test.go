@@ -45,7 +45,7 @@ func Test_ReportForHuman(t *testing.T) {
 	result = Analyze(cfg, mergeStats(statsWithError, statsNoError))
 	ReportForHuman(buf, result, cfg.Threshold)
 	assertHumanReport(t, buf.String(), 2, 1)
-	// assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
+	assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 	assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 	assertNotContainStats(t, buf.String(), statsWithError)
 	assertNotContainStats(t, buf.String(), statsNoError)
@@ -96,8 +96,8 @@ func Test_ReportForGithubAction(t *testing.T) {
 	statsNoError = randStats(prefix, 10, 100)
 	result = Analyze(cfg, mergeStats(statsWithError, statsNoError))
 	ReportForGithubAction(buf, result, cfg.Threshold)
-	// assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
-	// assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
+	assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
+	assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 	assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 	assertNotContainStats(t, buf.String(), statsWithError)
 	assertNotContainStats(t, buf.String(), statsNoError)
@@ -146,49 +146,4 @@ func Test_CoverageColor(t *testing.T) {
 
 		assert.Len(t, colors, 5)
 	}
-}
-
-func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
-	t.Helper()
-
-	assert.Equal(t, passCount, strings.Count(content, "PASS"))
-	assert.Equal(t, failCount, strings.Count(content, "FAIL"))
-}
-
-func assertContainStats(t *testing.T, content string, stats []CoverageStats) {
-	t.Helper()
-
-	contains := 0
-
-	for _, stat := range stats {
-		if strings.Count(content, stat.Name) == 1 {
-			contains++
-		}
-	}
-
-	if contains != len(stats) {
-		t.Errorf("content doesn't contain exactly one stats: got %d, want %d", contains, len(stats))
-	}
-}
-
-func assertNotContainStats(t *testing.T, content string, stats []CoverageStats) {
-	t.Helper()
-
-	contains := 0
-
-	for _, stat := range stats {
-		if strings.Count(content, stat.Name) >= 0 {
-			contains++
-		}
-	}
-
-	if contains != len(stats) {
-		t.Errorf("content should not contain stats: got %d", contains)
-	}
-}
-
-func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
-	t.Helper()
-
-	assert.Equal(t, count, strings.Count(content, "::error"))
 }

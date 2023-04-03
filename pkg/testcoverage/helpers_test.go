@@ -5,6 +5,10 @@ import (
 	"encoding/hex"
 	"math"
 	"math/rand"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/pkg/testcoverage"
 )
@@ -54,6 +58,10 @@ func makeCoverageGenFn(min, max int) func() (total, covered int64) {
 	return func() (int64, int64) {
 		tc := float64(rand.Intn(max-min+1) + min)
 
+		if tc == 0 {
+			return 0, 0
+		}
+
 		for {
 			covered := int64(rand.Intn(200))
 			total := int64(math.Floor(float64(100*covered) / tc))
@@ -79,7 +87,7 @@ func randFileName(pkg string) string {
 }
 
 func randName() string {
-	buf := make([]byte, rand.Int31n(10)+10)
+	buf := make([]byte, 10)
 
 	_, err := crand.Read(buf)
 	if err != nil {
@@ -87,4 +95,62 @@ func randName() string {
 	}
 
 	return hex.EncodeToString(buf)
+}
+
+func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
+	t.Helper()
+
+	assert.Equal(t, passCount, strings.Count(content, "PASS"))
+	assert.Equal(t, failCount, strings.Count(content, "FAIL"))
+}
+
+func assertContainStats(t *testing.T, content string, stats []CoverageStats) {
+	t.Helper()
+
+	contains := 0
+
+	for _, stat := range stats {
+		if strings.Count(content, stat.Name) == 1 {
+			contains++
+		}
+	}
+
+	if contains != len(stats) {
+		t.Errorf("content doesn't contain exactly one stats: got %d, want %d", contains, len(stats))
+	}
+}
+
+func assertNotContainStats(t *testing.T, content string, stats []CoverageStats) {
+	t.Helper()
+
+	contains := 0
+
+	for _, stat := range stats {
+		if strings.Count(content, stat.Name) >= 0 {
+			contains++
+		}
+	}
+
+	if contains != len(stats) {
+		t.Errorf("content should not contain stats: got %d", contains)
+	}
+}
+
+func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
+	t.Helper()
+
+	assert.Equal(t, count, strings.Count(content, "::error"))
+}
+
+func assertPrefix(t *testing.T, result AnalyzeResult, prefix string, has bool) {
+	t.Helper()
+
+	checkPrefix := func(stats []CoverageStats) {
+		for _, stat := range stats {
+			assert.Equal(t, has, strings.Contains(stat.Name, prefix))
+		}
+	}
+
+	checkPrefix(result.FilesBelowThreshold)
+	checkPrefix(result.PackagesBelowThreshold)
 }
