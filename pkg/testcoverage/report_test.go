@@ -103,29 +103,25 @@ func Test_ReportForGithubAction(t *testing.T) {
 	assertNotContainStats(t, buf.String(), statsNoError)
 }
 
+//nolint:paralleltest // must not be parallel because it uses env
 func Test_SetGithubActionOutput(t *testing.T) {
-	t.Parallel()
-
-	// When test is execute in Github workflow GITHUB_OUTPUT env value will be set.
-	// It necessary to preserve this value after test has ended.
-	defaultFileVal := os.Getenv(GaOutputFileEnv)
-	defer assert.NoError(t, os.Setenv(GaOutputFileEnv, defaultFileVal))
-
-	{ // Assert case when file is not set in env
-		err := os.Setenv(GaOutputFileEnv, "")
-		assert.NoError(t, err)
-
-		err = SetGithubActionOutput(AnalyzeResult{})
-		assert.Error(t, err)
+	if testing.Short() {
+		return
 	}
 
-	{ // Assert case when file is set
+	t.Run("no env file", func(t *testing.T) {
+		t.Setenv(GaOutputFileEnv, "")
+
+		err := SetGithubActionOutput(AnalyzeResult{})
+		assert.Error(t, err)
+	})
+
+	t.Run("ok", func(t *testing.T) {
 		testFile := t.TempDir() + "/ga.output"
 
-		err := os.Setenv(GaOutputFileEnv, testFile)
-		assert.NoError(t, err)
+		t.Setenv(GaOutputFileEnv, testFile)
 
-		err = SetGithubActionOutput(AnalyzeResult{})
+		err := SetGithubActionOutput(AnalyzeResult{})
 		assert.NoError(t, err)
 
 		contentBytes, err := os.ReadFile(testFile)
@@ -135,7 +131,7 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
-	}
+	})
 }
 
 func Test_CoverageColor(t *testing.T) {

@@ -58,11 +58,28 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 2, 1)
 	})
 
-	t.Run("ok fail with github output", func(t *testing.T) {
+	t.Run("nok", func(t *testing.T) {
 		t.Parallel()
 
+		buf := &bytes.Buffer{}
+		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
+		result, err := Check(buf, cfg)
+		assert.Error(t, err)
+		assert.False(t, result.Pass())
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 0, 0)
+	})
+}
+
+//nolint:paralleltest // must not be parallel because it uses env
+func TestCheckNoParallel(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	t.Run("ok fail with github output", func(t *testing.T) {
 		testFile := t.TempDir() + "/ga.output"
-		os.Setenv(GaOutputFileEnv, testFile)
+		t.Setenv(GaOutputFileEnv, testFile)
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 100}}
@@ -79,18 +96,6 @@ func TestCheck(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
-	})
-
-	t.Run("nok", func(t *testing.T) {
-		t.Parallel()
-
-		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
-		result, err := Check(buf, cfg)
-		assert.Error(t, err)
-		assert.False(t, result.Pass())
-		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 0, 0)
 	})
 }
 
