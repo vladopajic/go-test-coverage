@@ -7,7 +7,7 @@
 [![Release](https://img.shields.io/github/release/vladopajic/go-test-coverage.svg?style=flat-square)](https://github.com/vladopajic/go-test-coverage/releases/latest)
 
 
-`go-test-coverage` is tool which reports issues when test coverage of a file or package is below set threshold.
+`go-test-coverage` is tool which reports issues when test coverage is below set threshold.
 
 ## Usage
 
