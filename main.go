@@ -60,6 +60,10 @@ func main() {
 
 	result, err := testcoverage.Check(os.Stdout, cfg)
 	if err != nil || !result.Pass() {
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+
 		os.Exit(1)
 	}
 }
