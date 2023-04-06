@@ -1,6 +1,6 @@
 # Coverage Badge
 
-Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)), and embed them in markdown files.
+Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
 ## Self hosted badges
 

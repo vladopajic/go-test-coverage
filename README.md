@@ -25,11 +25,10 @@ steps:
   - name: check test coverage
     uses: vladopajic/go-test-coverage@v2
     with:
-      # Configure with config file (option 1, has priority over option 2)
+      # Configure action using config file (option 1)
       config: ./.testcoverage.yml
       
-      # Specify each config value (option 2)
-      # `config` input has to be empty in order for these inputs to be used
+      # Configure action by specifying input parameters individually (option 2)
       profile: cover.out
       local-prefix: github.com/org/project
       threshold-file: 80
@@ -44,10 +43,6 @@ Example of [.testcoverage.yml](./.testcoverage.example.yml) config file:
 # (mandatory) 
 # Path to coverprofile file (output of `go test -coverprofile` command)
 profile: cover.out
-
-# (optional; default false)
-# When set to `true` tool will output github-action friendly outputs
-github-action-output: true
 
 # (optional) 
 # When specified reported file paths will not contain local prefix in the output
@@ -70,7 +65,7 @@ threshold:
 
 ## Coverage Badge
 
-Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)), and embed them in markdown files.
+Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
 Read instructions on creating coverage badge [here](./docs/badge.md).
 
