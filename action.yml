@@ -20,17 +20,17 @@ inputs:
   threshold-file:
     description: The minimum coverage that each file should have.
     required: false
-    default: 0
+    default: -1
     type: number
   threshold-package:
     description: The minimum coverage that each package should have.
     required: false
-    default: 0
+    default: -1
     type: number
   threshold-total:
     description: The minimum total coverage project should have.
     required: false
-    default: 50
+    default: -1
     type: number
 outputs:
   total-coverage:

@@ -37,15 +37,30 @@ func (args) Version() string {
 	return "go-test-coverage " + Version
 }
 
-func (a *args) toConfig() testcoverage.Config {
-	cfg := testcoverage.Config{}
+func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
+	if !isMagicString(a.Profile) {
+		cfg.Profile = a.Profile
+	}
 
-	cfg.Profile = fromMagicToEmpty(a.Profile)
-	cfg.GithubActionOutput = a.GithubActionOutput
-	cfg.LocalPrefix = fromMagicToEmpty(a.LocalPrefix)
-	cfg.Threshold.File = a.ThresholdFile
-	cfg.Threshold.Package = a.ThresholdPackage
-	cfg.Threshold.Total = a.ThresholdTotal
+	if a.GithubActionOutput {
+		cfg.GithubActionOutput = true
+	}
+
+	if !isMagicString(a.LocalPrefix) {
+		cfg.LocalPrefix = a.LocalPrefix
+	}
+
+	if !isMagicInt(a.ThresholdFile) {
+		cfg.Threshold.File = a.ThresholdFile
+	}
+
+	if !isMagicInt(a.ThresholdPackage) {
+		cfg.Threshold.Package = a.ThresholdPackage
+	}
+
+	if !isMagicInt(a.ThresholdPackage) {
+		cfg.Threshold.Total = a.ThresholdTotal
+	}
 
 	return cfg
 }
@@ -69,24 +84,21 @@ func main() {
 }
 
 func readConfig() (testcoverage.Config, error) {
-	cfg := testcoverage.Config{}
-	cmdArgs := args{
-		GithubActionOutput: cfg.GithubActionOutput,
-		ThresholdFile:      cfg.Threshold.File,
-		ThresholdPackage:   cfg.Threshold.Package,
-		ThresholdTotal:     cfg.Threshold.Total,
-	}
+	cmdArgs := args{}
 	arg.MustParse(&cmdArgs)
 
-	cfgPath := fromMagicToEmpty(cmdArgs.ConfigPath)
-	if cfgPath != "" {
-		err := testcoverage.ConfigFromFile(&cfg, cfgPath)
+	cfg := testcoverage.Config{}
+
+	// Load config from file
+	if !isMagicString(cmdArgs.ConfigPath) {
+		err := testcoverage.ConfigFromFile(&cfg, cmdArgs.ConfigPath)
 		if err != nil {
 			return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
 		}
-	} else {
-		cfg = cmdArgs.toConfig()
 	}
+
+	// Override config with values from args
+	cfg = cmdArgs.overrideConfig(cfg)
 
 	if err := cfg.Validate(); err != nil {
 		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
@@ -95,10 +107,10 @@ func readConfig() (testcoverage.Config, error) {
 	return cfg, nil
 }
 
-func fromMagicToEmpty(s string) string {
-	if s == `''` {
-		return ""
-	}
+func isMagicString(v string) bool {
+	return v == `''`
+}
 
-	return s
+func isMagicInt(v int) bool {
+	return v == -1
 }

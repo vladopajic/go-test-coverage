@@ -1,4 +1,4 @@
-name: integration-test
+name: action-test
 on: [push]
 jobs:
   test:
@@ -102,3 +102,14 @@ jobs:
         if: steps.test-4.outcome != 'failure'
         shell: bash
         run: echo "Previous step should have failed" && exit 1
+
+      ## Test 5
+
+      - name: "test: override config"
+        uses: ./
+        id: test-5
+        with:
+          config: ./.github/workflows/testdata/total100.yml
+          threshold-file: 0
+          threshold-package: 0
+          threshold-total: 0
