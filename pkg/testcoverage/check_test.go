@@ -2,6 +2,7 @@ package testcoverage_test
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -21,6 +22,8 @@ func TestCheck(t *testing.T) {
 		return
 	}
 
+	prefix := "github.com/vladopajic/go-test-coverage/v2"
+
 	t.Run("no profile", func(t *testing.T) {
 		t.Parallel()
 
@@ -32,7 +35,19 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 0, 0)
 	})
 
-	t.Run("ok pass", func(t *testing.T) {
+	t.Run("invalid profile", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
+		result, err := Check(buf, cfg)
+		assert.Error(t, err)
+		assert.False(t, result.Pass())
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 0, 0)
+	})
+
+	t.Run("valid profile - pass", func(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
@@ -44,7 +59,7 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
 
-	t.Run("ok fail", func(t *testing.T) {
+	t.Run("valid profile - fail", func(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
@@ -54,18 +69,21 @@ func TestCheck(t *testing.T) {
 		assert.False(t, result.Pass())
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 2, 1)
+		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 
-	t.Run("nok", func(t *testing.T) {
+	t.Run("valid profile - fail with prefix", func(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
+
+		cfg := Config{Profile: profileOK, LocalPrefix: prefix, Threshold: Threshold{Total: 65}}
 		result, err := Check(buf, cfg)
-		assert.Error(t, err)
-		assert.False(t, result.Pass())
+		assert.NoError(t, err)
+		assert.True(t, result.Pass())
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 0, 0)
+		assertHumanReport(t, buf.String(), 3, 0)
+		assert.Equal(t, 0, strings.Count(buf.String(), prefix))
 	})
 }
 
