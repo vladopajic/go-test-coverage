@@ -56,26 +56,33 @@ func Test_ReportForGithubAction(t *testing.T) {
 
 	prefix := "organization.org"
 
-	// No errors
+	// Total coverage ok
 	buf := &bytes.Buffer{}
-	ReportForGithubAction(buf, AnalyzeResult{MeetsTotalCoverage: true}, Threshold{})
-	assert.Empty(t, buf.Bytes())
+	cfg := Config{Threshold: Threshold{Total: 100}}
+	statsNoError := randStats(prefix, 100, 100)
+	result := Analyze(cfg, statsNoError)
+	ReportForGithubAction(buf, result, cfg.Threshold)
 	assertGithubActionErrorsCount(t, buf.String(), 0)
-
-	// Total coverage error
-	buf = &bytes.Buffer{}
-	ReportForGithubAction(buf, AnalyzeResult{MeetsTotalCoverage: false}, Threshold{})
-	assertGithubActionErrorsCount(t, buf.String(), 1)
+	assertNotContainStats(t, buf.String(), statsNoError)
 
 	// Total coverage error
 	buf = &bytes.Buffer{}
 	statsWithError := randStats(prefix, 0, 9)
-	statsNoError := randStats(prefix, 10, 100)
-	cfg := Config{Threshold: Threshold{Total: 10}}
-	result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+	statsNoError = randStats(prefix, 10, 100)
+	cfg = Config{Threshold: Threshold{Total: 10}}
+	result = Analyze(cfg, mergeStats(statsWithError, statsNoError))
 	ReportForGithubAction(buf, result, cfg.Threshold)
 	assertGithubActionErrorsCount(t, buf.String(), 1)
 	assertNotContainStats(t, buf.String(), statsWithError)
+	assertNotContainStats(t, buf.String(), statsNoError)
+
+	// File coverage ok
+	buf = &bytes.Buffer{}
+	cfg = Config{Threshold: Threshold{File: 10}}
+	statsNoError = randStats(prefix, 10, 100)
+	result = Analyze(cfg, statsNoError)
+	ReportForGithubAction(buf, result, cfg.Threshold)
+	assertGithubActionErrorsCount(t, buf.String(), 0)
 	assertNotContainStats(t, buf.String(), statsNoError)
 
 	// File coverage error
@@ -89,6 +96,16 @@ func Test_ReportForGithubAction(t *testing.T) {
 	assertContainStats(t, buf.String(), statsWithError)
 	assertNotContainStats(t, buf.String(), statsNoError)
 
+	// Package coverage ok
+	buf = &bytes.Buffer{}
+	cfg = Config{Threshold: Threshold{Package: 10}}
+	statsNoError = randStats(prefix, 10, 100)
+	result = Analyze(cfg, statsNoError)
+	ReportForGithubAction(buf, result, cfg.Threshold)
+	assertGithubActionErrorsCount(t, buf.String(), 0)
+	assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
+	assertNotContainStats(t, buf.String(), statsNoError)
+
 	// Package coverage error
 	buf = &bytes.Buffer{}
 	cfg = Config{Threshold: Threshold{Package: 10}}
@@ -100,6 +117,18 @@ func Test_ReportForGithubAction(t *testing.T) {
 	assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 	assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 	assertNotContainStats(t, buf.String(), statsWithError)
+	assertNotContainStats(t, buf.String(), statsNoError)
+
+	// All below threshold
+	buf = &bytes.Buffer{}
+	cfg = Config{Threshold: Threshold{File: 10, Package: 10}}
+	statsWithError = randStats(prefix, 0, 9)
+	statsNoError = randStats(prefix, 10, 100)
+	result = Analyze(cfg, mergeStats(statsWithError, statsNoError))
+	ReportForGithubAction(buf, result, cfg.Threshold)
+	assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError))+len(statsWithError))
+	assertContainStats(t, buf.String(), statsWithError)
+	assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 	assertNotContainStats(t, buf.String(), statsNoError)
 }
 
