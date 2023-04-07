@@ -16,13 +16,6 @@ import (
 //nolint:gochecknoglobals // must be global var
 var Version string
 
-//nolint:gochecknoinits // relax
-func init() {
-	if Version == "" {
-		Version = "unknown-" + strconv.Itoa(int(time.Now().Unix()))
-	}
-}
-
 type args struct {
 	ConfigPath         string `arg:"-c,--config"`
 	Profile            string `arg:"-p,--profile" help:"path to coverage profile"`
@@ -33,8 +26,25 @@ type args struct {
 	ThresholdTotal     int    `arg:"-t,--threshold-total"`
 }
 
+func newArgs() args {
+	return args{
+		ConfigPath:         `''`,
+		Profile:            `''`,
+		LocalPrefix:        `''`,
+		GithubActionOutput: false,
+		ThresholdFile:      -1,
+		ThresholdPackage:   -1,
+		ThresholdTotal:     -1,
+	}
+}
+
 func (args) Version() string {
-	return "go-test-coverage " + Version
+	version := Version
+	if version == "" {
+		version = "unknown-" + strconv.Itoa(int(time.Now().Unix()))
+	}
+
+	return "go-test-coverage " + version
 }
 
 func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
@@ -84,7 +94,7 @@ func main() {
 }
 
 func readConfig() (testcoverage.Config, error) {
-	cmdArgs := args{}
+	cmdArgs := newArgs()
 	arg.MustParse(&cmdArgs)
 
 	cfg := testcoverage.Config{}
