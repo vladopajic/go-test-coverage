@@ -12,6 +12,34 @@
 
 ## Usage
 
+`go-test-coverage` can be used in two ways:
+ - as local tool, and/or
+ - as step of github workflow
+
+It is recommended to have both options in go repositories.
+
+### Local tool
+
+Example of `Makefile` which has `check-coverage` command that runs `go-test-coverage` locally:
+
+```makefile
+GOBIN ?= $$(go env GOPATH)/bin
+
+.PHONY: install-go-test-coverage
+install-go-test-coverage:
+	go install github.com/vladopajic/go-test-coverage/v2@latest
+
+.PHONY: check-coverage
+check-coverage: install-go-test-coverage
+	go test ./... -coverprofile=./cover.out -covermode=atomic
+	${GOBIN}/go-test-coverage -config=./.testcoverage.yml
+```
+
+### Github Workflow
+
+Example to run `go-test-coverage` as step of workflow:
+
+
 ```yml
 name: Go test coverage check
 runs-on: ubuntu-latest
@@ -36,7 +64,8 @@ steps:
       threshold-total: 95
 ```
 
-## Config
+### Config
+
 Example of [.testcoverage.yml](./.testcoverage.example.yml) config file:
 
 ```yml
