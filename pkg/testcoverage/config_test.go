@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/vladopajic/go-test-coverage/pkg/testcoverage"
+	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
 func Test_Config_Validate(t *testing.T) {

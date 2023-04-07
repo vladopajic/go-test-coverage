@@ -1,4 +1,4 @@
-module github.com/vladopajic/go-test-coverage
+module github.com/vladopajic/go-test-coverage/v2
 
 go 1.20
 
