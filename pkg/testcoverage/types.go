@@ -1,7 +1,6 @@
 package testcoverage
 
 import (
-	"math"
 	"strings"
 )
 
@@ -25,19 +24,27 @@ type CoverageStats struct {
 }
 
 func (s *CoverageStats) CoveredPercentage() int {
-	if s.Total == 0 {
+	return CoveredPercentage(s.Total, s.Covered)
+}
+
+//nolint:gomnd // relax
+func CoveredPercentage(total, covered int64) int {
+	if total == 0 {
 		return 0
 	}
 
-	//nolint:gomnd // relax
-	return int(math.Round((float64(s.Covered*100) / float64(s.Total))))
+	if covered == total {
+		return 100
+	}
+
+	return int(float64(covered*100) / float64(total))
 }
 
 func checkCoverageStatsBelowThreshold(
 	coverageStats []CoverageStats,
 	threshold int,
 ) []CoverageStats {
-	belowThreshold := make([]CoverageStats, 0)
+	var belowThreshold []CoverageStats
 
 	for _, stats := range coverageStats {
 		if stats.CoveredPercentage() < threshold {
