@@ -3,7 +3,6 @@ package testcoverage_test
 import (
 	crand "crypto/rand"
 	"encoding/hex"
-	"math"
 	"math/rand"
 	"strings"
 	"testing"
@@ -47,26 +46,17 @@ func randStats(localPrefix string, minc, maxc int) []CoverageStats {
 }
 
 func makeCoverageGenFn(min, max int) func() (total, covered int64) {
-	coveredPercentage := func(t, c int64) int {
-		if t == 0 {
-			return 0
-		}
-
-		return int(math.Round((float64(c*100) / float64(t))))
-	}
-
 	return func() (int64, int64) {
-		tc := float64(rand.Intn(max-min+1) + min)
-
+		tc := rand.Intn(max-min+1) + min
 		if tc == 0 {
 			return 0, 0
 		}
 
 		for {
 			covered := int64(rand.Intn(200))
-			total := int64(math.Floor(float64(100*covered) / tc))
+			total := int64(float64(100*covered) / float64(tc))
 
-			cp := coveredPercentage(total, covered)
+			cp := CoveredPercentage(total, covered)
 			if cp >= min && cp <= max {
 				return total, covered
 			}
