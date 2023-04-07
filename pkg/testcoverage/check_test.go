@@ -2,8 +2,6 @@ package testcoverage_test
 
 import (
 	"bytes"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -77,7 +75,30 @@ func TestCheckNoParallel(t *testing.T) {
 		return
 	}
 
-	t.Run("ok fail with github output", func(t *testing.T) {
+	t.Run("ok fail; no github output file", func(t *testing.T) {
+		t.Setenv(GaOutputFileEnv, "")
+
+		buf := &bytes.Buffer{}
+		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 100}}
+		_, err := Check(buf, cfg)
+		assert.Error(t, err)
+	})
+
+	t.Run("ok pass; with github output file", func(t *testing.T) {
+		testFile := t.TempDir() + "/ga.output"
+		t.Setenv(GaOutputFileEnv, testFile)
+
+		buf := &bytes.Buffer{}
+		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 10}}
+		result, err := Check(buf, cfg)
+		assert.NoError(t, err)
+		assert.True(t, result.Pass())
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 3, 0)
+		assertGithubOutputValues(t, testFile)
+	})
+
+	t.Run("ok fail; with github output file", func(t *testing.T) {
 		testFile := t.TempDir() + "/ga.output"
 		t.Setenv(GaOutputFileEnv, testFile)
 
@@ -88,14 +109,7 @@ func TestCheckNoParallel(t *testing.T) {
 		assert.False(t, result.Pass())
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertHumanReport(t, buf.String(), 2, 1)
-
-		contentBytes, err := os.ReadFile(testFile)
-		assert.NoError(t, err)
-
-		content := string(contentBytes)
-		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
-		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
-		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
+		assertGithubOutputValues(t, testFile)
 	})
 }
 

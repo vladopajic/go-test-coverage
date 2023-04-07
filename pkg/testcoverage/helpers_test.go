@@ -4,6 +4,7 @@ import (
 	crand "crypto/rand"
 	"encoding/hex"
 	"math/rand"
+	"os"
 	"strings"
 	"testing"
 
@@ -143,4 +144,39 @@ func assertPrefix(t *testing.T, result AnalyzeResult, prefix string, has bool) {
 
 	checkPrefix(result.FilesBelowThreshold)
 	checkPrefix(result.PackagesBelowThreshold)
+}
+
+func assertGithubOutputValues(t *testing.T, file string) {
+	t.Helper()
+
+	assertNonEmptyValue := func(t *testing.T, content, name string) {
+		t.Helper()
+
+		i := strings.Index(content, name+"")
+		if i == -1 {
+			t.Errorf("value [%s] not found", name)
+		}
+
+		content = content[i+len(name)+1:]
+
+		j := strings.Index(content, "\n")
+		if j == -1 {
+			t.Errorf("value [%s] should end with new line", name)
+		}
+
+		assert.NotEmpty(t, content[:j])
+	}
+
+	contentBytes, err := os.ReadFile(file)
+	assert.NoError(t, err)
+
+	content := string(contentBytes)
+
+	// There should be exactly 3 variables
+	assert.Equal(t, 3, strings.Count(content, "="))
+
+	// Variables should have non empty values
+	assertNonEmptyValue(t, content, GaOutputTotalCoverage)
+	assertNonEmptyValue(t, content, GaOutputBadgeColor)
+	assertNonEmptyValue(t, content, GaOutputBadgeText)
 }
