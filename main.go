@@ -8,7 +8,7 @@ import (
 
 	"github.com/alexflint/go-arg"
 
-	"github.com/vladopajic/go-test-coverage/pkg/testcoverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
 // Version value is injected at build time

@@ -99,7 +99,7 @@ linters-settings:
   nlreturn:
     block-size: 5
   goimports:
-    local-prefixes: github.com/vladopajic/go-test-coverage
+    local-prefixes: github.com/vladopajic/go-test-coverage/v2
   wsl:
     enforce-err-cuddling: true
 
