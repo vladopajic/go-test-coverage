@@ -3,18 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"time"
 
 	"github.com/alexflint/go-arg"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
-// Version value is injected at build time
-//
-//nolint:gochecknoglobals // must be global var
-var Version string
+const Version = "v2.4.0"
 
 type args struct {
 	ConfigPath         string `arg:"-c,--config"`
@@ -39,12 +34,7 @@ func newArgs() args {
 }
 
 func (args) Version() string {
-	version := Version
-	if version == "" {
-		version = "unknown-" + strconv.Itoa(int(time.Now().Unix()))
-	}
-
-	return "go-test-coverage " + version
+	return "go-test-coverage " + Version
 }
 
 func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {

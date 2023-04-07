@@ -10,8 +10,7 @@ COPY ./ ./
 
 ARG VERSION
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags "-X main.Version=${VERSION}" \
-    -o go-test-coverage .
+    go build -o go-test-coverage .
 
 FROM gcr.io/distroless/base:latest
 WORKDIR /
