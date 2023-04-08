@@ -3,4 +3,4 @@
 profile: cover.out
 local-prefix: "github.com/vladopajic/go-test-coverage/v2"
 threshold:
-  total: 97
+  total: 98

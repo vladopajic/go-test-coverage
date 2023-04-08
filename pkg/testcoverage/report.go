@@ -107,14 +107,14 @@ func SetGithubActionOutput(result AnalyzeResult) error {
 	if err != nil {
 		return fmt.Errorf("could not open GitHub output file: %w", err)
 	}
-	defer file.Close()
 
-	totalText := strconv.Itoa(result.TotalCoverage)
+	totalStr := strconv.Itoa(result.TotalCoverage)
 
 	return errors.Join(
-		setOutput(file, gaOutputTotalCoverage, totalText),
-		setOutput(file, gaOutputBadgeColor, coverageColor(result.TotalCoverage)),
-		setOutput(file, gaOutputBadgeText, totalText+"%"),
+		setOutputValue(file, gaOutputTotalCoverage, totalStr),
+		setOutputValue(file, gaOutputBadgeColor, coverageColor(result.TotalCoverage)),
+		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
+		file.Close(),
 	)
 }
 
@@ -123,16 +123,15 @@ func openGitHubOutput(p string) (io.WriteCloser, error) {
 	return os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 }
 
-func setOutput(w io.Writer, name, value string) error {
-	if _, err := w.Write([]byte(fmt.Sprintf("%s=%s\n", name, value))); err != nil {
-		return fmt.Errorf("failed setting github output [var=%s]: %w", name, err)
-	}
+func setOutputValue(w io.Writer, name, value string) error {
+	data := []byte(fmt.Sprintf("%s=%s\n", name, value))
+	_, err := w.Write(data)
 
-	return nil
+	return err //nolint:wrapcheck //relax
 }
 
-//nolint:gomnd // relax
 func coverageColor(coverage int) string {
+	//nolint:gomnd // relax
 	switch {
 	case coverage >= 100:
 		return "#44cc11" // green
