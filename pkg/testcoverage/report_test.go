@@ -207,7 +207,7 @@ func Test_CoverageColor(t *testing.T) {
 			colors[color] = struct{}{}
 		}
 
-		assert.Len(t, colors, 5)
+		assert.Len(t, colors, 6)
 	}
 
 	{ // Assert valid color values
