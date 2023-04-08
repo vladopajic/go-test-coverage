@@ -12,11 +12,10 @@ import (
 	"golang.org/x/tools/cover"
 )
 
-//nolint:wrapcheck // relax
 func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 	profiles, err := cover.ParseProfiles(cfg.Profile)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parsing profile file: %w", err)
 	}
 
 	fileStats := make([]CoverageStats, 0, len(profiles))
@@ -24,12 +23,12 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 	for _, profile := range profiles {
 		file, err := findFile(profile.FileName, cfg.LocalPrefix)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
 		}
 
 		funcs, err := findFuncs(file)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed parsing funcs from file [%s]: %w", profile.FileName, err)
 		}
 
 		s := CoverageStats{
