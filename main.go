@@ -9,7 +9,7 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
-const Version = "v2.4.0"
+const Version = "v2.5.0"
 
 type args struct {
 	ConfigPath         string `arg:"-c,--config"`
