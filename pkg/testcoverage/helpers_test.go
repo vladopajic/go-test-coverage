@@ -155,6 +155,7 @@ func assertGithubOutputValues(t *testing.T, file string) {
 		i := strings.Index(content, name+"")
 		if i == -1 {
 			t.Errorf("value [%s] not found", name)
+			return
 		}
 
 		content = content[i+len(name)+1:]
@@ -162,6 +163,7 @@ func assertGithubOutputValues(t *testing.T, file string) {
 		j := strings.Index(content, "\n")
 		if j == -1 {
 			t.Errorf("value [%s] should end with new line", name)
+			return
 		}
 
 		assert.NotEmpty(t, content[:j])

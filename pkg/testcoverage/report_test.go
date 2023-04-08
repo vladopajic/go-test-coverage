@@ -199,13 +199,24 @@ func Test_SetGithubActionOutput(t *testing.T) {
 func Test_CoverageColor(t *testing.T) {
 	t.Parallel()
 
+	colors := make(map[string]struct{})
+
 	{ // Assert that there are 5 colors for coverage [0-101]
-		colors := make(map[string]struct{})
 		for i := 0; i <= 101; i++ {
 			color := CoverageColor(i)
 			colors[color] = struct{}{}
 		}
 
 		assert.Len(t, colors, 5)
+	}
+
+	{ // Assert valid color values
+		isHexColor := func(color string) bool {
+			return string(color[0]) == "#" && len(color) == 7
+		}
+
+		for color := range colors {
+			assert.True(t, isHexColor(color))
+		}
 	}
 }
