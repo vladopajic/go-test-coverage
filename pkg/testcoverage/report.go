@@ -14,46 +14,43 @@ func ReportForHuman(w io.Writer, result AnalyzeResult, thr Threshold) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
-	{
-		fmt.Fprintf(out, "Files meeting coverage threshold of (%d%%):\t", thr.File)
-		if len(result.FilesBelowThreshold) > 0 {
-			fmt.Fprintf(out, "FAIL")
-			reportIssuesForHuman(out, result.FilesBelowThreshold)
-		} else {
-			fmt.Fprintf(out, "PASS")
+	statusStr := func(passing bool) string {
+		if passing {
+			return "PASS"
 		}
+
+		return "FAIL"
 	}
 
-	{
-		fmt.Fprintf(out, "\nPackages meeting coverage threshold of (%d%%):\t", thr.Package)
-		if len(result.PackagesBelowThreshold) > 0 {
-			fmt.Fprintf(out, "FAIL")
-			reportIssuesForHuman(out, result.PackagesBelowThreshold)
-		} else {
-			fmt.Fprintf(out, "PASS")
-		}
-	}
+	// File threshold report
+	fmt.Fprintf(out, "File coverage threshold (%d%%) satisfied:\t", thr.File)
+	fmt.Fprint(out, statusStr(len(result.FilesBelowThreshold) == 0))
+	reportIssuesForHuman(out, result.FilesBelowThreshold)
 
-	{
-		fmt.Fprintf(out, "\nTotal coverage meeting the threshold of (%d%%):\t", thr.Total)
-		if !result.MeetsTotalCoverage {
-			fmt.Fprintf(out, "FAIL")
-		} else {
-			fmt.Fprintf(out, "PASS")
-		}
-	}
+	// Package threshold report
+	fmt.Fprintf(out, "\nPackage coverage threshold (%d%%) satisfied:\t", thr.Package)
+	fmt.Fprint(out, statusStr(len(result.PackagesBelowThreshold) == 0))
+	reportIssuesForHuman(out, result.PackagesBelowThreshold)
+
+	// Total threshold report
+	fmt.Fprintf(out, "\nTotal coverage threshold (%d%%) satisfied:\t", thr.Total)
+	fmt.Fprint(out, statusStr(result.MeetsTotalCoverage))
 
 	fmt.Fprintf(out, "\nTotal test coverage: %d%%\n", result.TotalCoverage)
 }
 
 func reportIssuesForHuman(w io.Writer, coverageStats []CoverageStats) {
-	tabber := tabwriter.NewWriter(w, 1, 8, 1, '\t', 0) //nolint:gomnd // relax
+	if len(coverageStats) == 0 {
+		return
+	}
+
+	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:gomnd // relax
 	defer tabber.Flush()
 
-	fmt.Fprintf(tabber, "\n\nIssues with:")
+	fmt.Fprintf(tabber, "\n  below threshold:\tcoverage:")
 
 	for _, stats := range coverageStats {
-		fmt.Fprintf(tabber, "\n%s\t%d%%", stats.Name, stats.CoveredPercentage())
+		fmt.Fprintf(tabber, "\n  %s\t%d%%", stats.Name, stats.CoveredPercentage())
 	}
 
 	fmt.Fprintf(tabber, "\n")
@@ -72,25 +69,28 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult, thr Threshold) {
 
 	for _, stats := range result.FilesBelowThreshold {
 		title := "File test coverage below threshold"
-		c := stats.CoveredPercentage()
-		t := thr.File
-		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
+		msg := fmt.Sprintf(
+			"%s: coverage: %d%%; threshold: %d%%",
+			title, stats.CoveredPercentage(), thr.File,
+		)
 		reportLineError(stats.Name, title, msg)
 	}
 
 	for _, stats := range result.PackagesBelowThreshold {
 		title := "Package test coverage below threshold"
-		c := stats.CoveredPercentage()
-		t := thr.Package
-		msg := fmt.Sprintf("package: %s; coverage: %d%%; threshold: %d%%", stats.Name, c, t)
+		msg := fmt.Sprintf(
+			"%s: package: %s; coverage: %d%%; threshold: %d%%",
+			title, stats.Name, stats.CoveredPercentage(), thr.Package,
+		)
 		reportError(title, msg)
 	}
 
 	if !result.MeetsTotalCoverage {
 		title := "Total test coverage below threshold"
-		c := result.TotalCoverage
-		t := thr.Total
-		msg := fmt.Sprintf("coverage: %d%%; threshold: %d%%", c, t)
+		msg := fmt.Sprintf(
+			"%s: coverage: %d%%; threshold: %d%%",
+			title, result.TotalCoverage, thr.Total,
+		)
 		reportError(title, msg)
 	}
 }
