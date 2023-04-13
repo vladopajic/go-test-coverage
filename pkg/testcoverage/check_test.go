@@ -59,6 +59,22 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
 
+	t.Run("valid profile with exclude - pass", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{Total: 100},
+			Exclude:   Exclude{Paths: []string{`cover\.go`}},
+		}
+		result, err := Check(buf, cfg)
+		assert.NoError(t, err)
+		assert.True(t, result.Pass())
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 3, 0)
+	})
+
 	t.Run("valid profile - fail", func(t *testing.T) {
 		t.Parallel()
 

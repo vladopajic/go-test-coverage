@@ -8,6 +8,7 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"regexp"
 
 	"golang.org/x/tools/cover"
 )
@@ -19,11 +20,16 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 	}
 
 	fileStats := make([]CoverageStats, 0, len(profiles))
+	excludeRules := compileExcludePathRules(cfg)
 
 	for _, profile := range profiles {
 		file, err := findFile(profile.FileName, cfg.LocalPrefix)
 		if err != nil {
 			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
+		}
+
+		if matches(excludeRules, file) {
+			continue // this file is excluded
 		}
 
 		funcs, err := findFuncs(file)
@@ -45,6 +51,31 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 	}
 
 	return fileStats, nil
+}
+
+func compileExcludePathRules(cfg Config) []*regexp.Regexp {
+	if len(cfg.Exclude.Paths) == 0 {
+		return nil
+	}
+
+	compiled := make([]*regexp.Regexp, 0, len(cfg.Exclude.Paths))
+
+	for _, pattern := range cfg.Exclude.Paths {
+		reg := regexp.MustCompile("(?i)" + pattern)
+		compiled = append(compiled, reg)
+	}
+
+	return compiled
+}
+
+func matches(regexps []*regexp.Regexp, str string) bool {
+	for _, r := range regexps {
+		if r.MatchString(str) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // findFile finds the location of the named file in GOROOT, GOPATH etc.

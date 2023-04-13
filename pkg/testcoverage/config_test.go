@@ -50,6 +50,10 @@ func Test_Config_Validate(t *testing.T) {
 	cfg = newValidCfg()
 	cfg.Threshold.Total = -1
 	assert.ErrorIs(t, cfg.Validate(), ErrThresholdNotInRange)
+
+	cfg = newValidCfg()
+	cfg.Exclude.Paths = []string{"("}
+	assert.ErrorIs(t, cfg.Validate(), ErrRegExpNotValid)
 }
 
 func Test_ConfigFromFile(t *testing.T) {
