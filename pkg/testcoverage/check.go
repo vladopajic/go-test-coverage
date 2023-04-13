@@ -37,11 +37,11 @@ func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 		makePackageStats(coverageStats), thr.Package,
 	)
 	totalStats := calcTotalStats(coverageStats)
-	meetsTotalCoverage := totalStats.CoveredPercentage() >= thr.Total
+	meetsTotalCoverage := len(coverageStats) == 0 || totalStats.CoveredPercentage() >= thr.Total
 
 	return AnalyzeResult{
-		FilesBelowThreshold:    stripPrefixFromStats(filesBelowThreshold, cfg.LocalPrefix),
-		PackagesBelowThreshold: stripPrefixFromStats(packagesBelowThreshold, cfg.LocalPrefix),
+		FilesBelowThreshold:    filesBelowThreshold,
+		PackagesBelowThreshold: packagesBelowThreshold,
 		MeetsTotalCoverage:     meetsTotalCoverage,
 		TotalCoverage:          totalStats.CoveredPercentage(),
 	}

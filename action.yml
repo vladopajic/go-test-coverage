@@ -43,13 +43,13 @@ runs:
   using: docker
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.5.0
   args:
-    - -config=${{ inputs.config }}
-    - -profile=${{ inputs.profile }}
-    - -github-action-output=true
-    - -local-prefix=${{ inputs.local-prefix }}
-    - -threshold-file=${{ inputs.threshold-file }}
-    - -threshold-package=${{ inputs.threshold-package }}
-    - -threshold-total=${{ inputs.threshold-total }}
+    - --config=${{ inputs.config }}
+    - --profile=${{ inputs.profile }}
+    - --github-action-output=true
+    - --local-prefix=${{ inputs.local-prefix }}
+    - --threshold-file=${{ inputs.threshold-file }}
+    - --threshold-package=${{ inputs.threshold-package }}
+    - --threshold-total=${{ inputs.threshold-total }}
 branding:
   icon: 'code'
   color: 'blue'

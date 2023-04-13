@@ -32,7 +32,7 @@ install-go-test-coverage:
 .PHONY: check-coverage
 check-coverage: install-go-test-coverage
 	go test ./... -coverprofile=./cover.out -covermode=atomic
-	${GOBIN}/go-test-coverage -config=./.testcoverage.yml
+	${GOBIN}/go-test-coverage --config=./.testcoverage.yml
 ```
 
 ### Github Workflow
@@ -90,6 +90,14 @@ threshold:
   # (optional; default 0) 
   # The minimum total coverage project should have
   total: 95
+
+# Holds regexp rules which will exclude matched files or packages from coverage statistics
+exclude:
+  # Exclude files or packages from coverage
+  # `/` will be replaced by current OS file path separator to properly work on Windows
+  paths:
+    - foo\.go     # exclude all files named foo.go
+    - ^pkg/bar    # exclude package pkg/bar
 ```
 
 ## Coverage Badge

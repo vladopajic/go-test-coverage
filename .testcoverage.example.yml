@@ -19,3 +19,11 @@ threshold:
   # (optional; default 0) 
   # The minimum total coverage project should have
   total: 95
+
+# Holds regexp rules which will exclude matched files or packages from coverage statistics
+exclude:
+  # Exclude files or packages from coverage
+  # `/` will be replaced by current OS file path separator to properly work on Windows
+  paths:
+    - foo\.go     # exclude all files named foo.go
+    - ^pkg/bar    # exclude package pkg/bar
