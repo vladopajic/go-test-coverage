@@ -40,8 +40,8 @@ func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 	meetsTotalCoverage := totalStats.CoveredPercentage() >= thr.Total
 
 	return AnalyzeResult{
-		FilesBelowThreshold:    stripPrefixFromStats(filesBelowThreshold, cfg.LocalPrefix),
-		PackagesBelowThreshold: stripPrefixFromStats(packagesBelowThreshold, cfg.LocalPrefix),
+		FilesBelowThreshold:    filesBelowThreshold,
+		PackagesBelowThreshold: packagesBelowThreshold,
 		MeetsTotalCoverage:     meetsTotalCoverage,
 		TotalCoverage:          totalStats.CoveredPercentage(),
 	}

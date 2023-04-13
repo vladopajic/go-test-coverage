@@ -66,7 +66,7 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:   profileOK,
 			Threshold: Threshold{Total: 100},
-			Exclude:   Exclude{Paths: []string{`cover\.go`}},
+			Exclude:   Exclude{Paths: []string{`cover\.go$`}},
 		}
 		result, err := Check(buf, cfg)
 		assert.NoError(t, err)

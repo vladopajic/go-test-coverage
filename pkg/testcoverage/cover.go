@@ -23,12 +23,12 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 	excludeRules := compileExcludePathRules(cfg)
 
 	for _, profile := range profiles {
-		file, err := findFile(profile.FileName, cfg.LocalPrefix)
+		file, noPrefixName, err := findFile(profile.FileName, cfg.LocalPrefix)
 		if err != nil {
 			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
 		}
 
-		if matches(excludeRules, file) {
+		if matches(excludeRules, noPrefixName) {
 			continue // this file is excluded
 		}
 
@@ -38,7 +38,7 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 		}
 
 		s := CoverageStats{
-			Name: profile.FileName,
+			Name: noPrefixName,
 		}
 
 		for _, f := range funcs {
@@ -61,38 +61,32 @@ func compileExcludePathRules(cfg Config) []*regexp.Regexp {
 	compiled := make([]*regexp.Regexp, 0, len(cfg.Exclude.Paths))
 
 	for _, pattern := range cfg.Exclude.Paths {
-		reg := regexp.MustCompile("(?i)" + pattern)
+		pattern = normalizePathInRegex(pattern)
+		reg := regexp.MustCompile(pattern)
 		compiled = append(compiled, reg)
 	}
 
 	return compiled
 }
 
-func matches(regexps []*regexp.Regexp, str string) bool {
-	for _, r := range regexps {
-		if r.MatchString(str) {
-			return true
-		}
-	}
-
-	return false
-}
-
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
-func findFile(file, prefix string) (string, error) {
+func findFile(file, prefix string) (string, string, error) {
 	noPrefixName := stripPrefix(file, prefix)
 	if _, err := os.Stat(noPrefixName); err == nil {
-		return noPrefixName, nil
+		return noPrefixName, noPrefixName, nil
 	}
 
 	dir, file := filepath.Split(file)
 
 	pkg, err := build.Import(dir, ".", build.FindOnly)
 	if err != nil {
-		return "", fmt.Errorf("can't find %q: %w", file, err)
+		return "", "", fmt.Errorf("can't find %q: %w", file, err)
 	}
 
-	return filepath.Join(pkg.Dir, file), nil
+	file = filepath.Join(pkg.Dir, file)
+	noPrefixName = stripPrefix(file, pkg.Root)
+
+	return file, noPrefixName, nil
 }
 
 // findFuncs parses the file and returns a slice of FuncExtent descriptors.
