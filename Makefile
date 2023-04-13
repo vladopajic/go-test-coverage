@@ -23,3 +23,9 @@ test:
 tidy:
 	go mod tidy
 	go fmt ./...
+
+# Runs test coverage check
+.PHONY: check-coverage
+check-coverage:
+	go test -coverprofile=./cover.out -covermode=atomic ./...
+	go run ./main.go --config=./.github/.testcoverage.yml
