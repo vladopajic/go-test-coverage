@@ -10,6 +10,19 @@
 
 `go-test-coverage` is tool which reports issues when test coverage is below set threshold.
 
+## Why?
+
+These are the most important features and benefits of `go-test-coverage`:
+
+- easy installation - ready in 5 minutes
+- server-less
+  - no registration, no permissions needed
+  - check never fails due to connectivity/server issues
+- **protects privacy** - will never leak any information about your private projects to third parties 
+- supports usage in local and CI environments
+- comprehensive configuration options
+- fancy badges
+
 ## Usage
 
 `go-test-coverage` can be used in two ways:
