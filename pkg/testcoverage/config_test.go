@@ -52,6 +52,14 @@ func Test_Config_Validate(t *testing.T) {
 	assert.ErrorIs(t, cfg.Validate(), ErrThresholdNotInRange)
 
 	cfg = newValidCfg()
+	cfg.Override = []Override{{Threshold: 101}}
+	assert.ErrorIs(t, cfg.Validate(), ErrThresholdNotInRange)
+
+	cfg = newValidCfg()
+	cfg.Override = []Override{{Threshold: 100, Path: "("}}
+	assert.ErrorIs(t, cfg.Validate(), ErrRegExpNotValid)
+
+	cfg = newValidCfg()
 	cfg.Exclude.Paths = []string{"("}
 	assert.ErrorIs(t, cfg.Validate(), ErrRegExpNotValid)
 }

@@ -15,11 +15,12 @@ var (
 )
 
 type Config struct {
-	Profile            string    `yaml:"profile"`
-	LocalPrefix        string    `yaml:"local-prefix"`
-	Threshold          Threshold `yaml:"threshold"`
-	Exclude            Exclude   `yaml:"exclude"`
-	GithubActionOutput bool      `yaml:"github-action-output"`
+	Profile            string     `yaml:"profile"`
+	LocalPrefix        string     `yaml:"local-prefix"`
+	Threshold          Threshold  `yaml:"threshold"`
+	Override           []Override `yaml:"override,omitempty"`
+	Exclude            Exclude    `yaml:"exclude"`
+	GithubActionOutput bool       `yaml:"github-action-output"`
 }
 
 type Threshold struct {
@@ -28,12 +29,22 @@ type Threshold struct {
 	Total   int `yaml:"total"`
 }
 
+type Override struct {
+	Threshold int    `yaml:"threshold"`
+	Path      string `yaml:"paths"`
+}
+
 type Exclude struct {
 	Paths []string `yaml:"paths,omitempty"`
 }
 
+//nolint:cyclop // relax
 func (c Config) Validate() error {
 	inRange := func(t int) bool { return t >= 0 && t <= 100 }
+	validateRegexp := func(s string) error {
+		_, err := regexp.Compile("(?i)" + s)
+		return err //nolint:wrapcheck // relax
+	}
 
 	if c.Profile == "" {
 		return ErrCoverageProfileNotSpecified
@@ -52,9 +63,18 @@ func (c Config) Validate() error {
 	}
 
 	for i, pattern := range c.Exclude.Paths {
-		_, err := regexp.Compile("(?i)" + pattern)
-		if err != nil {
-			return fmt.Errorf("%w for paths at position %d: %w", ErrRegExpNotValid, i, err)
+		if err := validateRegexp(pattern); err != nil {
+			return fmt.Errorf("%w for excluded paths element[%d]: %w", ErrRegExpNotValid, i, err)
+		}
+	}
+
+	for i, o := range c.Override {
+		if !inRange(o.Threshold) {
+			return fmt.Errorf("override element[%d] %w", i, ErrThresholdNotInRange)
+		}
+
+		if err := validateRegexp(o.Path); err != nil {
+			return fmt.Errorf("%w for override element[%d]: %w", ErrRegExpNotValid, i, err)
 		}
 	}
 

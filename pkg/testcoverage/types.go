@@ -5,6 +5,7 @@ import (
 )
 
 type AnalyzeResult struct {
+	Threshold              Threshold
 	FilesBelowThreshold    []CoverageStats
 	PackagesBelowThreshold []CoverageStats
 	MeetsTotalCoverage     bool
@@ -18,9 +19,10 @@ func (r *AnalyzeResult) Pass() bool {
 }
 
 type CoverageStats struct {
-	Name    string
-	Total   int64
-	Covered int64
+	Name      string
+	Total     int64
+	Covered   int64
+	Threshold int
 }
 
 func (s *CoverageStats) CoveredPercentage() int {
@@ -43,12 +45,19 @@ func CoveredPercentage(total, covered int64) int {
 func checkCoverageStatsBelowThreshold(
 	coverageStats []CoverageStats,
 	threshold int,
+	overrideRules []regRule,
 ) []CoverageStats {
 	var belowThreshold []CoverageStats
 
-	for _, stats := range coverageStats {
-		if stats.CoveredPercentage() < threshold {
-			belowThreshold = append(belowThreshold, stats)
+	for _, s := range coverageStats {
+		thr := threshold
+		if override, ok := matches(overrideRules, s.Name); ok {
+			thr = override
+		}
+
+		if s.CoveredPercentage() < thr {
+			s.Threshold = thr
+			belowThreshold = append(belowThreshold, s)
 		}
 	}
 

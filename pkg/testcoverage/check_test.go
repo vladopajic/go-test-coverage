@@ -101,6 +101,40 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 3, 0)
 		assert.Equal(t, 0, strings.Count(buf.String(), prefix))
 	})
+
+	t.Run("valid profile - pass after override", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{File: 100},
+			Override:  []Override{{Threshold: 10, Path: "^pkg"}},
+		}
+		result, err := Check(buf, cfg)
+		assert.NoError(t, err)
+		assert.True(t, result.Pass())
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 3, 0)
+		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+	})
+
+	t.Run("valid profile - fail after override", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{File: 10},
+			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
+		}
+		result, err := Check(buf, cfg)
+		assert.NoError(t, err)
+		assert.False(t, result.Pass())
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 1, 2)
+		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+	})
 }
 
 //nolint:paralleltest // must not be parallel because it uses env

@@ -14,10 +14,10 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 
 	result := Analyze(cfg, stats)
 
-	ReportForHuman(w, result, cfg.Threshold)
+	ReportForHuman(w, result)
 
 	if cfg.GithubActionOutput {
-		ReportForGithubAction(w, result, cfg.Threshold)
+		ReportForGithubAction(w, result)
 
 		err := SetGithubActionOutput(result)
 		if err != nil {
@@ -32,14 +32,19 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 	thr := cfg.Threshold
 
-	filesBelowThreshold := checkCoverageStatsBelowThreshold(coverageStats, thr.File)
+	overrideRules := compileOverridePathRules(cfg)
+
+	filesBelowThreshold := checkCoverageStatsBelowThreshold(coverageStats, thr.File, overrideRules)
+
 	packagesBelowThreshold := checkCoverageStatsBelowThreshold(
-		makePackageStats(coverageStats), thr.Package,
+		makePackageStats(coverageStats), thr.Package, overrideRules,
 	)
+
 	totalStats := calcTotalStats(coverageStats)
 	meetsTotalCoverage := len(coverageStats) == 0 || totalStats.CoveredPercentage() >= thr.Total
 
 	return AnalyzeResult{
+		Threshold:              thr,
 		FilesBelowThreshold:    filesBelowThreshold,
 		PackagesBelowThreshold: packagesBelowThreshold,
 		MeetsTotalCoverage:     meetsTotalCoverage,
