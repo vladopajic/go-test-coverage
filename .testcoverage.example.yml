@@ -22,8 +22,8 @@ threshold:
 
 # Holds regexp rules which will exclude matched files or packages from coverage statistics
 exclude:
-  # Exclude files or packages from coverage
+  # Exclude files or packages matching their paths
   # `/` will be replaced by current OS file path separator to properly work on Windows
   paths:
-    - foo\.go     # exclude all files named foo.go
-    - ^pkg/bar    # exclude package pkg/bar
+    - \.pb\.go$    # excludes all protobuf generated files
+    - ^pkg/bar     # exclude package pkg/bar
