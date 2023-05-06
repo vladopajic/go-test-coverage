@@ -104,13 +104,22 @@ threshold:
   # The minimum total coverage project should have
   total: 95
 
+# Holds regexp rules which will override thresholds for matched files or packages
+override:
+  # Increase coverage threshold to 100% for `foo` package (default is 80, as configured above)
+  - threshold: 100
+    path: ^pkg/lib/foo$
+
 # Holds regexp rules which will exclude matched files or packages from coverage statistics
 exclude:
   # Exclude files or packages matching their paths
-  # `/` will be replaced by current OS file path separator to properly work on Windows
   paths:
     - \.pb\.go$    # excludes all protobuf generated files
-    - ^pkg/bar     # exclude package pkg/bar
+    - ^pkg/bar     # exclude package `pkg/bar`
+ 
+# NOTES:
+# - symbol `/` in all path regexps will be replaced by
+#   current OS file path separator to properly work on Windows
 ```
 
 ## Coverage Badge
