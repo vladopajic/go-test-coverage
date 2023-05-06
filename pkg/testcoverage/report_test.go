@@ -20,7 +20,7 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: true}, Threshold{})
+		ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: true})
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
 
@@ -28,7 +28,7 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: false}, Threshold{})
+		ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: false})
 		assertHumanReport(t, buf.String(), 2, 1)
 	})
 
@@ -40,7 +40,7 @@ func Test_ReportForHuman(t *testing.T) {
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
-		ReportForHuman(buf, result, cfg.Threshold)
+		ReportForHuman(buf, result)
 		assertHumanReport(t, buf.String(), 2, 1)
 		assertContainStats(t, buf.String(), statsWithError)
 		assertNotContainStats(t, buf.String(), statsNoError)
@@ -54,7 +54,7 @@ func Test_ReportForHuman(t *testing.T) {
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
-		ReportForHuman(buf, result, cfg.Threshold)
+		ReportForHuman(buf, result)
 		assertHumanReport(t, buf.String(), 2, 1)
 		assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
@@ -75,7 +75,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		cfg := Config{Threshold: Threshold{Total: 100}}
 		statsNoError := randStats(prefix, 100, 100)
 		result := Analyze(cfg, statsNoError)
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertNotContainStats(t, buf.String(), statsNoError)
 	})
@@ -88,7 +88,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		statsNoError := randStats(prefix, 10, 100)
 		cfg := Config{Threshold: Threshold{Total: 10}}
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertNotContainStats(t, buf.String(), statsWithError)
 		assertNotContainStats(t, buf.String(), statsNoError)
@@ -101,7 +101,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		cfg := Config{Threshold: Threshold{File: 10}}
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, statsNoError)
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertNotContainStats(t, buf.String(), statsNoError)
 	})
@@ -114,7 +114,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), len(statsWithError))
 		assertContainStats(t, buf.String(), statsWithError)
 		assertNotContainStats(t, buf.String(), statsNoError)
@@ -126,7 +126,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		cfg := Config{Threshold: Threshold{Package: 10}}
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, statsNoError)
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 		assertNotContainStats(t, buf.String(), statsNoError)
@@ -140,7 +140,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
 		assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
@@ -157,7 +157,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		statsNoError := randStats(prefix, 10, 100)
 		totalErrorsCount := len(MakePackageStats(statsWithError)) + len(statsWithError) + 1
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
-		ReportForGithubAction(buf, result, cfg.Threshold)
+		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), totalErrorsCount)
 		assertContainStats(t, buf.String(), statsWithError)
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
