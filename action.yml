@@ -41,7 +41,7 @@ outputs:
     description: Holds badge color value.
 runs:
   using: docker
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.7.0
+  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.7.1
   args:
     - --config=${{ inputs.config }}
     - --profile=${{ inputs.profile }}
