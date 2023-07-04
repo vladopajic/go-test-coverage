@@ -31,7 +31,7 @@ type Threshold struct {
 
 type Override struct {
 	Threshold int    `yaml:"threshold"`
-	Path      string `yaml:"paths"`
+	Path      string `yaml:"path"`
 }
 
 type Exclude struct {
