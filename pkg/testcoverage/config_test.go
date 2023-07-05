@@ -107,10 +107,7 @@ func Test_ConfigFromFile(t *testing.T) {
 	t.Run("ok file", func(t *testing.T) {
 		t.Parallel()
 
-		savedCfg := Config{
-			Profile:   "cover.out",
-			Threshold: Threshold{100, 100, 100},
-		}
+		savedCfg := nonZeroConfig()
 		data, err := yaml.Marshal(savedCfg)
 		assert.NoError(t, err)
 
@@ -122,4 +119,49 @@ func Test_ConfigFromFile(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, savedCfg, cfg)
 	})
+}
+
+func TestConfigYamlParse(t *testing.T) {
+	t.Parallel()
+
+	zeroCfg := nonZeroConfig()
+	data, err := yaml.Marshal(zeroCfg)
+	assert.NoError(t, err)
+	assert.YAMLEq(t, string(data), nonZeroYaml())
+
+	cfg := Config{}
+	err = yaml.Unmarshal([]byte(nonZeroYaml()), &cfg)
+	assert.NoError(t, err)
+	assert.Equal(t, nonZeroConfig(), cfg)
+}
+
+func nonZeroConfig() Config {
+	return Config{
+		Profile:     "cover.out",
+		LocalPrefix: "prefix",
+		Threshold:   Threshold{100, 100, 100},
+		Override:    []Override{{Path: "pathToFile", Threshold: 99}},
+		Exclude: Exclude{
+			Paths: []string{"path1", "path2"},
+		},
+		GithubActionOutput: true,
+	}
+}
+
+func nonZeroYaml() string {
+	return `
+profile: cover.out
+local-prefix: prefix
+threshold:
+    file: 100
+    package: 100
+    total: 100
+override:
+    - threshold: 99
+      path: pathToFile
+exclude:
+  paths:
+    - path1
+    - path2
+github-action-output: true`
 }
