@@ -44,7 +44,7 @@ install-go-test-coverage:
 
 .PHONY: check-coverage
 check-coverage: install-go-test-coverage
-	go test ./... -coverprofile=./cover.out -covermode=atomic
+	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	${GOBIN}/go-test-coverage --config=./.testcoverage.yml
 ```
 
@@ -94,7 +94,7 @@ local-prefix: "github.com/org/project"
 threshold:
   # (optional; default 0) 
   # The minimum coverage that each file should have
-  file: 80
+  file: 70
 
   # (optional; default 0) 
   # The minimum coverage that each package should have
@@ -108,7 +108,7 @@ threshold:
 override:
   # Increase coverage threshold to 100% for `foo` package (default is 80, as configured above)
   - threshold: 100
-    path: ^pkg/lib/foo
+    path: ^pkg/lib/foo$
 
 # Holds regexp rules which will exclude matched files or packages from coverage statistics
 exclude:

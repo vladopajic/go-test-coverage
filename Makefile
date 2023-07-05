@@ -27,5 +27,5 @@ tidy:
 # Runs test coverage check
 .PHONY: check-coverage
 check-coverage:
-	go test -coverprofile=./cover.out -covermode=atomic ./...
+	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	go run ./main.go --config=./.github/.testcoverage.yml
