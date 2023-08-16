@@ -20,7 +20,11 @@ threshold:
   # The minimum total coverage project should have
   total: 95
 
-# Holds regexp rules which will override thresholds for matched files or packages
+# Holds regexp rules which will override thresholds for matched files or packages using their paths.
+#
+# First rule from this list that matches file or package is going to apply new threshold to it. 
+# If project has multiple rules that match same path, override rules should be listed in order from 
+# specific to more general rules.
 override:
   # Increase coverage threshold to 100% for `foo` package (default is 80, as configured above)
   - threshold: 100
