@@ -19,7 +19,7 @@ These are the most important features and benefits of `go-test-coverage`:
   - no registration, no permissions needed
   - check never fails due to connectivity/server issues
 - **protects privacy** - will never leak any information about your private projects to third parties	
-  - [Risks of Information Leakage through Remote Code Coverage Services](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266) 	
+  - [risks of information leakage through remote code coverage services](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266) 	
 - runs blazingly fast - (~1 sec on [go-test-coverage repo](https://github.com/vladopajic/go-test-coverage/actions/runs/5457149078/job/14774054108))
 - supports usage in local and CI environments
 - comprehensive configuration options
