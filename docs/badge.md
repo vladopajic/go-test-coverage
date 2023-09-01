@@ -64,6 +64,15 @@ If instruction from this example was followed through, this link should be
 
 where `org/project` part would match corresponding project.
 
+Allow some time for Github to do it's thing if file is not immediately accessible via this link
+
+## Private repositories
+
+In private repositories, files are not accessible without the inclusion of an access token in the URL. However, this practice of adding an access token directly to the URL has a drawback: contributors can potentially continue accessing the repository even after their permissions have been revoked. 
+
+To mitigate this issue, consider incorporating an additional step into the workflow file that uploads the coverage badge file to a designated Content Delivery Network (CDN).
+
+
 ## Badge examples
 
 Badge examples created with this method would look like this:
