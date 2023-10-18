@@ -8,6 +8,7 @@ linters:
     # - godot (too nit picking)
     # - ireturn  (we like when function returns interface)
     # - varnamelen  (we can handle this in code review step)
+    # - depguard (not needed)
     - asasalint
     - asciicheck
     - bidichk
@@ -15,7 +16,6 @@ linters:
     - containedctx
     - contextcheck
     - cyclop
-    - depguard
     - dogsled
     - dupl
     - durationcheck

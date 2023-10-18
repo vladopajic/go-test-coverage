@@ -2,6 +2,8 @@ package testcoverage
 
 import (
 	"strings"
+
+	"golang.org/x/exp/maps"
 )
 
 type AnalyzeResult struct {
@@ -93,12 +95,7 @@ func makePackageStats(coverageStats []CoverageStats) []CoverageStats {
 		packageStats[pkg] = pkgStats
 	}
 
-	packageStatsSlice := make([]CoverageStats, 0, len(packageStats))
-	for _, stats := range packageStats {
-		packageStatsSlice = append(packageStatsSlice, stats)
-	}
-
-	return packageStatsSlice
+	return maps.Values(packageStats)
 }
 
 func packageForFile(filename string) string {
