@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	github.com/alexflint/go-arg v1.4.3
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	golang.org/x/tools v0.14.0
 	gopkg.in/yaml.v3 v3.0.1
