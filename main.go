@@ -19,17 +19,24 @@ type args struct {
 	ThresholdFile      int    `arg:"-f,--threshold-file"`
 	ThresholdPackage   int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     int    `arg:"-t,--threshold-total"`
+	BadgeFileName      string `arg:"-b,--badge-file-name"`
 }
+
+const (
+	magicString = `''`
+	magicInt    = -1
+)
 
 func newArgs() args {
 	return args{
-		ConfigPath:         `''`,
-		Profile:            `''`,
-		LocalPrefix:        `''`,
+		ConfigPath:         magicString,
+		Profile:            magicString,
+		LocalPrefix:        magicString,
 		GithubActionOutput: false,
-		ThresholdFile:      -1,
-		ThresholdPackage:   -1,
-		ThresholdTotal:     -1,
+		ThresholdFile:      magicInt,
+		ThresholdPackage:   magicInt,
+		ThresholdTotal:     magicInt,
+		BadgeFileName:      magicString,
 	}
 }
 
@@ -60,6 +67,10 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 
 	if !isMagicInt(a.ThresholdPackage) {
 		cfg.Threshold.Total = a.ThresholdTotal
+	}
+
+	if !isMagicString(a.BadgeFileName) {
+		cfg.Badge.FileName = a.BadgeFileName
 	}
 
 	return cfg
@@ -108,9 +119,9 @@ func readConfig() (testcoverage.Config, error) {
 }
 
 func isMagicString(v string) bool {
-	return v == `''`
+	return v == magicString
 }
 
 func isMagicInt(v int) bool {
-	return v == -1
+	return v == magicInt
 }
