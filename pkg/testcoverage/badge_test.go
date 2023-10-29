@@ -16,20 +16,17 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 		return
 	}
 
-	testFile := t.TempDir() + "/badge.svg"
-
-	{
+	{ // should not return error when badge file name is not specified
 		err := GenerateAndSaveBadge(Config{
 			Badge: Badge{},
 		}, 100)
 		assert.NoError(t, err)
 
-		contentBytes, err := os.ReadFile(testFile)
-		assert.Error(t, err)
-		assert.Empty(t, contentBytes)
 	}
 
-	{
+	{ // should save badge to file
+		testFile := t.TempDir() + "/badge.svg"
+
 		err := GenerateAndSaveBadge(Config{
 			Badge: Badge{
 				FileName: testFile,
