@@ -21,7 +21,6 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 			Badge: Badge{},
 		}, 100)
 		assert.NoError(t, err)
-
 	}
 
 	{ // should save badge to file
