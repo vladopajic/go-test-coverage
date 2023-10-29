@@ -24,19 +24,19 @@ func Test_Generate(t *testing.T) {
 			svgStr := string(svg)
 			assert.NotEmpty(t, svgStr)
 			assert.Contains(t, svgStr, ">"+c+"<")
-			assert.Contains(t, svgStr, CoverageColor(i))
+			assert.Contains(t, svgStr, Color(i))
 		})
 	}
 }
 
-func Test_CoverageColor(t *testing.T) {
+func Test_Color(t *testing.T) {
 	t.Parallel()
 
 	colors := make(map[string]struct{})
 
 	{ // Assert that there are 5 colors for coverage [0-101]
 		for i := 0; i <= 101; i++ {
-			color := CoverageColor(i)
+			color := Color(i)
 			colors[color] = struct{}{}
 		}
 

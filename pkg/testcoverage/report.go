@@ -116,7 +116,7 @@ func SetGithubActionOutput(result AnalyzeResult) error {
 
 	return errors.Join(
 		setOutputValue(file, gaOutputTotalCoverage, totalStr),
-		setOutputValue(file, gaOutputBadgeColor, badge.CoverageColor(result.TotalCoverage)),
+		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalCoverage)),
 		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
 		file.Close(),
 	)

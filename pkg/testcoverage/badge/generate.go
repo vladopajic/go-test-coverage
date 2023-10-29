@@ -12,11 +12,11 @@ func Generate(coverage int) ([]byte, error) {
 	return badge.RenderBytes( //nolint:wrapcheck // relax
 		coverageLabel,
 		strconv.Itoa(coverage)+"%",
-		badge.Color(CoverageColor(coverage)),
+		badge.Color(Color(coverage)),
 	)
 }
 
-func CoverageColor(coverage int) string {
+func Color(coverage int) string {
 	//nolint:gomnd // relax
 	switch {
 	case coverage >= 100:
