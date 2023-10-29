@@ -9,7 +9,7 @@ import (
 const coverageLabel = "coverage"
 
 func Generate(coverage int) ([]byte, error) {
-	return badge.RenderBytes(
+	return badge.RenderBytes( //nolint:wrapcheck // relax
 		coverageLabel,
 		strconv.Itoa(coverage)+"%",
 		badge.Color(CoverageColor(coverage)),
