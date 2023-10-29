@@ -41,6 +41,7 @@ type Exclude struct {
 
 type Badge struct {
 	FileName string
+	CDN      CDN
 }
 
 //nolint:cyclop // relax
