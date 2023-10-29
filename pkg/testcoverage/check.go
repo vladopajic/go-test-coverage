@@ -19,11 +19,17 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 	if cfg.GithubActionOutput {
 		ReportForGithubAction(w, result)
 
-		err := SetGithubActionOutput(result)
+		err = SetGithubActionOutput(result)
 		if err != nil {
 			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
 			return result, err
 		}
+	}
+
+	err = GenerateAndSaveBadge(cfg, result.TotalCoverage)
+	if err != nil {
+		fmt.Fprintf(w, "failed to generate and save badge: %v\n", err)
+		return result, err
 	}
 
 	return result, nil

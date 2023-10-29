@@ -8,7 +8,6 @@ const (
 )
 
 var (
-	CoverageColor    = coverageColor
 	MakePackageStats = makePackageStats
 	PackageForFile   = packageForFile
 )

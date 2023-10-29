@@ -32,6 +32,11 @@ inputs:
     required: false
     default: -1
     type: number
+  badge-file-name:
+    description: When specified coverage badge will be created and saved to file with this name.
+    required: false
+    default: "''"
+    type: string
 outputs:
   total-coverage:
     description: Holds total coverage value.
@@ -50,6 +55,7 @@ runs:
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}
     - --threshold-total=${{ inputs.threshold-total }}
+    - --badge-file-name=${{ inputs.badge-file-name }}
 branding:
   icon: 'code'
   color: 'blue'

@@ -8,6 +8,8 @@ import (
 	"os"
 	"strconv"
 	"text/tabwriter"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
 )
 
 func ReportForHuman(w io.Writer, result AnalyzeResult) {
@@ -114,7 +116,7 @@ func SetGithubActionOutput(result AnalyzeResult) error {
 
 	return errors.Join(
 		setOutputValue(file, gaOutputTotalCoverage, totalStr),
-		setOutputValue(file, gaOutputBadgeColor, coverageColor(result.TotalCoverage)),
+		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalCoverage)),
 		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
 		file.Close(),
 	)
@@ -130,22 +132,4 @@ func setOutputValue(w io.Writer, name, value string) error {
 	_, err := w.Write(data)
 
 	return err //nolint:wrapcheck //relax
-}
-
-func coverageColor(coverage int) string {
-	//nolint:gomnd // relax
-	switch {
-	case coverage >= 100:
-		return "#44cc11" // strong green
-	case coverage >= 90:
-		return "#97ca00" // light green
-	case coverage >= 80:
-		return "#dfb317" // yellow
-	case coverage >= 70:
-		return "#fa7739" // orange
-	case coverage >= 50:
-		return "#e05d44" // light red
-	default:
-		return "#cb2431" // strong red
-	}
 }

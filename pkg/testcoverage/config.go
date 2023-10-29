@@ -21,6 +21,7 @@ type Config struct {
 	Override           []Override `yaml:"override,omitempty"`
 	Exclude            Exclude    `yaml:"exclude"`
 	GithubActionOutput bool       `yaml:"github-action-output"`
+	Badge              Badge      `yaml:"-"`
 }
 
 type Threshold struct {
@@ -36,6 +37,10 @@ type Override struct {
 
 type Exclude struct {
 	Paths []string `yaml:"paths,omitempty"`
+}
+
+type Badge struct {
+	FileName string
 }
 
 //nolint:cyclop // relax
