@@ -3,8 +3,10 @@ package testcoverage
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"strings"
 
@@ -38,7 +40,7 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	}
 
 	if cfg.Badge.Git.Token != "" {
-		err := SaveBadegToBranch(w, cfg.Badge.Git, badge)
+		err := saveBadgeToBranch(w, cfg.Badge.Git, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to git branch: %w", err)
 		}
@@ -67,13 +69,36 @@ type Git struct {
 }
 
 //nolint:lll // relax
-func updateGithubFile(git Git, owner, repo, path string, data []byte) (bool, error) {
+func updateGithubBadge(git Git, owner, repo, path string, data []byte) (bool, error) {
 	ctx := context.TODO()
 	client := github.NewClient(nil).WithAuthToken(git.Token)
 
-	fc, _, _, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{
+	updateBadge := func(fc *github.RepositoryContent) (bool, error) {
+		var sha *string
+		if fc != nil {
+			sha = fc.SHA
+		}
+
+		_, _, err := client.Repositories.UpdateFile(ctx, owner, repo, path, &github.RepositoryContentFileOptions{
+			Message: github.String("badge update"),
+			Content: data,
+			Branch:  &git.Branch,
+			SHA:     sha,
+		})
+		if err != nil {
+			return false, fmt.Errorf("update badge contents: %w", err)
+		}
+
+		return true, nil
+	}
+
+	fc, _, httpResp, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{
 		Ref: git.Branch,
 	})
+	if httpResp.StatusCode == http.StatusNotFound { // when badge is not found create it
+		return updateBadge(nil)
+	}
+
 	if err != nil {
 		return false, fmt.Errorf("get badge contents: %w", err)
 	}
@@ -83,29 +108,24 @@ func updateGithubFile(git Git, owner, repo, path string, data []byte) (bool, err
 		return false, fmt.Errorf("decode badge contents: %w", err)
 	}
 
-	if content == string(data) {
+	if content == string(data) { // same badge already exists... do nothing
 		return false, nil
 	}
 
-	_, _, err = client.Repositories.UpdateFile(ctx, owner, repo, path, &github.RepositoryContentFileOptions{
-		Message: github.String("badge update"),
-		Content: data,
-		Branch:  &git.Branch,
-		SHA:     fc.SHA,
-	})
-	if err != nil {
-		return false, fmt.Errorf("update badge contents: %w", err)
-	}
-
-	return true, nil
+	return updateBadge(fc)
 }
 
-func SaveBadegToBranch(w io.Writer, git Git, data []byte) error {
+//nolint:gomnd,goerr113 // relax
+func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
 	repoParts := strings.Split(git.Repository, "/")
+	if len(repoParts) != 2 {
+		return errors.New(`git repository property should be have format "owner/repository"`)
+	}
+
 	owner, repo := repoParts[0], repoParts[1]
 	path := git.FileName
 
-	changed, err := updateGithubFile(git, owner, repo, path, data)
+	changed, err := updateGithubBadge(git, owner, repo, path, data)
 	if err != nil {
 		return err
 	}

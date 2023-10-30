@@ -125,3 +125,31 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 		assert.Equal(t, expectedData, resData)
 	}
 }
+
+func Test_GenerateAndSaveBadge_SaveToBranch(t *testing.T) {
+	t.Parallel()
+
+	const coverage = 100
+
+	err := GenerateAndSaveBadge(nil,
+		Config{
+			Badge: Badge{
+				Git: Git{
+					Token:      `🔑`,
+					Repository: "",
+				},
+			},
+		}, coverage)
+	assert.Error(t, err)
+
+	err = GenerateAndSaveBadge(nil,
+		Config{
+			Badge: Badge{
+				Git: Git{
+					Token:      `🔑`,
+					Repository: "owner/repo",
+				},
+			},
+		}, coverage)
+	assert.Error(t, err)
+}
