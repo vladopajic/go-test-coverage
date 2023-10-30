@@ -37,6 +37,41 @@ inputs:
     required: false
     default: "''"
     type: string
+  cdn-key:
+    description: CDN key.
+    required: false
+    default: "''"
+    type: string
+  cdn-secret:
+    description: CDN secret.
+    required: false
+    default: "''"
+    type: string
+  cdn-region:
+    description: CDN region.
+    required: false
+    default: "''"
+    type: string
+  cdn-endpoint:
+    description: CDN endpoint.
+    required: false
+    default: "''"
+    type: string
+  cdn-file-name:
+    description: CDN file name.
+    required: false
+    default: "''"
+    type: string
+  cdn-bucket-name:
+    description: CDN bucket name.
+    required: false
+    default: "''"
+    type: string
+  cdn-force-path-style:
+    description: CDN force path style.
+    required: false
+    default: false
+    type: boolean
 outputs:
   total-coverage:
     description: Holds total coverage value.
@@ -56,6 +91,13 @@ runs:
     - --threshold-package=${{ inputs.threshold-package }}
     - --threshold-total=${{ inputs.threshold-total }}
     - --badge-file-name=${{ inputs.badge-file-name }}
+    - --cdn-key=${{ inputs.cdn-key }}
+    - --cdn-secret=${{ inputs.cdn-secret }}
+    - --cdn-region=${{ inputs.cdn-region }}
+    - --cdn-endpoint=${{ inputs.cdn-endpoint }}
+    - --cdn-file-name=${{ inputs.cdn-file-name }}
+    - --cdn-bucket-name=${{ inputs.cdn-bucket-name }}
+    - --cdn-force-path-style=${{ inputs.cdn-force-path-style }}
 branding:
   icon: 'code'
   color: 'blue'

@@ -20,6 +20,14 @@ type args struct {
 	ThresholdPackage   int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     int    `arg:"-t,--threshold-total"`
 	BadgeFileName      string `arg:"-b,--badge-file-name"`
+
+	CDNKey            string `arg:"--cdn-key"`
+	CDNSecret         string `arg:"--cdn-secret"`
+	CDNRegion         string `arg:"--cdn-region"`
+	CDNEndpoint       string `arg:"--cdn-endpoint"`
+	CDNFileName       string `arg:"--cdn-file-name"`
+	CDNBucketName     string `arg:"--cdn-bucket-name"`
+	CDNForcePathStyle bool   `arg:"--cdn-force-path-style"`
 }
 
 const (
@@ -37,6 +45,14 @@ func newArgs() args {
 		ThresholdPackage:   magicInt,
 		ThresholdTotal:     magicInt,
 		BadgeFileName:      magicString,
+
+		CDNKey:            magicString,
+		CDNSecret:         magicString,
+		CDNRegion:         magicString,
+		CDNEndpoint:       magicString,
+		CDNFileName:       magicString,
+		CDNBucketName:     magicString,
+		CDNForcePathStyle: false,
 	}
 }
 
@@ -44,6 +60,7 @@ func (args) Version() string {
 	return "go-test-coverage " + Version
 }
 
+//nolint:cyclop // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 	if !isMagicString(a.Profile) {
 		cfg.Profile = a.Profile
@@ -71,6 +88,19 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 
 	if !isMagicString(a.BadgeFileName) {
 		cfg.Badge.FileName = a.BadgeFileName
+	}
+
+	if !isMagicString(a.CDNSecret) || !isMagicString(a.CDNKey) {
+		cfg.Badge.CDN.Secret = a.CDNSecret
+		cfg.Badge.CDN.Key = a.CDNKey
+		cfg.Badge.CDN.Region = a.CDNRegion
+		cfg.Badge.CDN.FileName = a.CDNFileName
+		cfg.Badge.CDN.BucketName = a.CDNBucketName
+		cfg.Badge.CDN.ForcePathStyle = a.CDNForcePathStyle
+
+		if !isMagicString(a.CDNEndpoint) {
+			cfg.Badge.CDN.Endpoint = a.CDNEndpoint
+		}
 	}
 
 	return cfg
