@@ -14,6 +14,7 @@ var (
 	ErrThresholdNotInRange         = fmt.Errorf("threshold must be in range [0 - 100]")
 	ErrCoverageProfileNotSpecified = fmt.Errorf("coverage profile file not specified")
 	ErrRegExpNotValid              = fmt.Errorf("regular expression is not valid")
+	ErrCDNOptionNotSet             = fmt.Errorf("cdn option not set")
 )
 
 type Config struct {
@@ -86,7 +87,11 @@ func (c Config) Validate() error {
 		}
 	}
 
-	return c.validateCDN()
+	if err := c.validateCDN(); err != nil {
+		return fmt.Errorf("%w, %s", ErrCDNOptionNotSet, err.Error())
+	}
+
+	return nil
 }
 
 //nolint:goerr113,wsl // relax
