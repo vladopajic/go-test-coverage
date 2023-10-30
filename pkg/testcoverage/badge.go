@@ -57,9 +57,11 @@ func saveBadgeToCDN(cdn CDN, data []byte) error {
 	}
 
 	object := s3.PutObjectInput{
-		Bucket: aws.String(cdn.BucketName),
-		Key:    aws.String(cdn.FileName),
-		Body:   bytes.NewReader(data),
+		Bucket:        aws.String(cdn.BucketName),
+		Key:           aws.String(cdn.FileName),
+		Body:          bytes.NewReader(data),
+		ContentType:   aws.String("image/svg+xml"),
+		ContentLength: aws.Int64(int64(len(data))),
 	}
 
 	_, err = s3Client.PutObject(&object)
