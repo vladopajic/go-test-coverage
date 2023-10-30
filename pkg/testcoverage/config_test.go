@@ -64,6 +64,53 @@ func Test_Config_Validate(t *testing.T) {
 	assert.ErrorIs(t, cfg.Validate(), ErrRegExpNotValid)
 }
 
+func Test_Config_ValidateCDN(t *testing.T) {
+	t.Parallel()
+
+	newValidCfg := func() Config {
+		cfg := Config{}
+		cfg.Profile = "cover.out"
+
+		return cfg
+	}
+
+	const nonEmptyStr = "any"
+
+	cfg := newValidCfg()
+	cfg.Badge.CDN.Key = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Region = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Region = nonEmptyStr
+	cfg.Badge.CDN.BucketName = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Region = nonEmptyStr
+	cfg.Badge.CDN.BucketName = nonEmptyStr
+	cfg.Badge.CDN.FileName = nonEmptyStr
+	assert.NoError(t, cfg.Validate())
+}
+
 func Test_ConfigFromFile(t *testing.T) {
 	t.Parallel()
 

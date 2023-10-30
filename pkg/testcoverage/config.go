@@ -1,8 +1,10 @@
 package testcoverage
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"regexp"
 
 	yaml "gopkg.in/yaml.v3"
@@ -12,6 +14,7 @@ var (
 	ErrThresholdNotInRange         = fmt.Errorf("threshold must be in range [0 - 100]")
 	ErrCoverageProfileNotSpecified = fmt.Errorf("coverage profile file not specified")
 	ErrRegExpNotValid              = fmt.Errorf("regular expression is not valid")
+	ErrCDNOptionNotSet             = fmt.Errorf("cdn option not set")
 )
 
 type Config struct {
@@ -41,9 +44,10 @@ type Exclude struct {
 
 type Badge struct {
 	FileName string
+	CDN      CDN
 }
 
-//nolint:cyclop // relax
+//nolint:cyclop  // relax
 func (c Config) Validate() error {
 	inRange := func(t int) bool { return t >= 0 && t <= 100 }
 	validateRegexp := func(s string) error {
@@ -81,6 +85,38 @@ func (c Config) Validate() error {
 		if err := validateRegexp(o.Path); err != nil {
 			return fmt.Errorf("%w for override element[%d]: %w", ErrRegExpNotValid, i, err)
 		}
+	}
+
+	if err := c.validateCDN(); err != nil {
+		return fmt.Errorf("%w, %s", ErrCDNOptionNotSet, err.Error())
+	}
+
+	return nil
+}
+
+//nolint:goerr113,wsl // relax
+func (c Config) validateCDN() error {
+	// when cnd config is empty, cnd featue is disabled and it's not need to validate
+	if reflect.DeepEqual(c.Badge.CDN, CDN{}) {
+		return nil
+	}
+
+	cdn := c.Badge.CDN
+
+	if cdn.Key == "" {
+		return errors.New("CDN key should be set")
+	}
+	if cdn.Secret == "" {
+		return errors.New("CDN secret should be set")
+	}
+	if cdn.Region == "" {
+		return errors.New("CDN region should be set")
+	}
+	if cdn.BucketName == "" {
+		return errors.New("CDN bucket name should be set")
+	}
+	if cdn.FileName == "" {
+		return errors.New("CDN file name should be set")
 	}
 
 	return nil
