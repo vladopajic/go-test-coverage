@@ -3,7 +3,6 @@ package testcoverage
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -115,13 +114,8 @@ func updateGithubBadge(git Git, owner, repo, path string, data []byte) (bool, er
 	return updateBadge(fc)
 }
 
-//nolint:gomnd,goerr113 // relax
 func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
 	repoParts := strings.Split(git.Repository, "/")
-	if len(repoParts) != 2 {
-		return errors.New(`git repository property should be have format "owner/repository"`)
-	}
-
 	owner, repo := repoParts[0], repoParts[1]
 	path := git.FileName
 

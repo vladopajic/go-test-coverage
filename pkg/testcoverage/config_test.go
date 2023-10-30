@@ -10,15 +10,10 @@ import (
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
+const nonEmptyStr = "any"
+
 func Test_Config_Validate(t *testing.T) {
 	t.Parallel()
-
-	newValidCfg := func() Config {
-		cfg := Config{}
-		cfg.Profile = "cover.out"
-
-		return cfg
-	}
 
 	cfg := newValidCfg()
 	assert.NoError(t, cfg.Validate())
@@ -67,15 +62,6 @@ func Test_Config_Validate(t *testing.T) {
 func Test_Config_ValidateCDN(t *testing.T) {
 	t.Parallel()
 
-	newValidCfg := func() Config {
-		cfg := Config{}
-		cfg.Profile = "cover.out"
-
-		return cfg
-	}
-
-	const nonEmptyStr = "any"
-
 	cfg := newValidCfg()
 	cfg.Badge.CDN.Key = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
@@ -108,6 +94,43 @@ func Test_Config_ValidateCDN(t *testing.T) {
 	cfg.Badge.CDN.Region = nonEmptyStr
 	cfg.Badge.CDN.BucketName = nonEmptyStr
 	cfg.Badge.CDN.FileName = nonEmptyStr
+	assert.NoError(t, cfg.Validate())
+}
+
+func Test_Config_ValidateGit(t *testing.T) {
+	t.Parallel()
+
+	cfg := newValidCfg()
+	cfg.Badge.Git.Branch = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.Git.Branch = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.Git.Branch = nonEmptyStr
+	cfg.Badge.Git.FileName = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.Git.Branch = nonEmptyStr
+	cfg.Badge.Git.Repository = nonEmptyStr
+	cfg.Badge.Git.FileName = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.Git.Branch = nonEmptyStr
+	cfg.Badge.Git.FileName = nonEmptyStr
+	cfg.Badge.Git.Repository = nonEmptyStr + "/" + nonEmptyStr
 	assert.NoError(t, cfg.Validate())
 }
 
@@ -211,4 +234,8 @@ exclude:
     - path1
     - path2
 github-action-output: true`
+}
+
+func newValidCfg() Config {
+	return Config{Profile: "cover.out"}
 }
