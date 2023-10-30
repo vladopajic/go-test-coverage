@@ -50,7 +50,7 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 
 	err := GenerateAndSaveBadge(Config{
 		Badge: Badge{
-			CDN: CDN{Secret: "your-secerts-are-safu-here"},
+			CDN: CDN{Secret: "your-secrets-are-safu"},
 		},
 	}, 100)
 	assert.Error(t, err)
@@ -67,5 +67,4 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 		},
 	}, 100)
 	assert.Error(t, err)
-
 }

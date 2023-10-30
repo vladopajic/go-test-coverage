@@ -80,5 +80,5 @@ func saveBadgeToCDN(cdn CDN, data []byte) error {
 		return fmt.Errorf("put object: %w", err)
 	}
 
-	return err
+	return nil
 }
