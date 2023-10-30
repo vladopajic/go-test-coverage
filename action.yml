@@ -78,17 +78,17 @@ inputs:
     default: "''"
     type: string
   git-repository:
-    description: Github token.
+    description: Github repository in format {owner}/{repository}.
     required: false
     default: "''"
     type: string
   git-branch:
-    description: Github token.
+    description: git branch where badge will be stored.
     required: false
     default: "''"
     type: string
   git-file-name:
-    description: Github token.
+    description: File name of badge stored to repository.
     required: false
     default: "''"
     type: string
@@ -101,7 +101,7 @@ outputs:
     description: Holds badge color value.
 runs:
   using: docker
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.7.1
+  image: docker://ghcr.io/vladopajic/go-test-coverage:dev
   args:
     - --config=${{ inputs.config }}
     - --profile=${{ inputs.profile }}
