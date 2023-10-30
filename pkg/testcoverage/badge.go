@@ -61,8 +61,8 @@ func saveBadeToFile(w io.Writer, filename string, data []byte) error {
 }
 
 type Git struct {
-	Repository string
 	Token      string
+	Repository string
 	Branch     string
 	FileName   string
 }

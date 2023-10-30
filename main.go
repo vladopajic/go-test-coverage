@@ -28,6 +28,11 @@ type args struct {
 	CDNFileName       string `arg:"--cdn-file-name"`
 	CDNBucketName     string `arg:"--cdn-bucket-name"`
 	CDNForcePathStyle bool   `arg:"--cdn-force-path-style"`
+
+	GitToken      string `arg:"--git-token"`
+	GitRepository string `arg:"--git-repository"`
+	GitBranch     string `arg:"--git-branch"`
+	GitFileName   string `arg:"--git-file-name"`
 }
 
 const (
@@ -53,6 +58,11 @@ func newArgs() args {
 		CDNFileName:       magicString,
 		CDNBucketName:     magicString,
 		CDNForcePathStyle: false,
+
+		GitToken:      magicString,
+		GitRepository: magicString,
+		GitBranch:     magicString,
+		GitFileName:   magicString,
 	}
 }
 
@@ -60,7 +70,7 @@ func (args) Version() string {
 	return "go-test-coverage " + Version
 }
 
-//nolint:cyclop // relax
+//nolint:cyclop,maintidx // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 	if !isMagicString(a.Profile) {
 		cfg.Profile = a.Profile
@@ -101,6 +111,13 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 		if !isMagicString(a.CDNEndpoint) {
 			cfg.Badge.CDN.Endpoint = a.CDNEndpoint
 		}
+	}
+
+	if !isMagicString(a.GitToken) {
+		cfg.Badge.Git.Token = a.GitToken
+		cfg.Badge.Git.Repository = a.GitRepository
+		cfg.Badge.Git.Branch = a.GitBranch
+		cfg.Badge.Git.FileName = a.GitFileName
 	}
 
 	return cfg
