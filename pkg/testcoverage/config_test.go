@@ -74,38 +74,40 @@ func Test_Config_ValidateCDN(t *testing.T) {
 		return cfg
 	}
 
+	const nonEmptyStr = "any"
+
 	cfg := newValidCfg()
-	cfg.Badge.CDN.Key = "any"
+	cfg.Badge.CDN.Key = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Secret = "any"
+	cfg.Badge.CDN.Secret = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = "any"
-	cfg.Badge.CDN.Secret = "any"
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = "any"
-	cfg.Badge.CDN.Secret = "any"
-	cfg.Badge.CDN.Region = "any"
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Region = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = "any"
-	cfg.Badge.CDN.Secret = "any"
-	cfg.Badge.CDN.Region = "any"
-	cfg.Badge.CDN.BucketName = "any"
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Region = nonEmptyStr
+	cfg.Badge.CDN.BucketName = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = "any"
-	cfg.Badge.CDN.Secret = "any"
-	cfg.Badge.CDN.Region = "any"
-	cfg.Badge.CDN.BucketName = "any"
-	cfg.Badge.CDN.FileName = "any"
+	cfg.Badge.CDN.Key = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Region = nonEmptyStr
+	cfg.Badge.CDN.BucketName = nonEmptyStr
+	cfg.Badge.CDN.FileName = nonEmptyStr
 	assert.NoError(t, cfg.Validate())
 }
 
