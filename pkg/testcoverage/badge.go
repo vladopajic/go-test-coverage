@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -42,32 +41,20 @@ func saveBadeToFile(filename string, data []byte) error {
 }
 
 type CDN struct {
-	Key        string
-	Secret     string
-	Region     string
-	FileName   string
-	BucketName string
-	Endpoint   string
+	Key            string
+	Secret         string
+	Region         string
+	FileName       string
+	BucketName     string
+	Endpoint       string
+	ForcePathStyle bool
 }
 
 func saveBadgeToCDN(cdn CDN, data []byte) error {
-	if strings.Contains(cdn.Endpoint, ".digitaloceanspaces.com") {
-		cdn.Region = "us-east-1" // for spaces region must be us-east-1
-	}
-
-	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(cdn.Key, cdn.Secret, ""),
-		Endpoint:         aws.String(cdn.Endpoint),
-		Region:           aws.String(cdn.Region),
-		S3ForcePathStyle: aws.Bool(false),
-	}
-
-	newSession, err := session.NewSession(s3Config)
+	s3Client, err := createS3Client(cdn)
 	if err != nil {
-		return fmt.Errorf("create session: %w", err)
+		return fmt.Errorf("create s3 client: %w", err)
 	}
-
-	s3Client := s3.New(newSession)
 
 	object := s3.PutObjectInput{
 		Bucket: aws.String(cdn.BucketName),
@@ -81,4 +68,22 @@ func saveBadgeToCDN(cdn CDN, data []byte) error {
 	}
 
 	return nil
+}
+
+func createS3Client(cdn CDN) (*s3.S3, error) {
+	s3Config := &aws.Config{
+		Credentials:      credentials.NewStaticCredentials(cdn.Key, cdn.Secret, ""),
+		Endpoint:         aws.String(cdn.Endpoint),
+		Region:           aws.String(cdn.Region),
+		S3ForcePathStyle: aws.Bool(cdn.ForcePathStyle),
+	}
+
+	newSession, err := session.NewSession(s3Config)
+	if err != nil {
+		return nil, fmt.Errorf("create session: %w", err)
+	}
+
+	s3Client := s3.New(newSession)
+
+	return s3Client, nil
 }
