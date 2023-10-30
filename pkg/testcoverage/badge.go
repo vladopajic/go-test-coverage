@@ -60,7 +60,7 @@ func saveBadgeToCDN(cdn CDN, data []byte) error {
 		Bucket:        aws.String(cdn.BucketName),
 		Key:           aws.String(cdn.FileName),
 		Body:          bytes.NewReader(data),
-		ContentType:   aws.String("image/svg+xml"),
+		ContentType:   aws.String(badge.ContentType),
 		ContentLength: aws.Int64(int64(len(data))),
 	}
 

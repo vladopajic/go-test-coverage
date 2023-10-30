@@ -6,11 +6,15 @@ import (
 	"github.com/narqo/go-badge"
 )
 
-const coverageLabel = "coverage"
+const (
+	ContentType = "image/svg+xml"
+
+	label = "coverage"
+)
 
 func Generate(coverage int) ([]byte, error) {
 	return badge.RenderBytes( //nolint:wrapcheck // relax
-		coverageLabel,
+		label,
 		strconv.Itoa(coverage)+"%",
 		badge.Color(Color(coverage)),
 	)
