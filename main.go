@@ -102,10 +102,10 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 
 	if !isMagicString(a.CDNSecret) {
 		cfg.Badge.CDN.Secret = a.CDNSecret
-		cfg.Badge.CDN.Key = a.CDNKey
-		cfg.Badge.CDN.Region = a.CDNRegion
-		cfg.Badge.CDN.FileName = a.CDNFileName
-		cfg.Badge.CDN.BucketName = a.CDNBucketName
+		cfg.Badge.CDN.Key = escapeMagicString(a.CDNKey)
+		cfg.Badge.CDN.Region = escapeMagicString(a.CDNRegion)
+		cfg.Badge.CDN.FileName = escapeMagicString(a.CDNFileName)
+		cfg.Badge.CDN.BucketName = escapeMagicString(a.CDNBucketName)
 		cfg.Badge.CDN.ForcePathStyle = a.CDNForcePathStyle
 
 		if !isMagicString(a.CDNEndpoint) {
@@ -115,9 +115,9 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 
 	if !isMagicString(a.GitToken) {
 		cfg.Badge.Git.Token = a.GitToken
-		cfg.Badge.Git.Repository = a.GitRepository
-		cfg.Badge.Git.Branch = a.GitBranch
-		cfg.Badge.Git.FileName = a.GitFileName
+		cfg.Badge.Git.Repository = escapeMagicString(a.GitRepository)
+		cfg.Badge.Git.Branch = escapeMagicString(a.GitBranch)
+		cfg.Badge.Git.FileName = escapeMagicString(a.GitFileName)
 	}
 
 	return cfg
@@ -171,4 +171,11 @@ func isMagicString(v string) bool {
 
 func isMagicInt(v int) bool {
 	return v == magicInt
+}
+
+func escapeMagicString(v string) string {
+	if v == magicString {
+		return ""
+	}
+	return v
 }
