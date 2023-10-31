@@ -1,6 +1,7 @@
 package testcoverage_test
 
 import (
+	"bytes"
 	"io"
 	"net/http/httptest"
 	"os"
@@ -21,7 +22,7 @@ func Test_GenerateAndSaveBadge_NoAction(t *testing.T) {
 	t.Parallel()
 
 	// should not return error when badge file name is not specified
-	err := GenerateAndSaveBadge(Config{
+	err := GenerateAndSaveBadge(nil, Config{
 		Badge: Badge{},
 	}, 100)
 	assert.NoError(t, err)
@@ -37,12 +38,14 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 	// should save badge to file
 	testFile := t.TempDir() + "/badge.svg"
 
-	err := GenerateAndSaveBadge(Config{
+	buf := &bytes.Buffer{}
+	err := GenerateAndSaveBadge(buf, Config{
 		Badge: Badge{
 			FileName: testFile,
 		},
 	}, 100)
 	assert.NoError(t, err)
+	assert.NotEmpty(t, buf.Bytes())
 
 	contentBytes, err := os.ReadFile(testFile)
 	assert.NoError(t, err)
@@ -63,11 +66,12 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 	)
 
 	// key not prvided
-	err := GenerateAndSaveBadge(Config{
-		Badge: Badge{
-			CDN: CDN{Secret: secret},
-		},
-	}, coverage)
+	err := GenerateAndSaveBadge(nil,
+		Config{
+			Badge: Badge{
+				CDN: CDN{Secret: secret},
+			},
+		}, coverage)
 	assert.Error(t, err)
 
 	backend := s3mem.New()
@@ -87,7 +91,7 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 	}
 
 	{ // bucket does not exists
-		err := GenerateAndSaveBadge(Config{Badge: Badge{CDN: cdn}}, coverage)
+		err := GenerateAndSaveBadge(nil, Config{Badge: Badge{CDN: cdn}}, coverage)
 		assert.Error(t, err)
 	}
 
@@ -101,8 +105,10 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 		assert.NoError(t, err)
 
 		// put badge
-		err = GenerateAndSaveBadge(Config{Badge: Badge{CDN: cdn}}, coverage)
+		buf := &bytes.Buffer{}
+		err = GenerateAndSaveBadge(buf, Config{Badge: Badge{CDN: cdn}}, coverage)
 		require.NoError(t, err)
+		assert.NotEmpty(t, buf.Bytes())
 
 		// download badge and assert content
 		res, err := s3Client.GetObject(&s3.GetObjectInput{
@@ -118,4 +124,25 @@ func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expectedData, resData)
 	}
+}
+
+func Test_GenerateAndSaveBadge_SaveToBranch(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		return
+	}
+
+	const coverage = 100
+
+	err := GenerateAndSaveBadge(nil,
+		Config{
+			Badge: Badge{
+				Git: Git{
+					Token:      `🔑`,
+					Repository: "owner/repo",
+				},
+			},
+		}, coverage)
+	assert.Error(t, err)
 }

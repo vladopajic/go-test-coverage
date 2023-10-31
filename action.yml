@@ -72,6 +72,26 @@ inputs:
     required: false
     default: false
     type: boolean
+  git-token:
+    description: Github token.
+    required: false
+    default: "''"
+    type: string
+  git-repository:
+    description: Github repository in format {owner}/{repository}.
+    required: false
+    default: ${{ github.repository }}
+    type: string
+  git-branch:
+    description: git branch where badge will be stored.
+    required: false
+    default: "''"
+    type: string
+  git-file-name:
+    description: File name of badge stored to repository.
+    required: false
+    default: .badges/${{ github.ref_name }}/coverage.svg
+    type: string
 outputs:
   total-coverage:
     description: Holds total coverage value.
@@ -98,6 +118,10 @@ runs:
     - --cdn-file-name=${{ inputs.cdn-file-name }}
     - --cdn-bucket-name=${{ inputs.cdn-bucket-name }}
     - --cdn-force-path-style=${{ inputs.cdn-force-path-style }}
+    - --git-token=${{ inputs.git-token }}
+    - --git-repository=${{ inputs.git-repository }}
+    - --git-branch=${{ inputs.git-branch }}
+    - --git-file-name=${{ inputs.git-file-name }}
 branding:
   icon: 'code'
   color: 'blue'

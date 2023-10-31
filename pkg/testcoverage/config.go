@@ -6,6 +6,7 @@ import (
 	"os"
 	"reflect"
 	"regexp"
+	"strings"
 
 	yaml "gopkg.in/yaml.v3"
 )
@@ -15,6 +16,7 @@ var (
 	ErrCoverageProfileNotSpecified = fmt.Errorf("coverage profile file not specified")
 	ErrRegExpNotValid              = fmt.Errorf("regular expression is not valid")
 	ErrCDNOptionNotSet             = fmt.Errorf("cdn option not set")
+	ErrGitOptionNotSet             = fmt.Errorf("git option not set")
 )
 
 type Config struct {
@@ -45,11 +47,10 @@ type Exclude struct {
 type Badge struct {
 	FileName string
 	CDN      CDN
+	Git      Git
 }
 
-//nolint:cyclop  // relax
 func (c Config) Validate() error {
-	inRange := func(t int) bool { return t >= 0 && t <= 100 }
 	validateRegexp := func(s string) error {
 		_, err := regexp.Compile("(?i)" + s)
 		return err //nolint:wrapcheck // relax
@@ -59,16 +60,8 @@ func (c Config) Validate() error {
 		return ErrCoverageProfileNotSpecified
 	}
 
-	if !inRange(c.Threshold.File) {
-		return fmt.Errorf("file %w", ErrThresholdNotInRange)
-	}
-
-	if !inRange(c.Threshold.Package) {
-		return fmt.Errorf("package %w", ErrThresholdNotInRange)
-	}
-
-	if !inRange(c.Threshold.Total) {
-		return fmt.Errorf("total %w", ErrThresholdNotInRange)
+	if err := c.validateThreshold(); err != nil {
+		return err
 	}
 
 	for i, pattern := range c.Exclude.Paths {
@@ -89,6 +82,26 @@ func (c Config) Validate() error {
 
 	if err := c.validateCDN(); err != nil {
 		return fmt.Errorf("%w, %s", ErrCDNOptionNotSet, err.Error())
+	}
+
+	if err := c.validateGit(); err != nil {
+		return fmt.Errorf("%w, %s", ErrGitOptionNotSet, err.Error())
+	}
+
+	return nil
+}
+
+func (c Config) validateThreshold() error {
+	if !inRange(c.Threshold.File) {
+		return fmt.Errorf("file %w", ErrThresholdNotInRange)
+	}
+
+	if !inRange(c.Threshold.Package) {
+		return fmt.Errorf("package %w", ErrThresholdNotInRange)
+	}
+
+	if !inRange(c.Threshold.Total) {
+		return fmt.Errorf("total %w", ErrThresholdNotInRange)
 	}
 
 	return nil
@@ -122,6 +135,34 @@ func (c Config) validateCDN() error {
 	return nil
 }
 
+//nolint:goerr113,wsl,gomnd // relax
+func (c Config) validateGit() error {
+	// when git config is empty, git featue is disabled and it's not need to validate
+	if reflect.DeepEqual(c.Badge.Git, Git{}) {
+		return nil
+	}
+
+	git := c.Badge.Git
+
+	if git.Token == "" {
+		return errors.New("git token should be set")
+	}
+	if git.Repository == "" {
+		return errors.New("git repository should be set")
+	}
+	if len(strings.Split(git.Repository, "/")) != 2 {
+		return errors.New(`git repository property should be have format "owner/repository"`)
+	}
+	if git.Branch == "" {
+		return errors.New("git branch should be set")
+	}
+	if git.FileName == "" {
+		return errors.New("git file name should be set")
+	}
+
+	return nil
+}
+
 func ConfigFromFile(cfg *Config, filename string) error {
 	source, err := os.ReadFile(filename)
 	if err != nil {
@@ -135,3 +176,5 @@ func ConfigFromFile(cfg *Config, filename string) error {
 
 	return nil
 }
+
+func inRange(t int) bool { return t >= 0 && t <= 100 }

@@ -26,7 +26,7 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 		}
 	}
 
-	err = GenerateAndSaveBadge(cfg, result.TotalCoverage)
+	err = GenerateAndSaveBadge(w, cfg, result.TotalCoverage)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate and save badge: %v\n", err)
 		return result, err

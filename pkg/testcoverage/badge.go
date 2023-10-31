@@ -1,43 +1,156 @@
 package testcoverage
 
 import (
+	"bufio"
 	"bytes"
+	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/google/go-github/v56/github"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
 )
 
-func GenerateAndSaveBadge(cfg Config, totalCoverage int) error {
+func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	badge, err := badge.Generate(totalCoverage)
 	if err != nil {
 		return fmt.Errorf("generate badge: %w", err)
 	}
 
+	buffer := &bytes.Buffer{}
+	out := bufio.NewWriter(buffer)
+
+	defer func() {
+		out.Flush()
+
+		if buffer.Len() != 0 {
+			fmt.Fprintf(w, "\n-------------------------\n")
+			w.Write(buffer.Bytes()) //nolint:errcheck // relx
+		}
+	}()
+
 	if cfg.Badge.FileName != "" {
-		err := saveBadeToFile(cfg.Badge.FileName, badge)
+		err := saveBadeToFile(out, cfg.Badge.FileName, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to file: %w", err)
 		}
 	}
 
 	if cfg.Badge.CDN.Secret != "" {
-		err := saveBadgeToCDN(cfg.Badge.CDN, badge)
+		err := saveBadgeToCDN(out, cfg.Badge.CDN, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to cdn: %w", err)
+		}
+	}
+
+	if cfg.Badge.Git.Token != "" {
+		err := saveBadgeToBranch(out, cfg.Badge.Git, badge)
+		if err != nil {
+			return fmt.Errorf("save badge to git branch: %w", err)
 		}
 	}
 
 	return nil
 }
 
-func saveBadeToFile(filename string, data []byte) error {
-	return os.WriteFile(filename, data, 0o644) //nolint:gosec,gomnd,wrapcheck // relax
+//nolint:gosec,gomnd,wrapcheck // relax
+func saveBadeToFile(w io.Writer, filename string, data []byte) error {
+	err := os.WriteFile(filename, data, 0o644)
+	if err != nil {
+		return err
+	}
+
+	fmt.Fprintf(w, "Badge saved to file '%v'\n", filename)
+
+	return nil
+}
+
+type Git struct {
+	Token      string
+	Repository string
+	Branch     string
+	FileName   string
+}
+
+//nolint:lll // relax
+func updateGithubBadge(git Git, owner, repo, path string, data []byte) (bool, error) {
+	ctx := context.TODO()
+	client := github.NewClient(nil).WithAuthToken(git.Token)
+
+	updateBadge := func(fc *github.RepositoryContent) (bool, error) {
+		var sha *string
+		if fc != nil {
+			sha = fc.SHA
+		}
+
+		_, _, err := client.Repositories.UpdateFile(ctx, owner, repo, path, &github.RepositoryContentFileOptions{
+			Message: github.String("badge update"),
+			Content: data,
+			Branch:  &git.Branch,
+			SHA:     sha,
+		})
+		if err != nil {
+			return false, fmt.Errorf("update badge contents: %w", err)
+		}
+
+		return true, nil
+	}
+
+	fc, _, httpResp, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{
+		Ref: git.Branch,
+	})
+	if httpResp.StatusCode == http.StatusNotFound { // when badge is not found create it
+		return updateBadge(nil)
+	}
+
+	if err != nil {
+		return false, fmt.Errorf("get badge contents: %w", err)
+	}
+
+	content, err := fc.GetContent()
+	if err != nil {
+		return false, fmt.Errorf("decode badge contents: %w", err)
+	}
+
+	if content == string(data) { // same badge already exists... do nothing
+		return false, nil
+	}
+
+	return updateBadge(fc)
+}
+
+func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
+	repoParts := strings.Split(git.Repository, "/")
+	owner, repo := repoParts[0], repoParts[1]
+	path := git.FileName
+
+	changed, err := updateGithubBadge(git, owner, repo, path, data)
+	if err != nil {
+		return err
+	}
+
+	if changed {
+		fmt.Fprintf(w, "Badge pushed to branch\n")
+	} else {
+		//nolint:lll //relax
+		fmt.Fprintf(w, "Badge with same coverage already pushed to %v - nothing to commit\n", git.Branch)
+	}
+
+	fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
+	fmt.Fprintf(w,
+		"![coverage](https://raw.githubusercontent.com/%s/%s/%s/%s)\n",
+		owner, repo, git.Branch, git.FileName,
+	)
+
+	return nil
 }
 
 type CDN struct {
@@ -50,7 +163,7 @@ type CDN struct {
 	ForcePathStyle bool
 }
 
-func saveBadgeToCDN(cdn CDN, data []byte) error {
+func saveBadgeToCDN(w io.Writer, cdn CDN, data []byte) error {
 	s3Client, err := createS3Client(cdn)
 	if err != nil {
 		return fmt.Errorf("create s3 client: %w", err)
@@ -68,6 +181,8 @@ func saveBadgeToCDN(cdn CDN, data []byte) error {
 	if err != nil {
 		return fmt.Errorf("put object: %w", err)
 	}
+
+	fmt.Fprintf(w, "Badge uploaded to CDN\n")
 
 	return nil
 }
