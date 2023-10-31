@@ -9,7 +9,17 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
-const Version = "v2.7.1"
+const (
+	Version = "v2.7.1"
+	Name    = "go-test-coverage"
+)
+
+const (
+	// default value of string variables passed by CI
+	ciDefaultString = `''`
+	// default value of int variables passed by CI
+	ciDefaultnt = -1
+)
 
 type args struct {
 	ConfigPath         string `arg:"-c,--config"`
@@ -35,44 +45,43 @@ type args struct {
 	GitFileName   string `arg:"--git-file-name"`
 }
 
-const (
-	magicString = `''`
-	magicInt    = -1
-)
-
 func newArgs() args {
 	return args{
-		ConfigPath:         magicString,
-		Profile:            magicString,
-		LocalPrefix:        magicString,
+		ConfigPath:         ciDefaultString,
+		Profile:            ciDefaultString,
+		LocalPrefix:        ciDefaultString,
 		GithubActionOutput: false,
-		ThresholdFile:      magicInt,
-		ThresholdPackage:   magicInt,
-		ThresholdTotal:     magicInt,
-		BadgeFileName:      magicString,
+		ThresholdFile:      ciDefaultnt,
+		ThresholdPackage:   ciDefaultnt,
+		ThresholdTotal:     ciDefaultnt,
 
-		CDNKey:            magicString,
-		CDNSecret:         magicString,
-		CDNRegion:         magicString,
-		CDNEndpoint:       magicString,
-		CDNFileName:       magicString,
-		CDNBucketName:     magicString,
+		// Badge
+		BadgeFileName: ciDefaultString,
+
+		// CDN
+		CDNKey:            ciDefaultString,
+		CDNSecret:         ciDefaultString,
+		CDNRegion:         ciDefaultString,
+		CDNEndpoint:       ciDefaultString,
+		CDNFileName:       ciDefaultString,
+		CDNBucketName:     ciDefaultString,
 		CDNForcePathStyle: false,
 
-		GitToken:      magicString,
-		GitRepository: magicString,
-		GitBranch:     magicString,
-		GitFileName:   magicString,
+		// Git
+		GitToken:      ciDefaultString,
+		GitRepository: ciDefaultString,
+		GitBranch:     ciDefaultString,
+		GitFileName:   ciDefaultString,
 	}
 }
 
 func (args) Version() string {
-	return "go-test-coverage " + Version
+	return Name + " " + Version
 }
 
 //nolint:cyclop,maintidx // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
-	if !isMagicString(a.Profile) {
+	if !isCIDefaultString(a.Profile) {
 		cfg.Profile = a.Profile
 	}
 
@@ -80,44 +89,44 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 		cfg.GithubActionOutput = true
 	}
 
-	if !isMagicString(a.LocalPrefix) {
+	if !isCIDefaultString(a.LocalPrefix) {
 		cfg.LocalPrefix = a.LocalPrefix
 	}
 
-	if !isMagicInt(a.ThresholdFile) {
+	if !isCIDefaultnt(a.ThresholdFile) {
 		cfg.Threshold.File = a.ThresholdFile
 	}
 
-	if !isMagicInt(a.ThresholdPackage) {
+	if !isCIDefaultnt(a.ThresholdPackage) {
 		cfg.Threshold.Package = a.ThresholdPackage
 	}
 
-	if !isMagicInt(a.ThresholdPackage) {
+	if !isCIDefaultnt(a.ThresholdPackage) {
 		cfg.Threshold.Total = a.ThresholdTotal
 	}
 
-	if !isMagicString(a.BadgeFileName) {
+	if !isCIDefaultString(a.BadgeFileName) {
 		cfg.Badge.FileName = a.BadgeFileName
 	}
 
-	if !isMagicString(a.CDNSecret) {
+	if !isCIDefaultString(a.CDNSecret) {
 		cfg.Badge.CDN.Secret = a.CDNSecret
-		cfg.Badge.CDN.Key = escapeMagicString(a.CDNKey)
-		cfg.Badge.CDN.Region = escapeMagicString(a.CDNRegion)
-		cfg.Badge.CDN.FileName = escapeMagicString(a.CDNFileName)
-		cfg.Badge.CDN.BucketName = escapeMagicString(a.CDNBucketName)
+		cfg.Badge.CDN.Key = escapeCiDefaultString(a.CDNKey)
+		cfg.Badge.CDN.Region = escapeCiDefaultString(a.CDNRegion)
+		cfg.Badge.CDN.FileName = escapeCiDefaultString(a.CDNFileName)
+		cfg.Badge.CDN.BucketName = escapeCiDefaultString(a.CDNBucketName)
 		cfg.Badge.CDN.ForcePathStyle = a.CDNForcePathStyle
 
-		if !isMagicString(a.CDNEndpoint) {
+		if !isCIDefaultString(a.CDNEndpoint) {
 			cfg.Badge.CDN.Endpoint = a.CDNEndpoint
 		}
 	}
 
-	if !isMagicString(a.GitToken) {
+	if !isCIDefaultString(a.GitToken) {
 		cfg.Badge.Git.Token = a.GitToken
-		cfg.Badge.Git.Repository = escapeMagicString(a.GitRepository)
-		cfg.Badge.Git.Branch = escapeMagicString(a.GitBranch)
-		cfg.Badge.Git.FileName = escapeMagicString(a.GitFileName)
+		cfg.Badge.Git.Repository = escapeCiDefaultString(a.GitRepository)
+		cfg.Badge.Git.Branch = escapeCiDefaultString(a.GitBranch)
+		cfg.Badge.Git.FileName = escapeCiDefaultString(a.GitFileName)
 	}
 
 	return cfg
@@ -148,7 +157,7 @@ func readConfig() (testcoverage.Config, error) {
 	cfg := testcoverage.Config{}
 
 	// Load config from file
-	if !isMagicString(cmdArgs.ConfigPath) {
+	if !isCIDefaultString(cmdArgs.ConfigPath) {
 		err := testcoverage.ConfigFromFile(&cfg, cmdArgs.ConfigPath)
 		if err != nil {
 			return testcoverage.Config{}, fmt.Errorf("failed loading config from file: %w", err)
@@ -165,16 +174,12 @@ func readConfig() (testcoverage.Config, error) {
 	return cfg, nil
 }
 
-func isMagicString(v string) bool {
-	return v == magicString
-}
+func isCIDefaultString(v string) bool { return v == ciDefaultString }
 
-func isMagicInt(v int) bool {
-	return v == magicInt
-}
+func isCIDefaultnt(v int) bool { return v == ciDefaultnt }
 
-func escapeMagicString(v string) string {
-	if v == magicString {
+func escapeCiDefaultString(v string) string {
+	if v == ciDefaultString {
 		return ""
 	}
 
