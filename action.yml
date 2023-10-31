@@ -103,24 +103,24 @@ runs:
   using: docker
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.7.1
   args:
-    - --config=${{ inputs.config || "" }}
-    - --profile=${{ inputs.profile || "" }}
+    - --config=${{ inputs.config || '' }}
+    - --profile=${{ inputs.profile || '' }}
     - --github-action-output=true
-    - --local-prefix=${{ inputs.local-prefix }}
+    - --local-prefix=${{ inputs.local-prefix || '' }}
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}
     - --threshold-total=${{ inputs.threshold-total }}
-    - --badge-file-name=${{ inputs.badge-file-name }}
-    - --cdn-key=${{ inputs.cdn-key }}
-    - --cdn-secret=${{ inputs.cdn-secret }}
-    - --cdn-region=${{ inputs.cdn-region }}
-    - --cdn-endpoint=${{ inputs.cdn-endpoint }}
-    - --cdn-file-name=${{ inputs.cdn-file-name }}
-    - --cdn-bucket-name=${{ inputs.cdn-bucket-name }}
+    - --badge-file-name=${{ inputs.badge-file-name || '' }}
+    - --cdn-key=${{ inputs.cdn-key || '' }}
+    - --cdn-secret=${{ inputs.cdn-secret || '' }}
+    - --cdn-region=${{ inputs.cdn-region || '' }}
+    - --cdn-endpoint=${{ inputs.cdn-endpoint || '' }}
+    - --cdn-file-name=${{ inputs.cdn-file-name || '' }}
+    - --cdn-bucket-name=${{ inputs.cdn-bucket-name || '' }}
     - --cdn-force-path-style=${{ inputs.cdn-force-path-style }}
-    - --git-token=${{ inputs.git-token }}
+    - --git-token=${{ inputs.git-token || '' }}
+    - --git-branch=${{ inputs.git-branch || '' }}
     - --git-repository=${{ inputs.git-repository }}
-    - --git-branch=${{ inputs.git-branch }}
     - --git-file-name=${{ inputs.git-file-name }}
 branding:
   icon: 'code'
