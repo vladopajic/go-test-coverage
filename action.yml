@@ -103,8 +103,8 @@ runs:
   using: docker
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.7.1
   args:
-    - --config=${{ inputs.config || '''''' }}
-    - ${{ inputs.profile || --profile="inputs.profile" }}
+    - --config=${{ inputs.config || "" }}
+    - --profile=${{ inputs.profile || "" }}
     - --github-action-output=true
     - --local-prefix=${{ inputs.local-prefix }}
     - --threshold-file=${{ inputs.threshold-file }}
