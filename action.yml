@@ -80,7 +80,7 @@ inputs:
   git-repository:
     description: Github repository in format {owner}/{repository}.
     required: false
-    default: "''"
+    default: ${{ github.repository }}
     type: string
   git-branch:
     description: git branch where badge will be stored.
@@ -90,7 +90,7 @@ inputs:
   git-file-name:
     description: File name of badge stored to repository.
     required: false
-    default: "''"
+    default: .badges/${{ github.ref_name }}/coverage.svg
     type: string
 outputs:
   total-coverage:
