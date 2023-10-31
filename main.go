@@ -100,7 +100,7 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 		cfg.Badge.FileName = a.BadgeFileName
 	}
 
-	if !isMagicString(a.CDNSecret) || !isMagicString(a.CDNKey) {
+	if !isMagicString(a.CDNSecret) {
 		cfg.Badge.CDN.Secret = a.CDNSecret
 		cfg.Badge.CDN.Key = a.CDNKey
 		cfg.Badge.CDN.Region = a.CDNRegion
