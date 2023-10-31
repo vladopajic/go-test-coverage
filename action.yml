@@ -5,17 +5,17 @@ inputs:
   config:
     description: Path of configuration file.
     required: false
-    default: "''"
+    default: ""
     type: string
   profile:
     description: Path of coverage profile file.
     required: false
-    default: "''"
+    default: ""
     type: string
   local-prefix:
     description: When specified reported file paths will not contain local prefix in the output.
     required: false
-    default: "''"
+    default: ""
     type: string
   threshold-file:
     description: The minimum coverage that each file should have.
@@ -35,37 +35,37 @@ inputs:
   badge-file-name:
     description: When specified coverage badge will be created and saved to file with this name.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-key:
     description: CDN key.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-secret:
     description: CDN secret.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-region:
     description: CDN region.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-endpoint:
     description: CDN endpoint.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-file-name:
     description: CDN file name.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-bucket-name:
     description: CDN bucket name.
     required: false
-    default: "''"
+    default: ""
     type: string
   cdn-force-path-style:
     description: CDN force path style.
@@ -75,7 +75,7 @@ inputs:
   git-token:
     description: Github token.
     required: false
-    default: "''"
+    default: ""
     type: string
   git-repository:
     description: Github repository in format {owner}/{repository}.
@@ -85,7 +85,7 @@ inputs:
   git-branch:
     description: git branch where badge will be stored.
     required: false
-    default: "''"
+    default: ""
     type: string
   git-file-name:
     description: File name of badge stored to repository.
@@ -103,7 +103,7 @@ runs:
   using: docker
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.7.1
   args:
-    - --config=${{ inputs.config }}
+    - --config=${{ inputs.config || '''''' }}
     - --profile=${{ inputs.profile }}
     - --github-action-output=true
     - --local-prefix=${{ inputs.local-prefix }}
