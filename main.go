@@ -70,7 +70,7 @@ func (args) Version() string {
 	return "go-test-coverage " + Version
 }
 
-//nolint:cyclop,maintidx // relax
+//nolint:cyclop // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 	if !isMagicString(a.Profile) {
 		cfg.Profile = a.Profile
