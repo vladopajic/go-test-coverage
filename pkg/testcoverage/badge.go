@@ -24,7 +24,18 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 		return fmt.Errorf("generate badge: %w", err)
 	}
 
+	separatorAdded := false
+	printSeparator := func() {
+		if separatorAdded {
+			return
+		}
+		separatorAdded = true
+		fmt.Fprintf(w, "\n-------------------------\n")
+	}
+
 	if cfg.Badge.FileName != "" {
+		printSeparator()
+
 		err := saveBadeToFile(w, cfg.Badge.FileName, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to file: %w", err)
@@ -32,6 +43,8 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	}
 
 	if cfg.Badge.CDN.Secret != "" {
+		printSeparator()
+
 		err := saveBadgeToCDN(w, cfg.Badge.CDN, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to cdn: %w", err)
@@ -39,6 +52,8 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	}
 
 	if cfg.Badge.Git.Token != "" {
+		printSeparator()
+
 		err := saveBadgeToBranch(w, cfg.Badge.Git, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to git branch: %w", err)
@@ -55,7 +70,7 @@ func saveBadeToFile(w io.Writer, filename string, data []byte) error {
 		return err
 	}
 
-	fmt.Fprintf(w, "\nBadge saved to file '%v'\n", filename)
+	fmt.Fprintf(w, "Badge saved to file '%v'\n", filename)
 
 	return nil
 }
@@ -125,9 +140,9 @@ func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
 	}
 
 	if changed {
-		fmt.Fprintf(w, "\nBadge pushed to branch\n")
+		fmt.Fprintf(w, "Badge pushed to branch\n")
 	} else {
-		fmt.Fprintf(w, "\nBadge with same coverage already pushed - nothing to commit\n")
+		fmt.Fprintf(w, "Badge with same coverage already pushed to %v - nothing to commit\n", git.Branch)
 	}
 
 	fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
@@ -168,7 +183,7 @@ func saveBadgeToCDN(w io.Writer, cdn CDN, data []byte) error {
 		return fmt.Errorf("put object: %w", err)
 	}
 
-	fmt.Fprintf(w, "\nBadge uploaded to CDN\n")
+	fmt.Fprintf(w, "Badge uploaded to CDN\n")
 
 	return nil
 }
