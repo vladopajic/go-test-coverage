@@ -1,6 +1,7 @@
 package testcoverage
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"fmt"
@@ -24,37 +25,34 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 		return fmt.Errorf("generate badge: %w", err)
 	}
 
-	separatorAdded := false
-	printSeparator := func() {
-		if separatorAdded {
-			return
+	buffer := &bytes.Buffer{}
+	out := bufio.NewWriter(buffer)
+
+	defer func() {
+		out.Flush()
+
+		if buffer.Len() != 0 {
+			fmt.Fprintf(w, "\n-------------------------\n")
+			w.Write(buffer.Bytes()) //nolint:errcheck // relx
 		}
-		separatorAdded = true
-		fmt.Fprintf(w, "\n-------------------------\n")
-	}
+	}()
 
 	if cfg.Badge.FileName != "" {
-		printSeparator()
-
-		err := saveBadeToFile(w, cfg.Badge.FileName, badge)
+		err := saveBadeToFile(out, cfg.Badge.FileName, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to file: %w", err)
 		}
 	}
 
 	if cfg.Badge.CDN.Secret != "" {
-		printSeparator()
-
-		err := saveBadgeToCDN(w, cfg.Badge.CDN, badge)
+		err := saveBadgeToCDN(out, cfg.Badge.CDN, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to cdn: %w", err)
 		}
 	}
 
 	if cfg.Badge.Git.Token != "" {
-		printSeparator()
-
-		err := saveBadgeToBranch(w, cfg.Badge.Git, badge)
+		err := saveBadgeToBranch(out, cfg.Badge.Git, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to git branch: %w", err)
 		}
@@ -142,6 +140,7 @@ func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
 	if changed {
 		fmt.Fprintf(w, "Badge pushed to branch\n")
 	} else {
+		//nolint:lll //relax
 		fmt.Fprintf(w, "Badge with same coverage already pushed to %v - nothing to commit\n", git.Branch)
 	}
 
