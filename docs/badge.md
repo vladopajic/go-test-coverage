@@ -2,44 +2,26 @@
 
 Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
-## Self hosted badges
+## Coverage Badge hosted on GitHub repository
 
-Easiest way to add badge in markdown files is to generate them via workflow and self host them in git repository.
+`go-test-coverage` can generate coverage badge and commit it to designated GitHub repository. 
 
-Generating self hosted coverage badge could be done with `action-badges/core` action. This action will create badge file and commit it to some orphan branch.
-
-Workflow example:
-
+Example:
 ```yml
-name: Go test coverage check
-runs-on: ubuntu-latest
-steps:
-  - uses: actions/checkout@v3
-  - uses: actions/setup-go@v3
-  
-  - name: generate test generate coverage
-    run: go test ./... -coverprofile=./cover.out
+- name: check test coverage
+  uses: vladopajic/go-test-coverage@v2
+  with:
+    profile: cover.out
+    local-prefix: github.com/org/project
+    threshold-total: 95
 
-  - name: check test coverage
-    id: coverage ## this step must have id
-    uses: vladopajic/go-test-coverage@v2
-    with:
-      profile: cover.out
-      local-prefix: github.com/org/project
-      threshold-file: 80
-      threshold-package: 80
-      threshold-total: 95
-  
-  - name: make coverage badge
-    uses: action-badges/core@0.2.2
-    if: contains(github.ref, 'main')
-    with:
-      label: coverage
-      message: ${{ steps.coverage.outputs.badge-text }}
-      message-color: ${{ steps.coverage.outputs.badge-color }}
-      file-name: coverage.svg
-      badge-branch: badges ## orphan branch where badge will be committed
-      github-token: "${{ secrets.GITHUB_TOKEN }}"
+    ## name of branch where badges are stored
+    ## ideally this should be orphan branch, see below how to create this branch
+    git-branch: badges 
+    ## git-token is needed to push to repository
+    ## when token is not specified (value is '') this feature is turend off
+    ## in this example badge is created and committed only for main brach
+    git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
 ```
 
 Orphan branch needs to be created prior to running this workflow, to create an orphan branch manually:
@@ -54,7 +36,7 @@ git commit -m 'init'
 git push origin badges
 ```
 
-Lastly, check output of `make coverage badge` step to see markdown snippet which can be added to markdown files. 
+Lastly, check output of `check test coverage` step to see markdown snippet which can be added to markdown files. 
 
 If instruction from this example was followed through, this link should be
 
@@ -64,14 +46,38 @@ If instruction from this example was followed through, this link should be
 
 where `org/project` part would match corresponding project.
 
-Allow some time for Github to do it's thing if file is not immediately accessible via this link
+Notes:
+- Allow some time for Github to do it's thing if file is not immediately accessible via this link.
+- `check test coverage` step may fail if GitHub token does not have permissions to write. To fix this you can:
+  - add permission to job with `permissions: write-all` directive, or
+  - give permissions to GitHub token: Go to repository Settings -> Actions -> Workflow Permissions section and give actions Read and Write permissions
+- For private repositories this will not work because only content from public repository could be accessible via `raw.githubusercontent.com`. For private repositories coverage badge could be hosted via CDN, as described below.
 
-## Private repositories
+## Coverage Badge hosted on CDN
 
-In private repositories, files are not accessible without the inclusion of an access token in the URL. However, this practice of adding an access token directly to the URL has a drawback: contributors can potentially continue accessing the repository even after their permissions have been revoked. 
+`go-test-coverage` can generate coverage badge and upload it to CDN like Amazon S3 or DigitalOcean Spaces. 
 
-To mitigate this issue, consider incorporating an additional step into the workflow file that uploads the coverage badge file to a designated Content Delivery Network (CDN).
+Example:
+```yml
+- name: check test coverage
+  uses: vladopajic/go-test-coverage@v2
+  with:
+    profile: cover.out
+    local-prefix: github.com/org/project
+    threshold-total: 95
 
+    ## when secret is not specified (value is '') this feature is turend off
+    ## in this example badge is created and uploaded only for main brach
+    cdn-secret:  ${{ github.ref_name == 'main' && secrets.CDN_SECRET || '' }}
+    cdn-key: ${{ secrets.CDN_KEY }}
+    ## in case of DigitalOcean Spaces use `us-ease-1` always, otherwise use region of your CDN
+    cdn-region: us-east-1 
+    ## in case of DigitalOcean Spaces endpoint should be set with region and without bucket
+    cdn-endpoint: https://nyc3.digitaloceanspaces.com 
+    cdn-file-name: .badges/${{ github.ref_name }}/coverage.svg
+    cdn-bucket-name: my-bucket-name
+    cdn-force-path-style: false
+```
 
 ## Badge examples
 
