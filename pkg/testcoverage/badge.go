@@ -80,23 +80,23 @@ type Git struct {
 	FileName   string
 }
 
-//nolint:lll // relax
-func updateGithubBadge(git Git, owner, repo, path string, data []byte) (bool, error) {
+func updateGithubBadge(git Git, data []byte) (bool, error) {
 	ctx := context.TODO()
 	client := github.NewClient(nil).WithAuthToken(git.Token)
 
-	updateBadge := func(fc *github.RepositoryContent) (bool, error) {
-		var sha *string
-		if fc != nil {
-			sha = fc.SHA
-		}
-
-		_, _, err := client.Repositories.UpdateFile(ctx, owner, repo, path, &github.RepositoryContentFileOptions{
-			Message: github.String("badge update"),
-			Content: data,
-			Branch:  &git.Branch,
-			SHA:     sha,
-		})
+	updateBadge := func(sha *string) (bool, error) {
+		_, _, err := client.Repositories.UpdateFile(
+			ctx,
+			git.Owner,
+			git.Repository,
+			git.FileName,
+			&github.RepositoryContentFileOptions{
+				Message: github.String(fmt.Sprintf("update badge %s", git.FileName)),
+				Content: data,
+				Branch:  &git.Branch,
+				SHA:     sha,
+			},
+		)
 		if err != nil {
 			return false, fmt.Errorf("update badge contents: %w", err)
 		}
@@ -104,40 +104,43 @@ func updateGithubBadge(git Git, owner, repo, path string, data []byte) (bool, er
 		return true, nil
 	}
 
-	fc, _, httpResp, err := client.Repositories.GetContents(ctx, owner, repo, path, &github.RepositoryContentGetOptions{
-		Ref: git.Branch,
-	})
+	fc, _, httpResp, err := client.Repositories.GetContents(
+		ctx,
+		git.Owner,
+		git.Repository,
+		git.FileName,
+		&github.RepositoryContentGetOptions{Ref: git.Branch},
+	)
 	if httpResp.StatusCode == http.StatusNotFound { // when badge is not found create it
 		return updateBadge(nil)
 	}
 
 	if err != nil {
-		return false, fmt.Errorf("get badge contents: %w", err)
+		return false, fmt.Errorf("get badge content: %w", err)
 	}
 
 	content, err := fc.GetContent()
 	if err != nil {
-		return false, fmt.Errorf("decode badge contents: %w", err)
+		return false, fmt.Errorf("decode badge content: %w", err)
 	}
 
 	if content == string(data) { // same badge already exists... do nothing
 		return false, nil
 	}
 
-	return updateBadge(fc)
+	return updateBadge(fc.SHA)
 }
 
 func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
-	changed, err := updateGithubBadge(git, git.Owner, git.Repository, git.FileName, data)
+	changed, err := updateGithubBadge(git, data)
 	if err != nil {
 		return err
 	}
 
 	if changed {
-		fmt.Fprintf(w, "Badge pushed to branch\n")
+		fmt.Fprintf(w, "Badge with updated coverage pushed\n")
 	} else {
-		//nolint:lll //relax
-		fmt.Fprintf(w, "Badge with same coverage already pushed to %v - nothing to commit\n", git.Branch)
+		fmt.Fprintf(w, "Badge with same coverage already pushed (nothing to commit)\n")
 	}
 
 	fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
@@ -178,7 +181,7 @@ func saveBadgeToCDN(w io.Writer, cdn CDN, data []byte) error {
 		return fmt.Errorf("put object: %w", err)
 	}
 
-	fmt.Fprintf(w, "Badge uploaded to CDN\n")
+	fmt.Fprintf(w, "Badge uploaded to CDN on the path: %v\n", cdn.FileName)
 
 	return nil
 }
