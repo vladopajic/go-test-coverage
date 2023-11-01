@@ -1,8 +1,10 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/alexflint/go-arg"
 
@@ -79,8 +81,8 @@ func (args) Version() string {
 	return Name + " " + Version
 }
 
-//nolint:cyclop,maintidx // relax
-func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
+//nolint:cyclop,maintidx,gomnd,goerr113 // relax
+func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	if !isCIDefaultString(a.Profile) {
 		cfg.Profile = a.Profile
 	}
@@ -124,12 +126,19 @@ func (a *args) overrideConfig(cfg testcoverage.Config) testcoverage.Config {
 
 	if !isCIDefaultString(a.GitToken) {
 		cfg.Badge.Git.Token = a.GitToken
-		cfg.Badge.Git.Repository = escapeCiDefaultString(a.GitRepository)
 		cfg.Badge.Git.Branch = escapeCiDefaultString(a.GitBranch)
 		cfg.Badge.Git.FileName = escapeCiDefaultString(a.GitFileName)
+
+		parts := strings.Split(escapeCiDefaultString(a.GitRepository), "/")
+		if len(parts) != 2 {
+			return cfg, errors.New("--git-repository flag should have format {owner}/{repository}")
+		}
+
+		cfg.Badge.Git.Owner = parts[0]
+		cfg.Badge.Git.Repository = parts[1]
 	}
 
-	return cfg
+	return cfg, nil
 }
 
 //nolint:forbidigo // relax
@@ -165,8 +174,12 @@ func readConfig() (testcoverage.Config, error) {
 	}
 
 	// Override config with values from args
-	cfg = cmdArgs.overrideConfig(cfg)
+	cfg, err := cmdArgs.overrideConfig(cfg)
+	if err != nil {
+		return testcoverage.Config{}, fmt.Errorf("argument is not valid: %w", err)
+	}
 
+	// Validate config
 	if err := cfg.Validate(); err != nil {
 		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
 	}

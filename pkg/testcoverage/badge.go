@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -75,6 +74,7 @@ func saveBadeToFile(w io.Writer, filename string, data []byte) error {
 
 type Git struct {
 	Token      string
+	Owner      string
 	Repository string
 	Branch     string
 	FileName   string
@@ -128,11 +128,7 @@ func updateGithubBadge(git Git, owner, repo, path string, data []byte) (bool, er
 }
 
 func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
-	repoParts := strings.Split(git.Repository, "/")
-	owner, repo := repoParts[0], repoParts[1]
-	path := git.FileName
-
-	changed, err := updateGithubBadge(git, owner, repo, path, data)
+	changed, err := updateGithubBadge(git, git.Owner, git.Repository, git.FileName, data)
 	if err != nil {
 		return err
 	}
@@ -147,7 +143,7 @@ func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
 	fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
 	fmt.Fprintf(w,
 		"![coverage](https://raw.githubusercontent.com/%s/%s/%s/%s)\n",
-		owner, repo, git.Branch, git.FileName,
+		git.Owner, git.Repository, git.Branch, git.FileName,
 	)
 
 	return nil
