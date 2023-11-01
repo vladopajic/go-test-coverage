@@ -1,7 +1,6 @@
 package testcoverage
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -15,8 +14,8 @@ var (
 	ErrThresholdNotInRange         = fmt.Errorf("threshold must be in range [0 - 100]")
 	ErrCoverageProfileNotSpecified = fmt.Errorf("coverage profile file not specified")
 	ErrRegExpNotValid              = fmt.Errorf("regular expression is not valid")
-	ErrCDNOptionNotSet             = fmt.Errorf("cdn option not set")
-	ErrGitOptionNotSet             = fmt.Errorf("git option not set")
+	ErrCDNOptionNotSet             = fmt.Errorf("CDN options are not valid")
+	ErrGitOptionNotSet             = fmt.Errorf("git options are not valid")
 )
 
 type Config struct {
@@ -81,11 +80,11 @@ func (c Config) Validate() error {
 	}
 
 	if err := c.validateCDN(); err != nil {
-		return fmt.Errorf("%w, %s", ErrCDNOptionNotSet, err.Error())
+		return fmt.Errorf("%w: %s", ErrCDNOptionNotSet, err.Error())
 	}
 
 	if err := c.validateGit(); err != nil {
-		return fmt.Errorf("%w, %s", ErrGitOptionNotSet, err.Error())
+		return fmt.Errorf("%w: %s", ErrGitOptionNotSet, err.Error())
 	}
 
 	return nil
@@ -107,57 +106,40 @@ func (c Config) validateThreshold() error {
 	return nil
 }
 
-//nolint:goerr113,wsl // relax
 func (c Config) validateCDN() error {
 	// when cnd config is empty, cnd featue is disabled and it's not need to validate
 	if reflect.DeepEqual(c.Badge.CDN, CDN{}) {
 		return nil
 	}
 
-	cdn := c.Badge.CDN
-
-	if cdn.Key == "" {
-		return errors.New("CDN key should be set")
-	}
-	if cdn.Secret == "" {
-		return errors.New("CDN secret should be set")
-	}
-	if cdn.Region == "" {
-		return errors.New("CDN region should be set")
-	}
-	if cdn.BucketName == "" {
-		return errors.New("CDN bucket name should be set")
-	}
-	if cdn.FileName == "" {
-		return errors.New("CDN file name should be set")
-	}
-
-	return nil
+	return hasNonEmptyFields(c.Badge.CDN)
 }
 
-//nolint:goerr113,wsl,gomnd // relax
 func (c Config) validateGit() error {
 	// when git config is empty, git featue is disabled and it's not need to validate
 	if reflect.DeepEqual(c.Badge.Git, Git{}) {
 		return nil
 	}
 
-	git := c.Badge.Git
+	return hasNonEmptyFields(c.Badge.Git)
+}
 
-	if git.Token == "" {
-		return errors.New("git token should be set")
-	}
-	if git.Repository == "" {
-		return errors.New("git repository should be set")
-	}
-	if len(strings.Split(git.Repository, "/")) != 2 {
-		return errors.New(`git repository property should be have format "owner/repository"`)
-	}
-	if git.Branch == "" {
-		return errors.New("git branch should be set")
-	}
-	if git.FileName == "" {
-		return errors.New("git file name should be set")
+func hasNonEmptyFields(obj any) error {
+	v := reflect.ValueOf(obj)
+	for i := 0; i < v.NumField(); i++ {
+		f := v.Field(i)
+
+		if !f.IsZero() { // filed is set
+			continue
+		}
+
+		if f.Type().Kind() == reflect.Bool { // boolean fields are always set
+			continue
+		}
+
+		name := strings.ToLower(v.Type().Field(i).Name)
+
+		return fmt.Errorf("property [%v] should be set", name) //nolint:goerr113 // relax
 	}
 
 	return nil

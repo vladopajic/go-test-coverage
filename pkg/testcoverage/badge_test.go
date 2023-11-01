@@ -140,7 +140,8 @@ func Test_GenerateAndSaveBadge_SaveToBranch(t *testing.T) {
 			Badge: Badge{
 				Git: Git{
 					Token:      `🔑`,
-					Repository: "owner/repo",
+					Owner:      "owner",
+					Repository: "repo",
 				},
 			},
 		}, coverage)

@@ -63,37 +63,34 @@ func Test_Config_ValidateCDN(t *testing.T) {
 	t.Parallel()
 
 	cfg := newValidCfg()
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.CDN.Secret = nonEmptyStr
 	cfg.Badge.CDN.Key = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
 	cfg.Badge.CDN.Secret = nonEmptyStr
-	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
-
-	cfg = newValidCfg()
 	cfg.Badge.CDN.Key = nonEmptyStr
-	cfg.Badge.CDN.Secret = nonEmptyStr
-	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
-
-	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = nonEmptyStr
-	cfg.Badge.CDN.Secret = nonEmptyStr
 	cfg.Badge.CDN.Region = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = nonEmptyStr
 	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Key = nonEmptyStr
 	cfg.Badge.CDN.Region = nonEmptyStr
 	cfg.Badge.CDN.BucketName = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrCDNOptionNotSet)
 
 	cfg = newValidCfg()
-	cfg.Badge.CDN.Key = nonEmptyStr
 	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Key = nonEmptyStr
 	cfg.Badge.CDN.Region = nonEmptyStr
 	cfg.Badge.CDN.BucketName = nonEmptyStr
 	cfg.Badge.CDN.FileName = nonEmptyStr
+	cfg.Badge.CDN.Endpoint = nonEmptyStr
 	assert.NoError(t, cfg.Validate())
 }
 
@@ -101,36 +98,33 @@ func Test_Config_ValidateGit(t *testing.T) {
 	t.Parallel()
 
 	cfg := newValidCfg()
-	cfg.Badge.Git.Branch = nonEmptyStr
-	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
-
-	cfg = newValidCfg()
 	cfg.Badge.Git.Token = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
 
 	cfg = newValidCfg()
 	cfg.Badge.Git.Token = nonEmptyStr
-	cfg.Badge.Git.Branch = nonEmptyStr
+	cfg.Badge.Git.Owner = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
 
 	cfg = newValidCfg()
 	cfg.Badge.Git.Token = nonEmptyStr
-	cfg.Badge.Git.Branch = nonEmptyStr
-	cfg.Badge.Git.FileName = nonEmptyStr
-	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
-
-	cfg = newValidCfg()
-	cfg.Badge.Git.Token = nonEmptyStr
-	cfg.Badge.Git.Branch = nonEmptyStr
+	cfg.Badge.Git.Owner = nonEmptyStr
 	cfg.Badge.Git.Repository = nonEmptyStr
-	cfg.Badge.Git.FileName = nonEmptyStr
 	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
 
 	cfg = newValidCfg()
 	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.Git.Owner = nonEmptyStr
+	cfg.Badge.Git.Repository = nonEmptyStr
+	cfg.Badge.Git.Branch = nonEmptyStr
+	assert.ErrorIs(t, cfg.Validate(), ErrGitOptionNotSet)
+
+	cfg = newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.Git.Owner = nonEmptyStr
+	cfg.Badge.Git.Repository = nonEmptyStr
 	cfg.Badge.Git.Branch = nonEmptyStr
 	cfg.Badge.Git.FileName = nonEmptyStr
-	cfg.Badge.Git.Repository = nonEmptyStr + "/" + nonEmptyStr
 	assert.NoError(t, cfg.Validate())
 }
 
