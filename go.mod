@@ -25,7 +25,7 @@ require (
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20190829150210-3e036491d500 // indirect
-	golang.org/x/image v0.5.0 // indirect
+	golang.org/x/image v0.10.0 // indirect
 	golang.org/x/net v0.17.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
