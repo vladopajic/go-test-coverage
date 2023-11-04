@@ -14,16 +14,16 @@
 
 These are the most important features and benefits of `go-test-coverage`:
 
-- easy installation - ready in 5 minutes
-- server-less
-  - no registration, no permissions needed
-  - check never fails due to connectivity/server issues
-- **protects privacy** - will never leak any information about your private projects to third parties	
-  - [risks of information leakage through remote code coverage services](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266) 	
+- quick, 5-minute installation
+- server-less with no registration or permissions required
+  -  check never fails due to connectivity/server issues
+- **ensures data privacy**, no leaks to third parties
+  - [risks of information leakage through remote code coverage services](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266)
 - runs blazingly fast - (~1 sec on [go-test-coverage repo](https://github.com/vladopajic/go-test-coverage/actions/runs/5457149078/job/14774054108))
-- supports usage in local and CI environments
-- comprehensive configuration options
-- fancy badges
+- versatile for local and CI use
+- extensive configuration options
+- stylish badges
+- free and open-source!
 
 ## Usage
 
