@@ -51,7 +51,7 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	}
 
 	if cfg.Badge.Git.Token != "" {
-		err := saveBadgeToBranch(out, cfg.Badge.Git, badge)
+		err := saveBadgeToGitRepo(out, cfg.Badge.Git, badge)
 		if err != nil {
 			return fmt.Errorf("save badge to git branch: %w", err)
 		}
@@ -80,13 +80,33 @@ type Git struct {
 	FileName   string
 }
 
+func saveBadgeToGitRepo(w io.Writer, git Git, data []byte) error {
+	changed, err := updateGithubBadge(git, data)
+	if err != nil {
+		return err
+	}
+
+	if changed {
+		fmt.Fprintf(w, "Badge with updated coverage pushed\n")
+	} else {
+		fmt.Fprintf(w, "Badge with same coverage already pushed (nothing to commit)\n")
+	}
+
+	fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
+	fmt.Fprintf(w,
+		"![coverage](https://raw.githubusercontent.com/%s/%s/%s/%s)\n",
+		git.Owner, git.Repository, git.Branch, git.FileName,
+	)
+
+	return nil
+}
+
 func updateGithubBadge(git Git, data []byte) (bool, error) {
-	ctx := context.TODO()
 	client := github.NewClient(nil).WithAuthToken(git.Token)
 
 	updateBadge := func(sha *string) (bool, error) {
 		_, _, err := client.Repositories.UpdateFile(
-			ctx,
+			context.Background(),
 			git.Owner,
 			git.Repository,
 			git.FileName,
@@ -101,11 +121,11 @@ func updateGithubBadge(git Git, data []byte) (bool, error) {
 			return false, fmt.Errorf("update badge contents: %w", err)
 		}
 
-		return true, nil
+		return true, nil // has changed
 	}
 
 	fc, _, httpResp, err := client.Repositories.GetContents(
-		ctx,
+		context.Background(),
 		git.Owner,
 		git.Repository,
 		git.FileName,
@@ -131,27 +151,6 @@ func updateGithubBadge(git Git, data []byte) (bool, error) {
 	return updateBadge(fc.SHA)
 }
 
-func saveBadgeToBranch(w io.Writer, git Git, data []byte) error {
-	changed, err := updateGithubBadge(git, data)
-	if err != nil {
-		return err
-	}
-
-	if changed {
-		fmt.Fprintf(w, "Badge with updated coverage pushed\n")
-	} else {
-		fmt.Fprintf(w, "Badge with same coverage already pushed (nothing to commit)\n")
-	}
-
-	fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
-	fmt.Fprintf(w,
-		"![coverage](https://raw.githubusercontent.com/%s/%s/%s/%s)\n",
-		git.Owner, git.Repository, git.Branch, git.FileName,
-	)
-
-	return nil
-}
-
 type CDN struct {
 	Key            string
 	Secret         string
@@ -163,27 +162,52 @@ type CDN struct {
 }
 
 func saveBadgeToCDN(w io.Writer, cdn CDN, data []byte) error {
-	s3Client, err := createS3Client(cdn)
+	changed, err := updateBadgeCDN(cdn, data)
 	if err != nil {
-		return fmt.Errorf("create s3 client: %w", err)
+		return err
 	}
 
-	object := s3.PutObjectInput{
+	if changed {
+		fmt.Fprintf(w, "Badge with updated coverage uploaded to CDN. Badge path: %v\n", cdn.FileName)
+	} else {
+		fmt.Fprintf(w, "Badge with same coverage already uploaded to CDN.\n")
+	}
+
+	return nil
+}
+
+func updateBadgeCDN(cdn CDN, data []byte) (bool, error) {
+	s3Client, err := createS3Client(cdn)
+	if err != nil {
+		return false, fmt.Errorf("create s3 client: %w", err)
+	}
+
+	// First get object and check if data differs that currently uploaded
+	result, err := s3Client.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(cdn.BucketName),
+		Key:    aws.String(cdn.FileName),
+	})
+	if err == nil {
+		resp, _ := io.ReadAll(result.Body)
+		if bytes.Equal(resp, data) {
+			return false, nil // has not changed
+		}
+	}
+
+	// Currently uploaded badge does not exists or has changed
+	// so it should be uploaded
+	_, err = s3Client.PutObject(&s3.PutObjectInput{
 		Bucket:        aws.String(cdn.BucketName),
 		Key:           aws.String(cdn.FileName),
 		Body:          bytes.NewReader(data),
 		ContentType:   aws.String(badge.ContentType),
 		ContentLength: aws.Int64(int64(len(data))),
-	}
-
-	_, err = s3Client.PutObject(&object)
+	})
 	if err != nil {
-		return fmt.Errorf("put object: %w", err)
+		return false, fmt.Errorf("put object: %w", err)
 	}
 
-	fmt.Fprintf(w, "Badge uploaded to CDN on the path: %v\n", cdn.FileName)
-
-	return nil
+	return true, nil // has changed
 }
 
 func createS3Client(cdn CDN) (*s3.S3, error) {
