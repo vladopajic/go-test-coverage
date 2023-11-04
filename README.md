@@ -63,7 +63,7 @@ steps:
   - uses: actions/setup-go@v3
   
   - name: generate test coverage
-    run: go test ./... -coverprofile=./cover.out
+    run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 
   - name: check test coverage
     uses: vladopajic/go-test-coverage@v2
