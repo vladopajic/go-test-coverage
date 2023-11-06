@@ -7,23 +7,14 @@ import (
 	"strings"
 )
 
-//nolint:gochecknoglobals // relax
-var separatorToReplace = regexp.QuoteMeta(string(filepath.Separator))
+const separatorToReplace = string(filepath.Separator)
 
 func normalizePathInRegex(path string) string {
 	if runtime.GOOS != "windows" {
 		return path
 	}
 
-	clean := regexp.MustCompile(`\\+/`).
-		ReplaceAllStringFunc(path, func(s string) string {
-			if strings.Count(s, "\\")%2 == 0 {
-				return s
-			}
-			return s[1:]
-		})
-
-	return strings.ReplaceAll(clean, "/", separatorToReplace)
+	return strings.ReplaceAll(path, "/", separatorToReplace)
 }
 
 type regRule struct {
