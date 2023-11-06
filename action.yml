@@ -33,17 +33,17 @@ inputs:
     default: -1
     type: number
   badge-file-name:
-    description: When specified coverage badge will be created and saved to file with this name.
-    required: false
-    default: ""
-    type: string
-  cdn-key:
-    description: CDN key.
+    description: When specified coverage badge will be created and saved to this file.
     required: false
     default: ""
     type: string
   cdn-secret:
-    description: CDN secret.
+    description: CDN API secret. When specified action will create and upload badge to CDN.
+    required: false
+    default: ""
+    type: string
+  cdn-key:
+    description: CDN API key.
     required: false
     default: ""
     type: string
@@ -53,12 +53,12 @@ inputs:
     default: ""
     type: string
   cdn-endpoint:
-    description: CDN endpoint.
+    description: CDN endpoint. 
     required: false
     default: ""
     type: string
   cdn-file-name:
-    description: CDN file name.
+    description: File name (including path) of badge on CDN.
     required: false
     default: ""
     type: string
@@ -73,22 +73,22 @@ inputs:
     default: false
     type: boolean
   git-token:
-    description: Github token.
+    description: GitHub token. When specified action will create and upload badge to GitHub repository.
     required: false
     default: ""
     type: string
   git-repository:
-    description: Github repository in format {owner}/{repository}.
+    description: GitHub repository in format {owner}/{repository} where badge is stored.
     required: false
     default: ${{ github.repository }}
     type: string
   git-branch:
-    description: git branch where badge will be stored.
+    description: Branch where badge is stored.
     required: false
     default: ""
     type: string
   git-file-name:
-    description: File name of badge stored to repository.
+    description: File name (including path) of badge stored to specified repository.
     required: false
     default: .badges/${{ github.ref_name }}/coverage.svg
     type: string
@@ -96,9 +96,9 @@ outputs:
   total-coverage:
     description: Holds total coverage value.
   badge-text:
-    description: Holds badge text value.
+    description: Deprecated! Holds badge text value.
   badge-color:
-    description: Holds badge color value.
+    description: Deprecated! Holds badge color value.
 runs:
   using: docker
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.8.0
