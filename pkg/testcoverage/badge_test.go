@@ -36,6 +36,8 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 	}
 
 	t.Run("invalid file", func(t *testing.T) {
+		t.Parallel()
+
 		err := GenerateAndSaveBadge(nil, Config{
 			Badge: Badge{
 				FileName: t.TempDir(), // should not be able to write to directory
