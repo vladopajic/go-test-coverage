@@ -35,21 +35,34 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 		return
 	}
 
-	// should save badge to file
-	testFile := t.TempDir() + "/badge.svg"
+	t.Run("invalid file", func(t *testing.T) {
+		err := GenerateAndSaveBadge(nil, Config{
+			Badge: Badge{
+				FileName: t.TempDir(), // should not be able to write to directory
+			},
+		}, 100)
+		assert.Error(t, err)
+	})
 
-	buf := &bytes.Buffer{}
-	err := GenerateAndSaveBadge(buf, Config{
-		Badge: Badge{
-			FileName: testFile,
-		},
-	}, 100)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, buf.Bytes())
+	t.Run("success", func(t *testing.T) {
+		t.Parallel()
 
-	contentBytes, err := os.ReadFile(testFile)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, contentBytes)
+		// should save badge to file
+		testFile := t.TempDir() + "/badge.svg"
+
+		buf := &bytes.Buffer{}
+		err := GenerateAndSaveBadge(buf, Config{
+			Badge: Badge{
+				FileName: testFile,
+			},
+		}, 100)
+		assert.NoError(t, err)
+		assert.Contains(t, buf.String(), "Badge saved to file")
+
+		contentBytes, err := os.ReadFile(testFile)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, contentBytes)
+	})
 }
 
 func Test_GenerateAndSaveBadge_SaveToCDN_NoAction(t *testing.T) {
