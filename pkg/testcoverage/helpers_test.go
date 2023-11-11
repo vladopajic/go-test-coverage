@@ -11,28 +11,29 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
-func mergeStats(a, b []CoverageStats) []CoverageStats {
-	r := make([]CoverageStats, 0, len(a)+len(b))
+func mergeStats(a, b []coverage.Stats) []coverage.Stats {
+	r := make([]coverage.Stats, 0, len(a)+len(b))
 	r = append(r, a...)
 	r = append(r, b...)
 
 	return r
 }
 
-func randStats(localPrefix string, minc, maxc int) []CoverageStats {
+func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 	const count = 100
 
 	coverageGen := makeCoverageGenFn(minc, maxc)
-	result := make([]CoverageStats, 0, count)
+	result := make([]coverage.Stats, 0, count)
 
 	for {
 		pkg := randPackageName(localPrefix)
 
 		for c := rand.Int31n(10); c >= 0; c-- {
 			total, covered := coverageGen()
-			stat := CoverageStats{
+			stat := coverage.Stats{
 				Name:    randFileName(pkg),
 				Covered: covered,
 				Total:   total,
@@ -57,7 +58,7 @@ func makeCoverageGenFn(min, max int) func() (total, covered int64) {
 			covered := int64(rand.Intn(200))
 			total := int64(float64(100*covered) / float64(tc))
 
-			cp := CoveredPercentage(total, covered)
+			cp := coverage.CoveredPercentage(total, covered)
 			if cp >= min && cp <= max {
 				return total, covered
 			}
@@ -95,7 +96,7 @@ func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
 	assert.Equal(t, failCount, strings.Count(content, "FAIL"))
 }
 
-func assertContainStats(t *testing.T, content string, stats []CoverageStats) {
+func assertContainStats(t *testing.T, content string, stats []coverage.Stats) {
 	t.Helper()
 
 	contains := 0
@@ -111,7 +112,7 @@ func assertContainStats(t *testing.T, content string, stats []CoverageStats) {
 	}
 }
 
-func assertNotContainStats(t *testing.T, content string, stats []CoverageStats) {
+func assertNotContainStats(t *testing.T, content string, stats []coverage.Stats) {
 	t.Helper()
 
 	contains := 0
@@ -136,7 +137,7 @@ func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
 func assertPrefix(t *testing.T, result AnalyzeResult, prefix string, has bool) {
 	t.Helper()
 
-	checkPrefix := func(stats []CoverageStats) {
+	checkPrefix := func(stats []coverage.Stats) {
 		for _, stat := range stats {
 			assert.Equal(t, has, strings.Contains(stat.Name, prefix))
 		}

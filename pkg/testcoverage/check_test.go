@@ -8,11 +8,12 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
 
 const (
-	profileOK  = "testdata/ok.profile"
-	profileNOK = "testdata/nok.profile"
+	profileOK  = "testdata/" + testdata.ProfileOK
+	profileNOK = "testdata/" + testdata.ProfileNOK
 )
 
 func TestCheck(t *testing.T) {
@@ -28,9 +29,8 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		result, err := Check(buf, Config{})
-		assert.Error(t, err)
-		assert.Empty(t, result)
+		pass := Check(buf, Config{})
+		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 0)
 	})
@@ -40,9 +40,8 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
-		result, err := Check(buf, cfg)
-		assert.Error(t, err)
-		assert.False(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 0)
 	})
@@ -52,9 +51,8 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.True(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
@@ -66,11 +64,10 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:   profileOK,
 			Threshold: Threshold{Total: 100},
-			Exclude:   Exclude{Paths: []string{`cover\.go$`}},
+			Exclude:   Exclude{Paths: []string{`cover\.go$`, `badge\.go$`, `check\.go$`, `path\.go$`}},
 		}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.True(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
@@ -80,9 +77,8 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.False(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 2, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
@@ -94,9 +90,8 @@ func TestCheck(t *testing.T) {
 		buf := &bytes.Buffer{}
 
 		cfg := Config{Profile: profileOK, LocalPrefix: prefix, Threshold: Threshold{Total: 65}}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.True(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 3, 0)
 		assert.Equal(t, 0, strings.Count(buf.String(), prefix))
@@ -111,9 +106,8 @@ func TestCheck(t *testing.T) {
 			Threshold: Threshold{File: 100},
 			Override:  []Override{{Threshold: 10, Path: "^pkg"}},
 		}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.True(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 3, 0)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
@@ -128,9 +122,8 @@ func TestCheck(t *testing.T) {
 			Threshold: Threshold{File: 10},
 			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
 		}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.False(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 2)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
@@ -148,8 +141,8 @@ func TestCheckNoParallel(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 100}}
-		_, err := Check(buf, cfg)
-		assert.Error(t, err)
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
 	})
 
 	t.Run("ok pass; with github output file", func(t *testing.T) {
@@ -158,9 +151,8 @@ func TestCheckNoParallel(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 10}}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.True(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 3, 0)
 		assertGithubOutputValues(t, testFile)
@@ -172,9 +164,8 @@ func TestCheckNoParallel(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 100}}
-		result, err := Check(buf, cfg)
-		assert.NoError(t, err)
-		assert.False(t, result.Pass())
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertHumanReport(t, buf.String(), 2, 1)
 		assertGithubOutputValues(t, testFile)
