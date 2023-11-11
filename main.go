@@ -149,12 +149,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	result, err := testcoverage.Check(os.Stdout, cfg)
-	if err != nil || !result.Pass() {
-		if err != nil {
-			fmt.Println(err.Error())
-		}
-
+	pass := testcoverage.Check(os.Stdout, cfg)
+	if !pass {
 		os.Exit(1)
 	}
 }

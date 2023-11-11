@@ -1,4 +1,4 @@
-package testcoverage
+package coverage
 
 import (
 	"fmt"
@@ -12,14 +12,20 @@ import (
 	"golang.org/x/tools/cover"
 )
 
-func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
+type Config struct {
+	Profile      string
+	LocalPrefix  string
+	ExcludePaths []string
+}
+
+func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	profiles, err := cover.ParseProfiles(cfg.Profile)
 	if err != nil {
 		return nil, fmt.Errorf("parsing profile file: %w", err)
 	}
 
-	fileStats := make([]CoverageStats, 0, len(profiles))
-	excludeRules := compileExcludePathRules(cfg)
+	fileStats := make([]Stats, 0, len(profiles))
+	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
 
 	for _, profile := range profiles {
 		file, noPrefixName, err := findFile(profile.FileName, cfg.LocalPrefix)
@@ -27,7 +33,7 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
 		}
 
-		if _, ok := matches(excludeRules, noPrefixName); ok {
+		if ok := matches(excludeRules, noPrefixName); ok {
 			continue // this file is excluded
 		}
 
@@ -36,7 +42,7 @@ func GenerateCoverageStats(cfg Config) ([]CoverageStats, error) {
 			return nil, fmt.Errorf("failed parsing funcs from file [%s]: %w", profile.FileName, err)
 		}
 
-		s := CoverageStats{
+		s := Stats{
 			Name: noPrefixName,
 		}
 
@@ -126,10 +132,6 @@ func (v *FuncVisitor) Visit(node ast.Node) ast.Visitor {
 
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
-//
-// We could avoid making this n^2 overall by doing
-// a single scan and annotating the functions, but the sizes of the data
-// structures is never very large and the scan is almost instantaneous.
 func (f *FuncExtent) coverage(profile *cover.Profile) (int64, int64) {
 	var covered, total int64
 

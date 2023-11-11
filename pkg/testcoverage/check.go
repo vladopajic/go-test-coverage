@@ -3,13 +3,19 @@ package testcoverage
 import (
 	"fmt"
 	"io"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
-func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
-	stats, err := GenerateCoverageStats(cfg)
+func Check(w io.Writer, cfg Config) bool {
+	stats, err := coverage.GenerateCoverageStats(coverage.Config{
+		Profile:      cfg.Profile,
+		LocalPrefix:  cfg.LocalPrefix,
+		ExcludePaths: cfg.Exclude.Paths,
+	})
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
-		return AnalyzeResult{}, err
+		return false
 	}
 
 	result := Analyze(cfg, stats)
@@ -22,20 +28,20 @@ func Check(w io.Writer, cfg Config) (AnalyzeResult, error) {
 		err = SetGithubActionOutput(result)
 		if err != nil {
 			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
-			return result, err
+			return false
 		}
 	}
 
 	err = GenerateAndSaveBadge(w, cfg, result.TotalCoverage)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate and save badge: %v\n", err)
-		return result, err
+		return false
 	}
 
-	return result, nil
+	return result.Pass()
 }
 
-func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
+func Analyze(cfg Config, coverageStats []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
 
 	overrideRules := compileOverridePathRules(cfg)
@@ -46,7 +52,7 @@ func Analyze(cfg Config, coverageStats []CoverageStats) AnalyzeResult {
 		makePackageStats(coverageStats), thr.Package, overrideRules,
 	)
 
-	totalStats := calcTotalStats(coverageStats)
+	totalStats := coverage.CalcTotalStats(coverageStats)
 	meetsTotalCoverage := len(coverageStats) == 0 || totalStats.CoveredPercentage() >= thr.Total
 
 	return AnalyzeResult{

@@ -10,6 +10,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func ReportForHuman(w io.Writer, result AnalyzeResult) {
@@ -46,7 +47,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\nTotal test coverage: %d%%\n", result.TotalCoverage)
 }
 
-func reportIssuesForHuman(w io.Writer, coverageStats []CoverageStats) {
+func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 	if len(coverageStats) == 0 {
 		return
 	}

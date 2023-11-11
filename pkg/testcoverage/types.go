@@ -4,12 +4,14 @@ import (
 	"strings"
 
 	"golang.org/x/exp/maps"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 type AnalyzeResult struct {
 	Threshold              Threshold
-	FilesBelowThreshold    []CoverageStats
-	PackagesBelowThreshold []CoverageStats
+	FilesBelowThreshold    []coverage.Stats
+	PackagesBelowThreshold []coverage.Stats
 	MeetsTotalCoverage     bool
 	TotalCoverage          int
 }
@@ -20,36 +22,21 @@ func (r *AnalyzeResult) Pass() bool {
 		len(r.PackagesBelowThreshold) == 0
 }
 
-type CoverageStats struct {
-	Name      string
-	Total     int64
-	Covered   int64
-	Threshold int
-}
-
-func (s *CoverageStats) CoveredPercentage() int {
-	return CoveredPercentage(s.Total, s.Covered)
-}
-
-//nolint:gomnd // relax
-func CoveredPercentage(total, covered int64) int {
-	if total == 0 {
-		return 0
+func packageForFile(filename string) string {
+	i := strings.LastIndex(filename, "/")
+	if i == -1 {
+		return filename
 	}
 
-	if covered == total {
-		return 100
-	}
-
-	return int(float64(covered*100) / float64(total))
+	return filename[:i]
 }
 
 func checkCoverageStatsBelowThreshold(
-	coverageStats []CoverageStats,
+	coverageStats []coverage.Stats,
 	threshold int,
 	overrideRules []regRule,
-) []CoverageStats {
-	var belowThreshold []CoverageStats
+) []coverage.Stats {
+	var belowThreshold []coverage.Stats
 
 	for _, s := range coverageStats {
 		thr := threshold
@@ -66,28 +53,17 @@ func checkCoverageStatsBelowThreshold(
 	return belowThreshold
 }
 
-func calcTotalStats(coverageStats []CoverageStats) CoverageStats {
-	totalStats := CoverageStats{}
-
-	for _, stats := range coverageStats {
-		totalStats.Total += stats.Total
-		totalStats.Covered += stats.Covered
-	}
-
-	return totalStats
-}
-
-func makePackageStats(coverageStats []CoverageStats) []CoverageStats {
-	packageStats := make(map[string]CoverageStats)
+func makePackageStats(coverageStats []coverage.Stats) []coverage.Stats {
+	packageStats := make(map[string]coverage.Stats)
 
 	for _, stats := range coverageStats {
 		pkg := packageForFile(stats.Name)
 
-		var pkgStats CoverageStats
+		var pkgStats coverage.Stats
 		if s, ok := packageStats[pkg]; ok {
 			pkgStats = s
 		} else {
-			pkgStats = CoverageStats{Name: pkg}
+			pkgStats = coverage.Stats{Name: pkg}
 		}
 
 		pkgStats.Total += stats.Total
@@ -96,25 +72,4 @@ func makePackageStats(coverageStats []CoverageStats) []CoverageStats {
 	}
 
 	return maps.Values(packageStats)
-}
-
-func packageForFile(filename string) string {
-	i := strings.LastIndex(filename, "/")
-	if i == -1 {
-		return filename
-	}
-
-	return filename[:i]
-}
-
-func stripPrefix(name, prefix string) string {
-	if prefix == "" {
-		return name
-	}
-
-	if string(prefix[len(prefix)-1]) != "/" {
-		prefix += "/"
-	}
-
-	return strings.Replace(name, prefix, "", 1)
 }
