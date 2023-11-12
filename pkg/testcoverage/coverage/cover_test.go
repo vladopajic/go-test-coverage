@@ -12,6 +12,7 @@ import (
 const (
 	profileOK  = "../testdata/" + testdata.ProfileOK
 	profileNOK = "../testdata/" + testdata.ProfileNOK
+	prefix     = "github.com/vladopajic/go-test-coverage/v2"
 )
 
 func Test_GenerateCoverageStats(t *testing.T) {
@@ -45,4 +46,14 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NotEmpty(t, stats2)
 	// stats2 should have less total statements because cover.go should have be excluded
 	assert.Greater(t, CalcTotalStats(stats1).Total, CalcTotalStats(stats2).Total)
+
+	// should remove prefix from stats
+	stats3, err := GenerateCoverageStats(Config{
+		Profile:     profileOK,
+		LocalPrefix: prefix,
+	})
+	assert.NoError(t, err)
+	assert.NotEmpty(t, stats3)
+	assert.Equal(t, CalcTotalStats(stats1), CalcTotalStats(stats3))
+	assert.NotContains(t, stats3[0].Name, prefix)
 }
