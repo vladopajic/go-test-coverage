@@ -50,7 +50,7 @@ check-coverage: install-go-test-coverage
 	${GOBIN}/go-test-coverage --config=./.testcoverage.yml
 ```
 
-### Github Workflow
+### Github workflow
 
 Example to run `go-test-coverage` as step of workflow:
 
@@ -129,11 +129,20 @@ exclude:
 #   current OS file path separator to properly work on Windows
 ```
 
-## Coverage Badge
+## Coverage badge
 
 Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
 Read instructions on creating coverage badge [here](./docs/badge.md).
+
+## Visualise coverage profile
+
+Go's toolchain includes a utility for visualizing coverage profiles, providing valuable insights into which statements have not been covered by tests. This feature proves highly beneficial for understanding the extent of test coverage in your codebase.
+
+Following command will generate `cover.html` page with visualized coverage profile: 
+```console
+go tool cover -html=cover.out -o=cover.html
+```
 
 
 ## Contribution

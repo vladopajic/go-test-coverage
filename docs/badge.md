@@ -1,4 +1,4 @@
-# Coverage Badge
+# Coverage badge
 
 Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
@@ -9,7 +9,7 @@ Repositories which use `go-test-coverage` action in their workflows could easily
 * generate a badge and choose a custom method for storage, allowing flexibility to align with your repository's specific requirements
 * generate a badge and store it in another public GitHub repository
 
-## Coverage Badge hosted on same GitHub repository
+## Coverage badge hosted on same GitHub repository
 
 `go-test-coverage` can create a coverage badge and automatically commit it to the same GitHub repository. This feature is particularly well-suited for public repositories.
 
@@ -59,7 +59,7 @@ Notes:
   - give write permissions to GitHub token: Go to repository Settings -> Actions -> Workflow Permissions section and give actions Read and Write permissions
 - For private repositories this will not work because only content from public repository could be accessible via `raw.githubusercontent.com`. For private repositories coverage badge could be hosted with methods described below.
 
-## Coverage Badge hosted on CDN
+## Coverage badge hosted on CDN
 
 `go-test-coverage` can generate a coverage badge and upload it to a content delivery network (CDN) such as Amazon S3 or DigitalOcean Spaces. This option is especially suitable for private repositories.
 
@@ -86,7 +86,7 @@ Example:
     cdn-force-path-style: false
 ```
 
-## Generate Badge
+## Generate badge
 
 With `go-test-coverage`, you can generate a coverage badge and save it locally on the file system. This badge file can be managed and utilized using a custom mechanism tailored to your specific needs.
 
@@ -105,7 +105,7 @@ Example:
   ## ... implement your method for storing badge 
 ```
 
-## Coverage Badge hosted on another public GitHub repository
+## Coverage badge hosted on another public GitHub repository
 
 Just like the method where badges are hosted within the same repository, `go-test-coverage` provides a straightforward configuration to commit badges to any other repository, preferably one that is public. 
 
