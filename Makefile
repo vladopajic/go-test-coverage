@@ -29,3 +29,4 @@ tidy:
 check-coverage:
 	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 	go run ./main.go --config=./.github/.testcoverage.yml
+	go tool cover -html=cover.out -o=cover.html

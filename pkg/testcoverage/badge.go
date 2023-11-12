@@ -10,7 +10,7 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
-func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
+func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	badge, err := badge.Generate(totalCoverage)
 	if err != nil {
 		return fmt.Errorf("generate badge: %w", err)
@@ -19,12 +19,16 @@ func GenerateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	buffer := &bytes.Buffer{}
 	out := bufio.NewWriter(buffer)
 
+	// `out` writer is used as temporall buffer, which will be finally
+	// written to `w` in this defer call
 	defer func() {
 		out.Flush()
 
 		if buffer.Len() != 0 {
+			// add visual sparator before writing result
+			// of generate and save badge action
 			fmt.Fprintf(w, "\n-------------------------\n")
-			w.Write(buffer.Bytes()) //nolint:errcheck // relx
+			w.Write(buffer.Bytes()) //nolint:errcheck // relax
 		}
 	}()
 

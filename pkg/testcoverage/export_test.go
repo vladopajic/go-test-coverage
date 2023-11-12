@@ -8,9 +8,10 @@ const (
 )
 
 var (
-	MakePackageStats = makePackageStats
-	PackageForFile   = packageForFile
-	StoreBadge       = storeBadge
+	MakePackageStats     = makePackageStats
+	PackageForFile       = packageForFile
+	StoreBadge           = storeBadge
+	GenerateAndSaveBadge = generateAndSaveBadge
 )
 
 type (
