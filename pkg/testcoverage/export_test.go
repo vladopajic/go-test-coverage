@@ -8,7 +8,12 @@ const (
 )
 
 var (
-	MakePackageStats = makePackageStats
-	PackageForFile   = packageForFile
-	CreateS3Client   = createS3Client
+	MakePackageStats     = makePackageStats
+	PackageForFile       = packageForFile
+	StoreBadge           = storeBadge
+	GenerateAndSaveBadge = generateAndSaveBadge
+)
+
+type (
+	StorerFactories = storerFactories
 )

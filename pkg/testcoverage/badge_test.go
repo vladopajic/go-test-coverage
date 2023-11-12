@@ -3,28 +3,21 @@ package testcoverage_test
 import (
 	"bytes"
 	"io"
-	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/johannesboyne/gofakes3"
-	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
 func Test_GenerateAndSaveBadge_NoAction(t *testing.T) {
 	t.Parallel()
 
-	// should not return error when badge file name is not specified
-	err := GenerateAndSaveBadge(nil, Config{
-		Badge: Badge{},
-	}, 100)
+	// Empty config - no action
+	err := GenerateAndSaveBadge(nil, Config{}, 100)
 	assert.NoError(t, err)
 }
 
@@ -35,150 +28,147 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 		return
 	}
 
-	t.Run("invalid file", func(t *testing.T) {
-		t.Parallel()
-
-		err := GenerateAndSaveBadge(nil, Config{
-			Badge: Badge{
-				FileName: t.TempDir(), // should not be able to write to directory
-			},
-		}, 100)
-		assert.Error(t, err)
-	})
-
-	t.Run("success", func(t *testing.T) {
-		t.Parallel()
-
-		// should save badge to file
-		testFile := t.TempDir() + "/badge.svg"
-
-		buf := &bytes.Buffer{}
-		err := GenerateAndSaveBadge(buf, Config{
-			Badge: Badge{
-				FileName: testFile,
-			},
-		}, 100)
-		assert.NoError(t, err)
-		assert.Contains(t, buf.String(), "Badge saved to file")
-
-		contentBytes, err := os.ReadFile(testFile)
-		assert.NoError(t, err)
-		assert.NotEmpty(t, contentBytes)
-	})
-}
-
-func Test_GenerateAndSaveBadge_SaveToCDN_NoAction(t *testing.T) {
-	t.Parallel()
-
-	// key not prvided
-	err := GenerateAndSaveBadge(nil,
-		Config{
-			Badge: Badge{
-				CDN: CDN{Secret: `your-secrets-are-safu`},
-			},
-		}, 100)
-	assert.Error(t, err)
-}
-
-func Test_GenerateAndSaveBadge_SaveToCDN(t *testing.T) {
-	t.Parallel()
-
-	if testing.Short() {
-		return
-	}
-
-	const (
-		key      = `🔑`
-		secret   = `your-secrets-are-safu`
-		coverage = 100
-	)
-
-	backend := s3mem.New()
-	faker := gofakes3.New(backend)
-	ts := httptest.NewServer(faker.Server())
-
-	defer ts.Close()
-
-	cdn := CDN{
-		Key:            key,
-		Secret:         secret,
-		Region:         "eu-central-1",
-		FileName:       "coverage.svg",
-		BucketName:     "badges",
-		Endpoint:       ts.URL,
-		ForcePathStyle: true,
-	}
-
-	// bucket does not exists
-	err := GenerateAndSaveBadge(nil, Config{Badge: Badge{CDN: cdn}}, coverage)
-	assert.Error(t, err)
-
-	// create bucket and assert again
-	s3Client, err := CreateS3Client(cdn)
-	require.NoError(t, err)
-
-	_, err = s3Client.CreateBucket(&s3.CreateBucketInput{
-		Bucket: aws.String(cdn.BucketName),
-	})
-	assert.NoError(t, err)
-
-	// put badge
-	buf := &bytes.Buffer{}
-	err = GenerateAndSaveBadge(buf, Config{Badge: Badge{CDN: cdn}}, coverage)
-	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "Badge with updated coverage uploaded to CDN.")
-	assertS3HasBadge(t, s3Client, cdn, coverage)
-
-	// put badge again - no change
-	buf = &bytes.Buffer{}
-	err = GenerateAndSaveBadge(buf, Config{Badge: Badge{CDN: cdn}}, coverage)
-	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "Badge with same coverage already uploaded to CDN.")
-	assertS3HasBadge(t, s3Client, cdn, coverage)
-
-	// put badge again - expect change
-	buf = &bytes.Buffer{}
-	err = GenerateAndSaveBadge(buf, Config{Badge: Badge{CDN: cdn}}, 10)
-	require.NoError(t, err)
-	assert.Contains(t, buf.String(), "Badge with updated coverage uploaded to CDN.")
-	assertS3HasBadge(t, s3Client, cdn, 10)
-}
-
-func Test_GenerateAndSaveBadge_SaveToBranch_NoAction(t *testing.T) {
-	t.Parallel()
-
-	if testing.Short() {
-		return
-	}
-
 	const coverage = 100
 
-	err := GenerateAndSaveBadge(nil,
-		Config{
-			Badge: Badge{
-				Git: Git{
-					Token:      `🔑`,
-					Owner:      "owner",
-					Repository: "repo",
-				},
-			},
-		}, coverage)
-	assert.Error(t, err)
+	testFile := t.TempDir() + "/badge.svg"
+	buf := &bytes.Buffer{}
+	err := GenerateAndSaveBadge(buf, Config{
+		Badge: Badge{
+			FileName: testFile,
+		},
+	}, coverage)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge saved to file")
+
+	contentBytes, err := os.ReadFile(testFile)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, contentBytes)
+
+	badge, err := badge.Generate(coverage)
+	assert.NoError(t, err)
+	assert.Equal(t, badge, contentBytes)
 }
 
-func assertS3HasBadge(t *testing.T, s3Client *s3.S3, cdn CDN, coverage int) {
-	t.Helper()
+func Test_StoreBadge(t *testing.T) {
+	t.Parallel()
 
-	res, err := s3Client.GetObject(&s3.GetObjectInput{
-		Bucket: &cdn.BucketName,
-		Key:    &cdn.FileName,
-	})
-	require.NoError(t, err)
-
-	resData, err := io.ReadAll(res.Body)
+	badge, err := badge.Generate(100)
 	assert.NoError(t, err)
 
-	expectedData, err := badge.Generate(coverage)
+	someError := io.ErrShortBuffer
+
+	// badge saved to file
+	buf := &bytes.Buffer{}
+	config := Config{Badge: Badge{
+		FileName: t.TempDir() + "/badge.svg",
+	}}
+	sf := StorerFactories{File: fileFact(newStorer(true, nil))}
+	err = StoreBadge(buf, sf, config, badge)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedData, resData)
+	assert.Contains(t, buf.String(), "Badge saved to file")
+
+	// failed to save badge
+	buf = &bytes.Buffer{}
+	sf = StorerFactories{File: fileFact(newStorer(false, someError))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.Error(t, err)
+	assert.Empty(t, buf.String())
+
+	// badge saved to cdn
+	buf = &bytes.Buffer{}
+	config = Config{Badge: Badge{
+		CDN: badgestorer.CDN{Secret: `🔑`},
+	}}
+	sf = StorerFactories{CDN: cdnFact(newStorer(true, nil))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge with updated coverage uploaded to CDN")
+
+	// badge saved to cdn (no change)
+	buf = &bytes.Buffer{}
+	sf = StorerFactories{CDN: cdnFact(newStorer(false, nil))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge with same coverage already uploaded to CDN")
+
+	// failed to save cdn
+	buf = &bytes.Buffer{}
+	sf = StorerFactories{CDN: cdnFact(newStorer(false, someError))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.Error(t, err)
+	assert.Empty(t, buf.String())
+
+	// badge saved to git
+	buf = &bytes.Buffer{}
+	config = Config{Badge: Badge{
+		Git: badgestorer.Git{Token: `🔑`},
+	}}
+	sf = StorerFactories{Git: gitFact(newStorer(true, nil))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge with updated coverage pushed")
+
+	// badge saved to git (no change)
+	buf = &bytes.Buffer{}
+	sf = StorerFactories{Git: gitFact(newStorer(false, nil))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge with same coverage already pushed")
+
+	// failed to save git
+	buf = &bytes.Buffer{}
+	sf = StorerFactories{Git: gitFact(newStorer(false, someError))}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.Error(t, err)
+	assert.Empty(t, buf.String())
+
+	// save badge to all methods
+	buf = &bytes.Buffer{}
+	config = Config{Badge: Badge{
+		FileName: t.TempDir() + "/badge.svg",
+		Git:      badgestorer.Git{Token: `🔑`},
+		CDN:      badgestorer.CDN{Secret: `🔑`},
+	}}
+	sf = StorerFactories{
+		File: fileFact(newStorer(true, nil)),
+		Git:  gitFact(newStorer(true, nil)),
+		CDN:  cdnFact(newStorer(true, nil)),
+	}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge saved to file")
+	assert.Contains(t, buf.String(), "Badge with updated coverage pushed")
+	assert.Contains(t, buf.String(), "Badge with updated coverage uploaded to CDN")
+}
+
+func fileFact(s badgestorer.Storer) func(string) badgestorer.Storer {
+	return func(_ string) badgestorer.Storer {
+		return s
+	}
+}
+
+func cdnFact(s badgestorer.Storer) func(badgestorer.CDN) badgestorer.Storer {
+	return func(_ badgestorer.CDN) badgestorer.Storer {
+		return s
+	}
+}
+
+func gitFact(s badgestorer.Storer) func(badgestorer.Git) badgestorer.Storer {
+	return func(_ badgestorer.Git) badgestorer.Storer {
+		return s
+	}
+}
+
+func newStorer(updated bool, err error) badgestorer.Storer {
+	return mockStorer{updated, err}
+}
+
+type mockStorer struct {
+	updated bool
+	err     error
+}
+
+//nolint:revive // Store method implements badgestorer.Storer interface
+func (s mockStorer) Store(data []byte) (bool, error) {
+	return s.updated, s.err
 }
