@@ -10,5 +10,9 @@ const (
 var (
 	MakePackageStats = makePackageStats
 	PackageForFile   = packageForFile
-	CreateS3Client   = createS3Client
+	StoreBadge       = storeBadge
+)
+
+type (
+	StorerFactories = storerFactories
 )
