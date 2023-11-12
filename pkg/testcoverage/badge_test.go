@@ -16,10 +16,8 @@ import (
 func Test_GenerateAndSaveBadge_NoAction(t *testing.T) {
 	t.Parallel()
 
-	// should not return error when badge file name is not specified
-	err := GenerateAndSaveBadge(nil, Config{
-		Badge: Badge{},
-	}, 100)
+	// Empty config - no action
+	err := GenerateAndSaveBadge(nil, Config{}, 100)
 	assert.NoError(t, err)
 }
 
@@ -123,6 +121,24 @@ func Test_StoreBadge(t *testing.T) {
 	err = StoreBadge(buf, sf, config, badge)
 	assert.Error(t, err)
 	assert.Empty(t, buf.String())
+
+	// save badge to all methods
+	buf = &bytes.Buffer{}
+	config = Config{Badge: Badge{
+		FileName: t.TempDir() + "/badge.svg",
+		Git:      badgestorer.Git{Token: `🔑`},
+		CDN:      badgestorer.CDN{Secret: `🔑`},
+	}}
+	sf = StorerFactories{
+		File: fileFact(newStorer(true, nil)),
+		Git:  gitFact(newStorer(true, nil)),
+		CDN:  cdnFact(newStorer(true, nil)),
+	}
+	err = StoreBadge(buf, sf, config, badge)
+	assert.NoError(t, err)
+	assert.Contains(t, buf.String(), "Badge saved to file")
+	assert.Contains(t, buf.String(), "Badge with updated coverage pushed")
+	assert.Contains(t, buf.String(), "Badge with updated coverage uploaded to CDN")
 }
 
 func fileFact(s badgestorer.Storer) func(string) badgestorer.Storer {
