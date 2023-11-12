@@ -16,6 +16,12 @@ type Git struct {
 	FileName   string
 }
 
+func GitPublicURL(cfg Git) string {
+	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/%s",
+		cfg.Owner, cfg.Repository, cfg.Branch, cfg.FileName,
+	)
+}
+
 type githubStorer struct {
 	cfg Git
 }

@@ -81,10 +81,7 @@ func storeBadge(w io.Writer, sf storerFactories, config Config, badge []byte) er
 		}
 
 		fmt.Fprintf(w, "\nEmbed this badge with markdown:\n")
-		fmt.Fprintf(w,
-			"![coverage](https://raw.githubusercontent.com/%s/%s/%s/%s)\n",
-			cfg.Owner, cfg.Repository, cfg.Branch, cfg.FileName,
-		)
+		fmt.Fprintf(w, "![coverage](%s)\n", badgestorer.GitPublicURL(cfg))
 	}
 
 	return nil
