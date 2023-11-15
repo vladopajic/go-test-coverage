@@ -25,8 +25,17 @@ tidy:
 	go fmt ./...
 
 # Runs test coverage check
-.PHONY: check-coverage
-check-coverage:
+.PHONY: generate-coverage
+generate-coverage:
 	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
+
+# Runs test coverage check
+.PHONY: check-coverage
+check-coverage: generate-coverage
 	go run ./main.go --config=./.github/.testcoverage.yml
+
+# View coverage profile
+.PHONY: view-coverage
+view-coverage: generate-coverage
 	go tool cover -html=cover.out -o=cover.html
+	xdg-open cover.html
