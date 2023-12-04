@@ -29,7 +29,7 @@ These are the most important features and benefits of `go-test-coverage`:
 
 `go-test-coverage` can be used in two ways:
  - as local tool, and/or
- - as step of github workflow
+ - as step of GitHub workflow
 
 It is recommended to have both options in go repositories.
 
