@@ -1,5 +1,6 @@
 module github.com/vladopajic/go-test-coverage/v2
 
+// GO_VERSION: when changing go version update version in other places
 go 1.21
 
 require (

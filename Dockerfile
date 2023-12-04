@@ -1,3 +1,4 @@
+# GO_VERSION: go version should match version in go.mod file
 FROM golang:1.21 as builder
 WORKDIR /workspace
 
