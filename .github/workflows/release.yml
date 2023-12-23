@@ -30,7 +30,7 @@ jobs:
             
       - name: update the major version tag
         id: majorver
-        uses: actions/publish-action@v0.2.2
+        uses: actions/publish-action@v0.3.0
         with:
           source-tag: ${{ env.RELEASE_VERSION }}
 
