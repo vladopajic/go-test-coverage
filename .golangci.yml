@@ -30,6 +30,7 @@ linters:
     - funlen
     - gochecknoglobals
     - gochecknoinits
+    - gochecksumtype
     - gocognit
     - goconst
     - gocritic
@@ -62,6 +63,7 @@ linters:
     - nolintlint
     - nonamedreturns
     - paralleltest
+    - perfsprint
     - prealloc
     - predeclared
     - promlinter
@@ -70,6 +72,7 @@ linters:
     - staticcheck
     - stylecheck
     - tenv
+    - testifylint
     - testpackage
     - thelper
     - tparallel
@@ -82,6 +85,8 @@ linters:
     - wsl
 
 linters-settings:
+  testifylint: 
+    enable-all: true
   nolintlint:
     require-explanation: true
   maintidx:
@@ -120,3 +125,12 @@ issues:
       linters:
         - revive      ## Disabling linter because we intentionally want to use unexported types in tests
         - gochecknoglobals ## Global values are useful when exporting functions
+    
+    - path: _test\.go   ## Enable dot-imports in tests
+      text: "dot-imports"
+      linters:
+        - revive
+  
+    - text: "require-error" ## Option to disable this error does not work
+      linters:
+        - testifylint

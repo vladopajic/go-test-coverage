@@ -30,7 +30,7 @@ func Test_GenerateAndSaveBadge_SaveToFile(t *testing.T) {
 
 	const coverage = 100
 
-	testFile := t.TempDir() + "/badge.svg"
+	testFile := t.TempDir() + "/badge.svg" //nolint:goconst // relax
 	buf := &bytes.Buffer{}
 	err := GenerateAndSaveBadge(buf, Config{
 		Badge: Badge{
