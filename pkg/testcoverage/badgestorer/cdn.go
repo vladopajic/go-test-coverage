@@ -43,6 +43,8 @@ func (s *cdnStorer) Store(data []byte) (bool, error) {
 		Key:    aws.String(s.cfg.FileName),
 	})
 	if err == nil {
+		//nolint:errcheck // error is intentionally swallowed because if response (badge data)
+		// is not the same we will upload new badge anyway
 		resp, _ := io.ReadAll(result.Body)
 		if bytes.Equal(resp, data) {
 			return false, nil // has not changed

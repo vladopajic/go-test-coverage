@@ -3,12 +3,6 @@ run:
 
 linters:
   enable:
-    # - exhaustivestruct (too exhaustive)
-    # - gci
-    # - godot (too nit picking)
-    # - ireturn  (we like when function returns interface)
-    # - varnamelen  (we can handle this in code review step)
-    # - depguard (not needed)
     - asasalint
     - asciicheck
     - bidichk
@@ -16,9 +10,11 @@ linters:
     - containedctx
     - contextcheck
     - cyclop
+    - decorder
     - dogsled
     - dupl
     - durationcheck
+    - dupword
     - errcheck
     - errchkjson
     - errname
@@ -28,6 +24,7 @@ linters:
     - forbidigo
     - forcetypeassert
     - funlen
+    - gocheckcompilerdirectives
     - gochecknoglobals
     - gochecknoinits
     - gochecksumtype
@@ -48,11 +45,15 @@ linters:
     - gosec
     - gosimple
     - govet
+    - grouper
     - importas
+    - inamedparam
+    - interfacebloat
     - ineffassign
     - lll
+    - loggercheck
     - maintidx
-    - makezero
+    - mirror
     - misspell
     - nakedret
     - nestif
@@ -62,15 +63,21 @@ linters:
     - noctx
     - nolintlint
     - nonamedreturns
+    - nosprintfhostport
     - paralleltest
     - perfsprint
     - prealloc
     - predeclared
     - promlinter
+    - protogetter
     - reassign
     - revive
+    - sloglint
+    - sqlclosecheck
     - staticcheck
     - stylecheck
+    - tagalign
+    - tagliatelle
     - tenv
     - testifylint
     - testpackage
@@ -80,13 +87,48 @@ linters:
     - unconvert
     - unparam
     - unused
+    - usestdlibvars
+    - wastedassign 
     - whitespace
     - wrapcheck
     - wsl
+    - zerologlint
 
 linters-settings:
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+    disable-default-exclusions: true
+  errchkjson:
+    report-no-exported: true
+  dupl:
+    threshold: 120
+  tagliatelle:
+    case:
+      use-field-name: true
+      rules:
+        yaml: kebab
+  forbidigo:
+    forbid:
+      - 'time\.Sleep*(# Do not sleep)?'
+      - 'panic*(# Do not panic)?'
+      - 'os\.Exit*(# Do not exit)?'
+      - p: ^fmt\.Print*$
+        msg: Do not commit print statements.
+  funlen:
+    ignore-comments: true
+  gocognit:
+    min-complexity: 20
+  gocyclo:
+    min-complexity: 20
+  goconst:
+    numbers: true
+  grouper:
+    import-require-single-import: true
   testifylint: 
     enable-all: true
+  unparam:
+    check-exported: true
   nolintlint:
     require-explanation: true
   maintidx:
@@ -99,14 +141,16 @@ linters-settings:
     disable:
      - fieldalignment
   lll:
-    line-length: 96
+    line-length: 100
     tab-width: 1
   nlreturn:
     block-size: 5
   goimports:
     local-prefixes: github.com/vladopajic/go-test-coverage/v2
+  tenv:
+    all: true
   wsl:
-    enforce-err-cuddling: true
+    force-err-cuddling: true
 
 issues:
   exclude-rules:

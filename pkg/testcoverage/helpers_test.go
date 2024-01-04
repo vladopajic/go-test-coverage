@@ -83,7 +83,7 @@ func randName() string {
 
 	_, err := crand.Read(buf)
 	if err != nil {
-		panic(err)
+		panic(err) //nolint:forbidigo // okay here because it is only used for tests
 	}
 
 	return hex.EncodeToString(buf)

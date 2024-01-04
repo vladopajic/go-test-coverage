@@ -25,7 +25,7 @@ const (
 
 type args struct {
 	ConfigPath         string `arg:"-c,--config"`
-	Profile            string `arg:"-p,--profile" help:"path to coverage profile"`
+	Profile            string `arg:"-p,--profile"              help:"path to coverage profile"`
 	LocalPrefix        string `arg:"-l,--local-prefix"`
 	GithubActionOutput bool   `arg:"-o,--github-action-output"`
 	ThresholdFile      int    `arg:"-f,--threshold-file"`
