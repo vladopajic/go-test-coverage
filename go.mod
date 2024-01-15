@@ -11,7 +11,7 @@ require (
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
-	golang.org/x/tools v0.16.0
+	golang.org/x/tools v0.17.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
