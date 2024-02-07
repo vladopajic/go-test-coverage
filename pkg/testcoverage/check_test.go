@@ -130,7 +130,7 @@ func TestCheck(t *testing.T) {
 	})
 }
 
-//nolint:paralleltest // must not be parallel because it uses env
+// must not be parallel because it uses env
 func TestCheckNoParallel(t *testing.T) {
 	if testing.Short() {
 		return

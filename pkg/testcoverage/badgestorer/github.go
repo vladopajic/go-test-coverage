@@ -41,7 +41,7 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 			git.Repository,
 			git.FileName,
 			&github.RepositoryContentFileOptions{
-				Message: github.String(fmt.Sprintf("update badge %s", git.FileName)),
+				Message: github.String("update badge " + git.FileName),
 				Content: data,
 				Branch:  &git.Branch,
 				SHA:     sha,

@@ -1,6 +1,7 @@
 package testcoverage
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"reflect"
@@ -13,11 +14,11 @@ import (
 )
 
 var (
-	ErrThresholdNotInRange         = fmt.Errorf("threshold must be in range [0 - 100]")
-	ErrCoverageProfileNotSpecified = fmt.Errorf("coverage profile file not specified")
-	ErrRegExpNotValid              = fmt.Errorf("regular expression is not valid")
-	ErrCDNOptionNotSet             = fmt.Errorf("CDN options are not valid")
-	ErrGitOptionNotSet             = fmt.Errorf("git options are not valid")
+	ErrThresholdNotInRange         = errors.New("threshold must be in range [0 - 100]")
+	ErrCoverageProfileNotSpecified = errors.New("coverage profile file not specified")
+	ErrRegExpNotValid              = errors.New("regular expression is not valid")
+	ErrCDNOptionNotSet             = errors.New("CDN options are not valid")
+	ErrGitOptionNotSet             = errors.New("git options are not valid")
 )
 
 type Config struct {
@@ -128,7 +129,7 @@ func (c Config) validateGit() error {
 
 func hasNonEmptyFields(obj any) error {
 	v := reflect.ValueOf(obj)
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		f := v.Field(i)
 
 		if !f.IsZero() { // filed is set
