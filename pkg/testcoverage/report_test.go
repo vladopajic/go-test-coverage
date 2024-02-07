@@ -166,6 +166,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 	})
 }
 
+// must not be parallel because it uses env
 func Test_SetGithubActionOutput(t *testing.T) {
 	if testing.Short() {
 		return
