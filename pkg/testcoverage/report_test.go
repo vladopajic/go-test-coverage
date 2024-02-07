@@ -122,6 +122,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 
 	t.Run("package coverage - pass", func(t *testing.T) {
 		t.Parallel()
+
 		buf := &bytes.Buffer{}
 		cfg := Config{Threshold: Threshold{Package: 10}}
 		statsNoError := randStats(prefix, 10, 100)
@@ -165,7 +166,6 @@ func Test_ReportForGithubAction(t *testing.T) {
 	})
 }
 
-//nolint:paralleltest // must not be parallel because it uses env
 func Test_SetGithubActionOutput(t *testing.T) {
 	if testing.Short() {
 		return

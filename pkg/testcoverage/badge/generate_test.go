@@ -9,6 +9,7 @@ import (
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
 )
 
+//nolint:govet,paralleltest // false-positive
 func Test_Generate(t *testing.T) {
 	t.Parallel()
 
