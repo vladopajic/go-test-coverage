@@ -128,7 +128,7 @@ func (c Config) validateGit() error {
 
 func hasNonEmptyFields(obj any) error {
 	v := reflect.ValueOf(obj)
-	for i := 0; i < v.NumField(); i++ {
+	for i := range v.NumField() {
 		f := v.Field(i)
 
 		if !f.IsZero() { // filed is set

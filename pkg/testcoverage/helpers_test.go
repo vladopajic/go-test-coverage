@@ -31,7 +31,7 @@ func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 	for {
 		pkg := randPackageName(localPrefix)
 
-		for c := rand.Int31n(10); c >= 0; c-- {
+		for range rand.Int31n(10) {
 			total, covered := coverageGen()
 			stat := coverage.Stats{
 				Name:    randFileName(pkg),

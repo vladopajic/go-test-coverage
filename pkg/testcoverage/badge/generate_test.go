@@ -12,8 +12,7 @@ import (
 func Test_Generate(t *testing.T) {
 	t.Parallel()
 
-	for i := 0; i <= 100; i++ {
-		i := i
+	for i := range 100 {
 		c := strconv.Itoa(i) + "%"
 		t.Run("coverage "+c, func(t *testing.T) {
 			t.Parallel()
@@ -46,7 +45,7 @@ func Test_Color(t *testing.T) {
 	colors := make(map[string]struct{})
 
 	{ // Assert that there are 5 colors for coverage [0-101]
-		for i := 0; i <= 101; i++ {
+		for i := range 101 {
 			color := Color(i)
 			colors[color] = struct{}{}
 		}
