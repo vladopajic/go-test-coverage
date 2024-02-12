@@ -20,7 +20,7 @@ const (
 	// default value of string variables passed by CI
 	ciDefaultString = `''`
 	// default value of int variables passed by CI
-	ciDefaultnt = -1
+	ciDefaultInt = -1
 )
 
 type args struct {
@@ -53,9 +53,9 @@ func newArgs() args {
 		Profile:            ciDefaultString,
 		LocalPrefix:        ciDefaultString,
 		GithubActionOutput: false,
-		ThresholdFile:      ciDefaultnt,
-		ThresholdPackage:   ciDefaultnt,
-		ThresholdTotal:     ciDefaultnt,
+		ThresholdFile:      ciDefaultInt,
+		ThresholdPackage:   ciDefaultInt,
+		ThresholdTotal:     ciDefaultInt,
 
 		// Badge
 		BadgeFileName: ciDefaultString,
@@ -95,15 +95,15 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 		cfg.LocalPrefix = a.LocalPrefix
 	}
 
-	if !isCIDefaultnt(a.ThresholdFile) {
+	if !isCIDefaultInt(a.ThresholdFile) {
 		cfg.Threshold.File = a.ThresholdFile
 	}
 
-	if !isCIDefaultnt(a.ThresholdPackage) {
+	if !isCIDefaultInt(a.ThresholdPackage) {
 		cfg.Threshold.Package = a.ThresholdPackage
 	}
 
-	if !isCIDefaultnt(a.ThresholdPackage) {
+	if !isCIDefaultInt(a.ThresholdPackage) {
 		cfg.Threshold.Total = a.ThresholdTotal
 	}
 
@@ -185,7 +185,7 @@ func readConfig() (testcoverage.Config, error) {
 
 func isCIDefaultString(v string) bool { return v == ciDefaultString }
 
-func isCIDefaultnt(v int) bool { return v == ciDefaultnt }
+func isCIDefaultInt(v int) bool { return v == ciDefaultInt }
 
 func escapeCiDefaultString(v string) string {
 	if v == ciDefaultString {
