@@ -8,9 +8,12 @@ import (
 	"go/token"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"golang.org/x/tools/cover"
 )
+
+const IgnoreText = "coverage-ignore"
 
 type Config struct {
 	Profile      string
@@ -42,12 +45,17 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			return nil, fmt.Errorf("failed parsing funcs from file [%s]: %w", profile.FileName, err)
 		}
 
+		comments, err := findComments(file)
+		if err != nil { // coverage-ignore
+			return nil, fmt.Errorf("failed parsing comments from file [%s]: %w", profile.FileName, err)
+		}
+
 		s := Stats{
 			Name: noPrefixName,
 		}
 
 		for _, f := range funcs {
-			c, t := f.coverage(profile)
+			c, t := f.coverage(profile, comments)
 			s.Total += t
 			s.Covered += c
 		}
@@ -78,61 +86,78 @@ func findFile(file, prefix string) (string, string, error) {
 	return file, noPrefixName, nil
 }
 
-// findFuncs parses the file and returns a slice of FuncExtent descriptors.
-func findFuncs(name string) ([]*FuncExtent, error) {
+func findComments(filename string) ([]extent, error) {
 	fset := token.NewFileSet()
 
-	parsedFile, err := parser.ParseFile(fset, name, nil, 0)
+	node, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // relax
 	}
 
-	visitor := &FuncVisitor{
-		fset: fset,
-		name: name,
+	var comments []extent
+
+	for _, c := range node.Comments {
+		if strings.Contains(c.Text(), IgnoreText) {
+			comments = append(comments, newExtent(fset, c))
+		}
 	}
+
+	return comments, nil
+}
+
+// findFuncs parses the file and returns a slice of FuncExtent descriptors.
+func findFuncs(filename string) ([]extent, error) {
+	fset := token.NewFileSet()
+
+	parsedFile, err := parser.ParseFile(fset, filename, nil, 0)
+	if err != nil {
+		return nil, err //nolint:wrapcheck // relax
+	}
+
+	visitor := &FuncVisitor{fset: fset}
 	ast.Walk(visitor, parsedFile)
 
 	return visitor.funcs, nil
 }
 
-// FuncExtent describes a function's extent in the source by file and position.
-type FuncExtent struct {
-	name      string
+// FuncVisitor implements the visitor that builds the function position list for a file.
+type FuncVisitor struct {
+	fset  *token.FileSet
+	funcs []extent
+}
+
+// Visit implements the ast.Visitor interface.
+func (v *FuncVisitor) Visit(node ast.Node) ast.Visitor {
+	if n, ok := node.(*ast.FuncDecl); ok {
+		fn := newExtent(v.fset, n)
+		v.funcs = append(v.funcs, fn)
+	}
+
+	return v
+}
+
+type extent struct {
 	startLine int
 	startCol  int
 	endLine   int
 	endCol    int
 }
 
-// FuncVisitor implements the visitor that builds the function position list for a file.
-type FuncVisitor struct {
-	fset  *token.FileSet
-	name  string
-	funcs []*FuncExtent
-}
+func newExtent(fset *token.FileSet, n ast.Node) extent {
+	start := fset.Position(n.Pos())
+	end := fset.Position(n.End())
 
-// Visit implements the ast.Visitor interface.
-func (v *FuncVisitor) Visit(node ast.Node) ast.Visitor {
-	if n, ok := node.(*ast.FuncDecl); ok {
-		start := v.fset.Position(n.Pos())
-		end := v.fset.Position(n.End())
-		fe := &FuncExtent{
-			name:      n.Name.Name,
-			startLine: start.Line,
-			startCol:  start.Column,
-			endLine:   end.Line,
-			endCol:    end.Column,
-		}
-		v.funcs = append(v.funcs, fe)
+	return extent{
+		startLine: start.Line,
+		startCol:  start.Column,
+		endLine:   end.Line,
+		endCol:    end.Column,
 	}
-
-	return v
 }
 
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
-func (f *FuncExtent) coverage(profile *cover.Profile) (int64, int64) {
+func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int64) {
 	var covered, total int64
 
 	// The blocks are sorted, so we can stop counting as soon as
@@ -148,12 +173,25 @@ func (f *FuncExtent) coverage(profile *cover.Profile) (int64, int64) {
 			continue
 		}
 
-		total += int64(b.NumStmt)
+		// add block to coverage statistics only if it was not ignored using comment
+		if !hasCommentOnLine(comments, b.StartLine) {
+			total += int64(b.NumStmt)
 
-		if b.Count > 0 {
-			covered += int64(b.NumStmt)
+			if b.Count > 0 {
+				covered += int64(b.NumStmt)
+			}
 		}
 	}
 
 	return covered, total
+}
+
+func hasCommentOnLine(comments []extent, startLine int) bool {
+	for _, c := range comments {
+		if c.startLine == startLine {
+			return true
+		}
+	}
+
+	return false
 }
