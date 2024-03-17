@@ -9,24 +9,21 @@ import (
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
 )
 
-//nolint:govet,paralleltest // false-positive
 func Test_Generate(t *testing.T) {
 	t.Parallel()
 
-	for i := range 100 {
-		c := strconv.Itoa(i) + "%"
-		t.Run("coverage "+c, func(t *testing.T) {
-			t.Parallel()
+	t.Run("generate for all values [0-100]", func(t *testing.T) {
+		t.Parallel()
 
+		for i := range 101 {
 			svg, err := Generate(i)
 			assert.NoError(t, err)
 
 			svgStr := string(svg)
-			assert.NotEmpty(t, svgStr)
-			assert.Contains(t, svgStr, ">"+c+"<")
+			assert.Contains(t, svgStr, ">"+strconv.Itoa(i)+"%<")
 			assert.Contains(t, svgStr, Color(i))
-		})
-	}
+		}
+	})
 
 	t.Run("exact match", func(t *testing.T) {
 		t.Parallel()
