@@ -40,12 +40,17 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		funcs, err := findFuncs(file)
+		source, err := readFileSource(file)
 		if err != nil {
+			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
+		}
+
+		funcs, err := findFuncs(source)
+		if err != nil { // coverage-ignore
 			return nil, fmt.Errorf("failed parsing funcs from file [%s]: %w", profile.FileName, err)
 		}
 
-		comments, err := findComments(file)
+		comments, err := findComments(source)
 		if err != nil { // coverage-ignore
 			return nil, fmt.Errorf("failed parsing comments from file [%s]: %w", profile.FileName, err)
 		}
@@ -86,10 +91,14 @@ func findFile(file, prefix string) (string, string, error) {
 	return file, noPrefixName, nil
 }
 
-func findComments(filename string) ([]extent, error) {
+func readFileSource(filename string) ([]byte, error) {
+	return os.ReadFile(filename) //nolint:wrapcheck // relax
+}
+
+func findComments(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
-	node, err := parser.ParseFile(fset, filename, nil, parser.ParseComments)
+	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // relax
 	}
@@ -106,28 +115,28 @@ func findComments(filename string) ([]extent, error) {
 }
 
 // findFuncs parses the file and returns a slice of FuncExtent descriptors.
-func findFuncs(filename string) ([]extent, error) {
+func findFuncs(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
-	parsedFile, err := parser.ParseFile(fset, filename, nil, 0)
+	parsedFile, err := parser.ParseFile(fset, "", source, 0)
 	if err != nil {
 		return nil, err //nolint:wrapcheck // relax
 	}
 
-	visitor := &FuncVisitor{fset: fset}
+	visitor := &funcVisitor{fset: fset}
 	ast.Walk(visitor, parsedFile)
 
 	return visitor.funcs, nil
 }
 
-// FuncVisitor implements the visitor that builds the function position list for a file.
-type FuncVisitor struct {
+// funcVisitor implements the visitor that builds the function position list for a file.
+type funcVisitor struct {
 	fset  *token.FileSet
 	funcs []extent
 }
 
 // Visit implements the ast.Visitor interface.
-func (v *FuncVisitor) Visit(node ast.Node) ast.Visitor {
+func (v *funcVisitor) Visit(node ast.Node) ast.Visitor {
 	if n, ok := node.(*ast.FuncDecl); ok {
 		fn := newExtent(v.fset, n)
 		v.funcs = append(v.funcs, fn)
