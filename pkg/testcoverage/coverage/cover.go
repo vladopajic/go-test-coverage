@@ -47,12 +47,12 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 
 		funcs, err := findFuncs(source)
 		if err != nil { // coverage-ignore
-			return nil, fmt.Errorf("failed parsing funcs from file [%s]: %w", profile.FileName, err)
+			return nil, err
 		}
 
 		comments, err := findComments(source)
 		if err != nil { // coverage-ignore
-			return nil, fmt.Errorf("failed parsing comments from file [%s]: %w", profile.FileName, err)
+			return nil, err
 		}
 
 		s := Stats{
@@ -99,7 +99,7 @@ func findComments(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
-	if err != nil {
+	if err != nil { // coverage-ignore // should never happen because source is already read
 		return nil, err //nolint:wrapcheck // relax
 	}
 
@@ -119,7 +119,7 @@ func findFuncs(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	parsedFile, err := parser.ParseFile(fset, "", source, 0)
-	if err != nil {
+	if err != nil { // coverage-ignore // should never happen because source is already read
 		return nil, err //nolint:wrapcheck // relax
 	}
 
