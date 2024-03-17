@@ -41,7 +41,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 		}
 
 		source, err := readFileSource(file)
-		if err != nil {
+		if err != nil { // coverage-ignore
 			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
 		}
 
@@ -72,7 +72,11 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 }
 
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
+//
+//nolint:goerr113 // relax
 func findFile(file, prefix string) (string, string, error) {
+	profileFile := file
+
 	noPrefixName := stripPrefix(file, prefix)
 	if _, err := os.Stat(noPrefixName); err == nil {
 		return noPrefixName, noPrefixName, nil
@@ -82,13 +86,17 @@ func findFile(file, prefix string) (string, string, error) {
 
 	pkg, err := build.Import(dir, ".", build.FindOnly)
 	if err != nil {
-		return "", "", fmt.Errorf("can't find %q: %w", file, err)
+		return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
 	}
 
 	file = filepath.Join(pkg.Dir, file)
 	noPrefixName = stripPrefix(file, pkg.Root)
 
-	return file, noPrefixName, nil
+	if _, err := os.Stat(file); err == nil {
+		return file, noPrefixName, nil
+	}
+
+	return "", "", fmt.Errorf("can't find file %q", profileFile)
 }
 
 func readFileSource(filename string) ([]byte, error) {
@@ -99,7 +107,7 @@ func findComments(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
-	if err != nil { // coverage-ignore // should never happen because source is already read
+	if err != nil {
 		return nil, err //nolint:wrapcheck // relax
 	}
 
@@ -119,7 +127,7 @@ func findFuncs(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	parsedFile, err := parser.ParseFile(fset, "", source, 0)
-	if err != nil { // coverage-ignore // should never happen because source is already read
+	if err != nil {
 		return nil, err //nolint:wrapcheck // relax
 	}
 
