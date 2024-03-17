@@ -44,7 +44,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
-	// stats2 should have less total statements because cover.go should have be excluded
+	// stats2 should have less total statements because cover.go should have been excluded
 	assert.Greater(t, CalcTotalStats(stats1).Total, CalcTotalStats(stats2).Total)
 
 	// should remove prefix from stats
