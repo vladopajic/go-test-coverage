@@ -203,6 +203,7 @@ func nonZeroConfig() Config {
 	return Config{
 		Profile:     "cover.out",
 		LocalPrefix: "prefix",
+		SourceDir:   ".",
 		Threshold:   Threshold{100, 100, 100},
 		Override:    []Override{{Path: "pathToFile", Threshold: 99}},
 		Exclude: Exclude{
@@ -216,6 +217,7 @@ func nonZeroYaml() string {
 	return `
 profile: cover.out
 local-prefix: prefix
+source-dir: .
 threshold:
     file: 100
     package: 100
