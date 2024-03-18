@@ -44,6 +44,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats2, err := GenerateCoverageStats(Config{
 		Profile:      profileOK,
 		ExcludePaths: []string{`cover\.go$`},
+		SourceDir:    ".", // "" or "." should be the same
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
