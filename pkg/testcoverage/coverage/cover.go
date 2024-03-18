@@ -72,14 +72,6 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func makeSourceDir(srcDir string) string {
-	if srcDir == "" {
-		return "."
-	}
-
-	return srcDir
-}
-
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
 //
 //nolint:goerr113 // relax
@@ -268,4 +260,12 @@ func coverage(profile *cover.Profile, f extent, blocks, annotations []extent) (i
 	}
 
 	return covered, total
+}
+
+func makeSourceDir(srcDir string) string {
+	if srcDir == "" {
+		return "."
+	}
+
+	return srcDir
 }
