@@ -20,7 +20,7 @@ inputs:
   source-dir:
     description: Sets relative path to code source.
     required: false
-    default: "."
+    default: ""
     type: string
   threshold-file:
     description: The minimum coverage that each file should have.
