@@ -78,7 +78,7 @@ func findFile(file, prefix string) (string, string, error) {
 	profileFile := file
 
 	noPrefixName := stripPrefix(file, prefix)
-	if _, err := os.Stat(noPrefixName); err == nil {
+	if _, err := os.Stat(noPrefixName); err == nil { // coverage-ignore
 		return noPrefixName, noPrefixName, nil
 	}
 

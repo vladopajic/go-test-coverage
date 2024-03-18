@@ -4,6 +4,9 @@ profile: cover.out
 local-prefix: "github.com/vladopajic/go-test-coverage/v2"
 threshold:
   total: 90
+override:
+  - threshold: 100
+    path: ^pkg/testcoverage/coverage$
 exclude:
   paths:
     - main\.go$

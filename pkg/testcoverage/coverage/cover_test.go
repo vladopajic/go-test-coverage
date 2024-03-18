@@ -83,3 +83,23 @@ func Test_findFile(t *testing.T) {
 	_, _, err = FindFile(prefix, "")
 	assert.Error(t, err)
 }
+
+func Test_findComments(t *testing.T) {
+	t.Parallel()
+
+	_, err := FindComments(nil)
+	assert.Error(t, err)
+
+	_, err = FindComments([]byte{})
+	assert.Error(t, err)
+}
+
+func Test_findFuncs(t *testing.T) {
+	t.Parallel()
+
+	_, err := FindFuncs(nil)
+	assert.Error(t, err)
+
+	_, err = FindFuncs([]byte{})
+	assert.Error(t, err)
+}
