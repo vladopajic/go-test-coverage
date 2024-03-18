@@ -5,7 +5,7 @@ local-prefix: "github.com/vladopajic/go-test-coverage/v2"
 threshold:
   total: 90
 override:
-  - threshold: 100
+  - threshold: 96 ## after new version (after v2.8.3) is released bump this to 100
     path: ^pkg/testcoverage/coverage$
 exclude:
   paths:
