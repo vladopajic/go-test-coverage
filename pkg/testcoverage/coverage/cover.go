@@ -90,10 +90,8 @@ func findFile(file, prefix string) (string, string, error) {
 	}
 
 	file = filepath.Join(pkg.Dir, file)
-	noPrefixName = stripPrefix(file, pkg.Root)
-
 	if _, err := os.Stat(file); err == nil {
-		return file, noPrefixName, nil
+		return file, stripPrefix(file, pkg.Root), nil
 	}
 
 	return "", "", fmt.Errorf("can't find file %q", profileFile)
