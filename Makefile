@@ -36,6 +36,6 @@ check-coverage: generate-coverage
 
 # View coverage profile
 .PHONY: view-coverage
-view-coverage: generate-coverage
+view-coverage:
 	go tool cover -html=cover.out -o=cover.html
 	xdg-open cover.html

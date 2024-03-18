@@ -12,7 +12,7 @@ import (
 
 func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	badge, err := badge.Generate(totalCoverage)
-	if err != nil {
+	if err != nil { // coverage-ignore // should never happen
 		return fmt.Errorf("generate badge: %w", err)
 	}
 

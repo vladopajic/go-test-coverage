@@ -125,8 +125,18 @@ exclude:
     - ^pkg/bar     # exclude package `pkg/bar`
  
 # NOTES:
-# - symbol `/` in all path regexps will be replaced by
-#   current OS file path separator to properly work on Windows
+# - symbol `/` in all path regexps will be replaced by current OS file path separator to properly work on Windows
+```
+
+### Exclude a code blocks from coverage statistics
+
+For cases where there is a code block that does not need to be tested, it can be ignored from coverage statistics by adding the comment `// coverage-ignore` at the beginning of the code block.
+
+```go
+result, err := foo()
+if err != nil { // coverage-ignore
+	return err
+}
 ```
 
 ## Coverage badge
