@@ -24,7 +24,7 @@ var (
 type Config struct {
 	Profile            string     `yaml:"profile"`
 	LocalPrefix        string     `yaml:"local-prefix"`
-	SourceDir          string     `yaml:"-"`
+	SourceDir          string     `yaml:"source-dir"`
 	Threshold          Threshold  `yaml:"threshold"`
 	Override           []Override `yaml:"override,omitempty"`
 	Exclude            Exclude    `yaml:"exclude"`
