@@ -17,6 +17,11 @@ inputs:
     required: false
     default: ""
     type: string
+  source-dir:
+    description: Sets relative path to code source.
+    required: false
+    default: "."
+    type: string
   threshold-file:
     description: The minimum coverage that each file should have.
     required: false
@@ -107,6 +112,7 @@ runs:
     - --profile=${{ inputs.profile || '''''' }}
     - --github-action-output=true
     - --local-prefix=${{ inputs.local-prefix || '''''' }}
+    - --source-dir=${{ inputs.source-dir || '''''' }}
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}
     - --threshold-total=${{ inputs.threshold-total }}

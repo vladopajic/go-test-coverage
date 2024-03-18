@@ -94,23 +94,23 @@ func Test_findFile(t *testing.T) {
 
 	const filename = "pkg/testcoverage/coverage/cover.go"
 
-	file, noPrefixName, err := FindFile(prefix+"/"+filename, "")
+	file, noPrefixName, err := FindFile(prefix+"/"+filename, "", ".")
 	assert.NoError(t, err)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, filename))
 
-	file, noPrefixName, err = FindFile(prefix+"/"+filename, prefix)
+	file, noPrefixName, err = FindFile(prefix+"/"+filename, prefix, ".")
 	assert.NoError(t, err)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, filename))
 
-	_, _, err = FindFile(prefix+"/main1.go", "")
+	_, _, err = FindFile(prefix+"/main1.go", "", ".")
 	assert.Error(t, err)
 
-	_, _, err = FindFile("", "")
+	_, _, err = FindFile("", "", ".")
 	assert.Error(t, err)
 
-	_, _, err = FindFile(prefix, "")
+	_, _, err = FindFile(prefix, "", ".")
 	assert.Error(t, err)
 }
 

@@ -18,6 +18,7 @@ const IgnoreText = "coverage-ignore"
 type Config struct {
 	Profiles     []string
 	LocalPrefix  string
+	SourceDir    string
 	ExcludePaths []string
 }
 
@@ -29,9 +30,10 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 
 	fileStats := make([]Stats, 0, len(profiles))
 	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
+	srcDir := makeSourceDir(cfg.SourceDir)
 
 	for _, profile := range profiles {
-		file, noPrefixName, err := findFile(profile.FileName, cfg.LocalPrefix)
+		file, noPrefixName, err := findFile(profile.FileName, cfg.LocalPrefix, srcDir)
 		if err != nil {
 			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
 		}
@@ -70,8 +72,18 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
+func makeSourceDir(srcDir string) string {
+	if srcDir == "" {
+		return "."
+	}
+
+	return srcDir
+}
+
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
-func findFile(file, prefix string) (string, string, error) {
+//
+//nolint:goerr113 // relax
+func findFile(file, prefix, srcDir string) (string, string, error) {
 	profileFile := file
 
 	noPrefixName := stripPrefix(file, prefix)
@@ -81,7 +93,7 @@ func findFile(file, prefix string) (string, string, error) {
 
 	dir, file := filepath.Split(file)
 
-	pkg, err := build.Import(dir, ".", build.FindOnly)
+	pkg, err := build.Import(dir, srcDir, build.FindOnly)
 	if err != nil {
 		return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
 	}
