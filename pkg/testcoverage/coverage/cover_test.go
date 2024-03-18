@@ -103,7 +103,7 @@ func Test_findComments(t *testing.T) {
 	_, err = FindComments([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
+	file, _, err := FindFile(prefix+"/"+coverFilename, prefix, ".")
 	assert.NoError(t, err)
 
 	source, err := os.ReadFile(file)
@@ -113,7 +113,7 @@ func Test_findComments(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comments)
 
-	assert.Equal(t, []int{44, 49, 54, 81}, pluckStartLine(comments))
+	assert.Equal(t, []int{46, 51, 56, 83}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
@@ -129,7 +129,7 @@ func Test_findFuncs(t *testing.T) {
 	_, err = FindFuncs([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
+	file, _, err := FindFile(prefix+"/"+coverFilename, prefix, ".")
 	assert.NoError(t, err)
 
 	source, err := os.ReadFile(file)
@@ -139,7 +139,7 @@ func Test_findFuncs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comments)
 
-	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 204}, pluckStartLine(comments))
+	assert.Equal(t, []int{25, 79, 102, 106, 126, 147, 163, 177, 206, 216}, pluckStartLine(comments))
 }
 
 func pluckStartLine(extents []Extent) []int {

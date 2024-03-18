@@ -73,14 +73,6 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func makeSourceDir(srcDir string) string {
-	if srcDir == "" {
-		return "."
-	}
-
-	return srcDir
-}
-
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
 //
 //nolint:goerr113 // relax
@@ -219,4 +211,12 @@ func hasCommentOnLine(comments []extent, startLine int) bool {
 	}
 
 	return false
+}
+
+func makeSourceDir(srcDir string) string {
+	if srcDir == "" {
+		return "."
+	}
+
+	return srcDir
 }
