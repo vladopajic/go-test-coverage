@@ -107,7 +107,7 @@ func Test_findFile(t *testing.T) {
 	_, _, err = FindFile(prefix+"/main1.go", "", ".")
 	assert.Error(t, err)
 
-	_, _, err = FindFile("", "", ".")
+	_, _, err = FindFile("", "", "")
 	assert.Error(t, err)
 
 	_, _, err = FindFile(prefix, "", ".")
