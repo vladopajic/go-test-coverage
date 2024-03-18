@@ -1,3 +1,9 @@
 package coverage
 
-var FindFile = findFile
+var (
+	FindFile     = findFile
+	FindComments = findComments
+	FindFuncs    = findFuncs
+)
+
+type Extent = extent
