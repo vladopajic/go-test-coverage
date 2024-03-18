@@ -18,7 +18,7 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
       - name: check test coverage
-        uses: vladopajic/go-test-coverage@449bbebf42817c6e3058ab612aeb9e0f5ae40c7c
+        uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.github/.testcoverage.yml
           git-branch: badges
