@@ -152,10 +152,10 @@ func (v *funcVisitor) Visit(node ast.Node) ast.Visitor {
 }
 
 type extent struct {
-	startLine int
-	startCol  int
-	endLine   int
-	endCol    int
+	StartLine int
+	StartCol  int
+	EndLine   int
+	EndCol    int
 }
 
 func newExtent(fset *token.FileSet, n ast.Node) extent {
@@ -163,10 +163,10 @@ func newExtent(fset *token.FileSet, n ast.Node) extent {
 	end := fset.Position(n.End())
 
 	return extent{
-		startLine: start.Line,
-		startCol:  start.Column,
-		endLine:   end.Line,
-		endCol:    end.Column,
+		StartLine: start.Line,
+		StartCol:  start.Column,
+		EndLine:   end.Line,
+		EndCol:    end.Column,
 	}
 }
 
@@ -178,12 +178,12 @@ func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int6
 	// The blocks are sorted, so we can stop counting as soon as
 	// we reach the end of the relevant block.
 	for _, b := range profile.Blocks {
-		if b.StartLine > f.endLine || (b.StartLine == f.endLine && b.StartCol >= f.endCol) {
+		if b.StartLine > f.EndLine || (b.StartLine == f.EndLine && b.StartCol >= f.EndCol) {
 			// Past the end of the function.
 			break
 		}
 
-		if b.EndLine < f.startLine || (b.EndLine == f.startLine && b.EndCol <= f.startCol) {
+		if b.EndLine < f.StartLine || (b.EndLine == f.StartLine && b.EndCol <= f.StartCol) {
 			// Before the beginning of the function
 			continue
 		}
@@ -203,7 +203,7 @@ func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int6
 
 func hasCommentOnLine(comments []extent, startLine int) bool {
 	for _, c := range comments {
-		if c.startLine == startLine {
+		if c.StartLine == startLine {
 			return true
 		}
 	}

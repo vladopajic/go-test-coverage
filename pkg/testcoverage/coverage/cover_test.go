@@ -1,6 +1,7 @@
 package coverage_test
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -11,9 +12,10 @@ import (
 )
 
 const (
-	profileOK  = "../testdata/" + testdata.ProfileOK
-	profileNOK = "../testdata/" + testdata.ProfileNOK
-	prefix     = "github.com/vladopajic/go-test-coverage/v2"
+	profileOK     = "../testdata/" + testdata.ProfileOK
+	profileNOK    = "../testdata/" + testdata.ProfileNOK
+	prefix        = "github.com/vladopajic/go-test-coverage/v2"
+	coverFilename = "pkg/testcoverage/coverage/cover.go"
 )
 
 func Test_GenerateCoverageStats(t *testing.T) {
@@ -62,6 +64,10 @@ func Test_GenerateCoverageStats(t *testing.T) {
 func Test_findFile(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		return
+	}
+
 	const filename = "pkg/testcoverage/coverage/cover.go"
 
 	file, noPrefixName, err := FindFile(prefix+"/"+filename, "")
@@ -87,19 +93,60 @@ func Test_findFile(t *testing.T) {
 func Test_findComments(t *testing.T) {
 	t.Parallel()
 
+	if testing.Short() {
+		return
+	}
+
 	_, err := FindComments(nil)
 	assert.Error(t, err)
 
 	_, err = FindComments([]byte{})
 	assert.Error(t, err)
+
+	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
+	assert.NoError(t, err)
+
+	source, err := os.ReadFile(file)
+	assert.NoError(t, err)
+
+	comments, err := FindComments(source)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, comments)
+
+	assert.Equal(t, []int{44, 49, 54, 81}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
 	t.Parallel()
+
+	if testing.Short() {
+		return
+	}
 
 	_, err := FindFuncs(nil)
 	assert.Error(t, err)
 
 	_, err = FindFuncs([]byte{})
 	assert.Error(t, err)
+
+	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
+	assert.NoError(t, err)
+
+	source, err := os.ReadFile(file)
+	assert.NoError(t, err)
+
+	comments, err := FindFuncs(source)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, comments)
+
+	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 204}, pluckStartLine(comments))
+}
+
+func pluckStartLine(extents []Extent) []int {
+	res := make([]int, len(extents))
+	for i, e := range extents {
+		res[i] = e.StartLine
+	}
+
+	return res
 }

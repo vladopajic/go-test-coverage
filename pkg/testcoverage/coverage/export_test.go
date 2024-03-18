@@ -5,3 +5,5 @@ var (
 	FindComments = findComments
 	FindFuncs    = findFuncs
 )
+
+type Extent = extent
