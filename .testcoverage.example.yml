@@ -11,6 +11,11 @@ profile: cover.out
 # When specified reported file paths will not contain local prefix in the output
 local-prefix: "github.com/org/project"
 
+# (optional) 
+# When specified coverage check will use source code on specified path.
+# This is only usefull for monorepo project.
+source-dir: "./project"
+
 # Holds coverage thresholds percentages, values should be in range [0-100]
 threshold:
   # (optional; default 0) 

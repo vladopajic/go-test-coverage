@@ -79,6 +79,9 @@ steps:
       threshold-file: 80
       threshold-package: 80
       threshold-total: 95
+
+      # Optionally set source directory
+      source-dir: ./project
 ```
 
 ### Config
@@ -98,6 +101,11 @@ profile: cover.out
 # (optional; but recommended to set) 
 # When specified reported file paths will not contain local prefix in the output
 local-prefix: "github.com/org/project"
+
+# (optional) 
+# When specified coverage check will use source code on specified path.
+# This is only usefull for monorepo project.
+source-dir: "./project"
 
 # Holds coverage thresholds percentages, values should be in range [0-100]
 threshold:
