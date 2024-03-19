@@ -72,7 +72,8 @@ steps:
       config: ./.testcoverage.yml
       
       # Configure action by specifying input parameters individually (option 2).
-      # If you are using config file you shouldn't use these parameters.
+      # If you are using config file (option 1) you shouldn't use these parameters, however
+      # specifting these action parameters will override appropriate config values.
       profile: cover.out
       local-prefix: github.com/org/project
       threshold-file: 80
