@@ -12,9 +12,14 @@ import (
 )
 
 const (
-	profileOK     = "../testdata/" + testdata.ProfileOK
-	profileOKFull = "../testdata/" + testdata.ProfileOKFull
-	profileNOK    = "../testdata/" + testdata.ProfileNOK
+	testdataDir             = "../testdata/"
+	profileOK               = testdataDir + testdata.ProfileOK
+	profileOKFull           = testdataDir + testdata.ProfileOKFull
+	profileOKNoPath         = testdataDir + testdata.ProfileOKNoPath
+	profileNOK              = testdataDir + testdata.ProfileNOK
+	profileNOKInvalidLength = testdataDir + testdata.ProfileNOKInvalidLength
+	profileNOKInvalidData   = testdataDir + testdata.ProfileNOKInvalidData
+
 	prefix        = "github.com/vladopajic/go-test-coverage/v2"
 	coverFilename = "pkg/testcoverage/coverage/cover.go"
 )

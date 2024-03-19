@@ -2,6 +2,8 @@ package coverage
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	"golang.org/x/tools/cover"
 )
@@ -26,6 +28,10 @@ func parseProfiles(paths []string) ([]*cover.Profile, error) {
 		}
 	}
 
+	slices.SortFunc(result, func(a, b *cover.Profile) int {
+		return strings.Compare(a.FileName, b.FileName)
+	})
+
 	return result, nil
 }
 
@@ -36,6 +42,7 @@ func mergeProfiles(a, b []*cover.Profile) ([]*cover.Profile, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			a[idx] = m
 		} else {
 			a = append(a, pb)
@@ -55,9 +62,10 @@ func findProfileForFile(profiles []*cover.Profile, file string) (int, bool) {
 	return -1, false
 }
 
+//nolint:goerr113 // relax
 func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 	if len(ap.Blocks) != len(bp.Blocks) {
-		return nil, fmt.Errorf("inconsistent profiles length %s", ap.FileName)
+		return nil, fmt.Errorf("inconsistent profiles length [%q, %q]", ap.FileName, bp.FileName)
 	}
 
 	for i := 0; i < len(ap.Blocks); i++ {
@@ -70,7 +78,7 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 			b.NumStmt == a.NumStmt {
 			ap.Blocks[i].Count = max(a.Count, b.Count)
 		} else {
-			return nil, fmt.Errorf("inconsistent profile data %s", ap.FileName)
+			return nil, fmt.Errorf("inconsistent profile data [%q, %q]", ap.FileName, bp.FileName)
 		}
 	}
 
