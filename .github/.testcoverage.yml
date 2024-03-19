@@ -1,6 +1,6 @@
 # Config file for go-test-coverage github action.
 
-profile: cover.out
+profile: cover.short.profile,cover.long.profile
 local-prefix: "github.com/vladopajic/go-test-coverage/v2"
 threshold:
   total: 90

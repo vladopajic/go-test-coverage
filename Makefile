@@ -15,8 +15,8 @@ lint: get-golangcilint
 # Runs tests on entire repo
 .PHONY: test
 test: 
-	go test -timeout=3s -race -count=10 -failfast -shuffle=on -short ./...
-	go test -timeout=10s -race -count=1 -failfast  -shuffle=on ./...
+	go test -timeout=3s -race -count=10 -failfast -shuffle=on -short ./... -coverprofile=./cover.short.profile -covermode=atomic -coverpkg=./...
+	go test -timeout=10s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.long.profile -covermode=atomic -coverpkg=./...
 
 # Code tidy
 .PHONY: tidy
@@ -24,18 +24,19 @@ tidy:
 	go mod tidy
 	go fmt ./...
 
-# Runs test coverage check
-.PHONY: generate-coverage
-generate-coverage:
-	go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 
 # Runs test coverage check
 .PHONY: check-coverage
-check-coverage: generate-coverage
+check-coverage: test
 	go run ./main.go --config=./.github/.testcoverage.yml
+
+
+.PHONY: generate-coverage
+generate-coverage:
+	go test ./... -coverprofile=./cover.all.profile -covermode=atomic -coverpkg=./...
 
 # View coverage profile
 .PHONY: view-coverage
-view-coverage:
-	go tool cover -html=cover.out -o=cover.html
+view-coverage: generate-coverage
+	go tool cover -html=cover.all.profile -o=cover.html
 	xdg-open cover.html

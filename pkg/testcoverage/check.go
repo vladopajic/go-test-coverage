@@ -3,13 +3,14 @@ package testcoverage
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func Check(w io.Writer, cfg Config) bool {
 	stats, err := coverage.GenerateCoverageStats(coverage.Config{
-		Profiles:     []string{cfg.Profile},
+		Profiles:     strings.Split(cfg.Profile, ","),
 		LocalPrefix:  cfg.LocalPrefix,
 		ExcludePaths: cfg.Exclude.Paths,
 	})
