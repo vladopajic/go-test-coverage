@@ -13,6 +13,7 @@ import (
 
 const (
 	profileOK     = "../testdata/" + testdata.ProfileOK
+	profileOKFull = "../testdata/" + testdata.ProfileOKFull
 	profileNOK    = "../testdata/" + testdata.ProfileNOK
 	prefix        = "github.com/vladopajic/go-test-coverage/v2"
 	coverFilename = "pkg/testcoverage/coverage/cover.go"
@@ -26,23 +27,23 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	}
 
 	// should not be able to read directory
-	stats, err := GenerateCoverageStats(Config{Profile: t.TempDir()})
+	stats, err := GenerateCoverageStats(Config{Profiles: []string{t.TempDir()}})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
 
 	// should get error parsing invalid profile file
-	stats, err = GenerateCoverageStats(Config{Profile: profileNOK})
+	stats, err = GenerateCoverageStats(Config{Profiles: []string{profileNOK}})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
 
 	// should be okay to read valid profile
-	stats1, err := GenerateCoverageStats(Config{Profile: profileOK})
+	stats1, err := GenerateCoverageStats(Config{Profiles: []string{profileOK}})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats1)
 
 	// should be okay to read valid profile
 	stats2, err := GenerateCoverageStats(Config{
-		Profile:      profileOK,
+		Profiles:     []string{profileOK},
 		ExcludePaths: []string{`cover\.go$`},
 	})
 	assert.NoError(t, err)
@@ -52,13 +53,21 @@ func Test_GenerateCoverageStats(t *testing.T) {
 
 	// should remove prefix from stats
 	stats3, err := GenerateCoverageStats(Config{
-		Profile:     profileOK,
+		Profiles:    []string{profileOK},
 		LocalPrefix: prefix,
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats3)
 	assert.Equal(t, CalcTotalStats(stats1), CalcTotalStats(stats3))
 	assert.NotContains(t, stats3[0].Name, prefix)
+
+	stats4, err := GenerateCoverageStats(Config{
+		Profiles:    []string{profileOK, profileOKFull},
+		LocalPrefix: prefix,
+	})
+	assert.NoError(t, err)
+	assert.NotEmpty(t, stats3)
+	assert.Equal(t, 100, CalcTotalStats(stats4).CoveredPercentage())
 }
 
 func Test_findFile(t *testing.T) {
@@ -139,7 +148,7 @@ func Test_findFuncs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comments)
 
-	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 204}, pluckStartLine(comments))
+	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 206}, pluckStartLine(comments))
 }
 
 func pluckStartLine(extents []Extent) []int {

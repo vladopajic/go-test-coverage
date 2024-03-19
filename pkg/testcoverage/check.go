@@ -9,7 +9,7 @@ import (
 
 func Check(w io.Writer, cfg Config) bool {
 	stats, err := coverage.GenerateCoverageStats(coverage.Config{
-		Profile:      cfg.Profile,
+		Profiles:     []string{cfg.Profile},
 		LocalPrefix:  cfg.LocalPrefix,
 		ExcludePaths: cfg.Exclude.Paths,
 	})
