@@ -11,6 +11,7 @@ func Check(w io.Writer, cfg Config) bool {
 	stats, err := coverage.GenerateCoverageStats(coverage.Config{
 		Profile:      cfg.Profile,
 		LocalPrefix:  cfg.LocalPrefix,
+		SourceDir:    cfg.SourceDir,
 		ExcludePaths: cfg.Exclude.Paths,
 	})
 	if err != nil {

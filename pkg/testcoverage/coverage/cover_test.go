@@ -44,6 +44,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats2, err := GenerateCoverageStats(Config{
 		Profile:      profileOK,
 		ExcludePaths: []string{`cover\.go$`},
+		SourceDir:    ".", // "" or "." should be the same
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
@@ -70,23 +71,23 @@ func Test_findFile(t *testing.T) {
 
 	const filename = "pkg/testcoverage/coverage/cover.go"
 
-	file, noPrefixName, err := FindFile(prefix+"/"+filename, "")
+	file, noPrefixName, err := FindFile(prefix+"/"+filename, "", ".")
 	assert.NoError(t, err)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, filename))
 
-	file, noPrefixName, err = FindFile(prefix+"/"+filename, prefix)
+	file, noPrefixName, err = FindFile(prefix+"/"+filename, prefix, ".")
 	assert.NoError(t, err)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, filename))
 
-	_, _, err = FindFile(prefix+"/main1.go", "")
+	_, _, err = FindFile(prefix+"/main1.go", "", ".")
 	assert.Error(t, err)
 
-	_, _, err = FindFile("", "")
+	_, _, err = FindFile("", "", "")
 	assert.Error(t, err)
 
-	_, _, err = FindFile(prefix, "")
+	_, _, err = FindFile(prefix, "", ".")
 	assert.Error(t, err)
 }
 
@@ -103,7 +104,7 @@ func Test_findComments(t *testing.T) {
 	_, err = FindComments([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
+	file, _, err := FindFile(prefix+"/"+coverFilename, prefix, ".")
 	assert.NoError(t, err)
 
 	source, err := os.ReadFile(file)
@@ -113,7 +114,7 @@ func Test_findComments(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comments)
 
-	assert.Equal(t, []int{44, 49, 54, 81}, pluckStartLine(comments))
+	assert.Equal(t, []int{46, 51, 56, 83}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
@@ -129,7 +130,7 @@ func Test_findFuncs(t *testing.T) {
 	_, err = FindFuncs([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
+	file, _, err := FindFile(prefix+"/"+coverFilename, prefix, ".")
 	assert.NoError(t, err)
 
 	source, err := os.ReadFile(file)
@@ -139,7 +140,7 @@ func Test_findFuncs(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comments)
 
-	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 204}, pluckStartLine(comments))
+	assert.Equal(t, []int{25, 79, 102, 106, 126, 147, 163, 177, 206, 216}, pluckStartLine(comments))
 }
 
 func pluckStartLine(extents []Extent) []int {
