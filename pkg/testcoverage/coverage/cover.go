@@ -16,15 +16,15 @@ import (
 const IgnoreText = "coverage-ignore"
 
 type Config struct {
-	Profile      string
+	Profiles     []string
 	LocalPrefix  string
 	ExcludePaths []string
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
-	profiles, err := cover.ParseProfiles(cfg.Profile)
+	profiles, err := parseProfiles(cfg.Profiles)
 	if err != nil {
-		return nil, fmt.Errorf("parsing profile file: %w", err)
+		return nil, fmt.Errorf("parsing profiles: %w", err)
 	}
 
 	fileStats := make([]Stats, 0, len(profiles))
@@ -175,26 +175,28 @@ func newExtent(fset *token.FileSet, n ast.Node) extent {
 func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int64) {
 	var covered, total int64
 
-	// The blocks are sorted, so we can stop counting as soon as
+	// the blocks are sorted, so we can stop counting as soon as
 	// we reach the end of the relevant block.
 	for _, b := range profile.Blocks {
 		if b.StartLine > f.EndLine || (b.StartLine == f.EndLine && b.StartCol >= f.EndCol) {
-			// Past the end of the function.
+			// past the end of the function.
 			break
 		}
 
 		if b.EndLine < f.StartLine || (b.EndLine == f.StartLine && b.EndCol <= f.StartCol) {
-			// Before the beginning of the function
+			// before the beginning of the function
 			continue
 		}
 
-		// add block to coverage statistics only if it was not ignored using comment
-		if !hasCommentOnLine(comments, b.StartLine) {
-			total += int64(b.NumStmt)
+		if hasCommentOnLine(comments, b.StartLine) {
+			// add block to coverage statistics only if it was not ignored using comment
+			continue
+		}
 
-			if b.Count > 0 {
-				covered += int64(b.NumStmt)
-			}
+		total += int64(b.NumStmt)
+
+		if b.Count > 0 {
+			covered += int64(b.NumStmt)
 		}
 	}
 
