@@ -86,7 +86,12 @@ Example of [.testcoverage.yml](./.testcoverage.example.yml) config file:
 
 ```yml
 # (mandatory) 
-# Path to coverprofile file (output of `go test -coverprofile` command)
+# Path to coverprofile file (output of `go test -coverprofile` command).
+#
+# For cases where there are many coverage profiles, such as when running 
+# unit tests and integration tests separately, you can combine all those
+# profiles into one. In this case, the profile should have a comma-separated list 
+# of profile files, e.g., 'cover_unit.out, cover_integration.out'.
 profile: cover.out
 
 # (optional; but recommended to set) 
