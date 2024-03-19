@@ -89,7 +89,7 @@ Example of [.testcoverage.yml](./.testcoverage.example.yml) config file:
 # Path to coverprofile file (output of `go test -coverprofile` command)
 profile: cover.out
 
-# (optional) 
+# (optional; but recommended to set) 
 # When specified reported file paths will not contain local prefix in the output
 local-prefix: "github.com/org/project"
 
@@ -107,17 +107,20 @@ threshold:
   # The minimum total coverage project should have
   total: 95
 
-# Holds regexp rules which will override thresholds for matched files or packages using their paths.
+# Holds regexp rules which will override thresholds for matched files or packages 
+# using their paths.
 #
-# First rule from this list that matches file or package is going to apply new threshold to it. 
-# If project has multiple rules that match same path, override rules should be listed in order from 
-# specific to more general rules.
+# First rule from this list that matches file or package is going to apply 
+# new threshold to it. If project has multiple rules that match same path, 
+# override rules should be listed in order from specific to more general rules.
 override:
-  # Increase coverage threshold to 100% for `foo` package (default is 80, as configured above)
+  # Increase coverage threshold to 100% for `foo` package 
+  # (default is 80, as configured above in this example)
   - threshold: 100
     path: ^pkg/lib/foo$
 
-# Holds regexp rules which will exclude matched files or packages from coverage statistics
+# Holds regexp rules which will exclude matched files or packages 
+# from coverage statistics
 exclude:
   # Exclude files or packages matching their paths
   paths:
@@ -125,7 +128,8 @@ exclude:
     - ^pkg/bar     # exclude package `pkg/bar`
  
 # NOTES:
-# - symbol `/` in all path regexps will be replaced by current OS file path separator to properly work on Windows
+# - symbol `/` in all path regexps will be replaced by current OS file path separator
+#   to properly work on Windows
 ```
 
 ### Exclude a code blocks from coverage statistics
