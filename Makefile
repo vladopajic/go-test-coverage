@@ -24,12 +24,10 @@ tidy:
 	go mod tidy
 	go fmt ./...
 
-
 # Runs test coverage check
 .PHONY: check-coverage
 check-coverage: test
 	go run ./main.go --config=./.github/.testcoverage.yml
-
 
 .PHONY: generate-coverage
 generate-coverage:
