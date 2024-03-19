@@ -61,12 +61,12 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.Equal(t, CalcTotalStats(stats1), CalcTotalStats(stats3))
 	assert.NotContains(t, stats3[0].Name, prefix)
 
+	// should have total coverage because of second profle
 	stats4, err := GenerateCoverageStats(Config{
-		Profiles:    []string{profileOK, profileOKFull},
-		LocalPrefix: prefix,
+		Profiles: []string{profileOK, profileOKFull},
 	})
 	assert.NoError(t, err)
-	assert.NotEmpty(t, stats3)
+	assert.NotEmpty(t, stats4)
 	assert.Equal(t, 100, CalcTotalStats(stats4).CoveredPercentage())
 }
 
