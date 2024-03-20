@@ -55,17 +55,11 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			return nil, err
 		}
 
-		s := Stats{
-			Name: noPrefixName,
+		s := coverageForFile(profile, funcs, comments)
+		if s.Total != 0 { // add only files that have source code
+			s.Name = noPrefixName
+			fileStats = append(fileStats, s)
 		}
-
-		for _, f := range funcs {
-			c, t := f.coverage(profile, comments)
-			s.Total += t
-			s.Covered += c
-		}
-
-		fileStats = append(fileStats, s)
 	}
 
 	return fileStats, nil
@@ -172,7 +166,14 @@ func newExtent(fset *token.FileSet, n ast.Node) extent {
 
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
+//
+//nolint:cyclop // relax
 func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int64) {
+	if hasCommentOnLine(comments, f.StartLine) {
+		// case when entire function is ignored
+		return 0, 0
+	}
+
 	var covered, total int64
 
 	// the blocks are sorted, so we can stop counting as soon as
@@ -211,4 +212,16 @@ func hasCommentOnLine(comments []extent, startLine int) bool {
 	}
 
 	return false
+}
+
+func coverageForFile(profile *cover.Profile, funcs, comments []extent) Stats {
+	s := Stats{}
+
+	for _, f := range funcs {
+		c, t := f.coverage(profile, comments)
+		s.Total += t
+		s.Covered += c
+	}
+
+	return s
 }

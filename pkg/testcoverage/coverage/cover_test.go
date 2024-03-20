@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/tools/cover"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
@@ -65,6 +66,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NotEmpty(t, stats3)
 	assert.Equal(t, CalcTotalStats(stats1), CalcTotalStats(stats3))
 	assert.NotContains(t, stats3[0].Name, prefix)
+	assert.NotEqual(t, 100, CalcTotalStats(stats3).CoveredPercentage())
 
 	// should have total coverage because of second profle
 	stats4, err := GenerateCoverageStats(Config{
@@ -127,7 +129,7 @@ func Test_findComments(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, comments)
 
-	assert.Equal(t, []int{44, 49, 54, 81}, pluckStartLine(comments))
+	assert.Equal(t, []int{44, 49, 54, 75}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
@@ -149,11 +151,35 @@ func Test_findFuncs(t *testing.T) {
 	source, err := os.ReadFile(file)
 	assert.NoError(t, err)
 
-	comments, err := FindFuncs(source)
+	funcs, err := FindFuncs(source)
 	assert.NoError(t, err)
-	assert.NotEmpty(t, comments)
+	assert.NotEmpty(t, funcs)
 
-	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 206}, pluckStartLine(comments))
+	assert.Equal(t, []int{24, 71, 94, 98, 118, 139, 155, 171, 207, 217}, pluckStartLine(funcs))
+}
+
+func Test_coverageForFile(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		return
+	}
+
+	extent := []Extent{
+		{StartLine: 1, EndLine: 10},
+		{StartLine: 12, EndLine: 20},
+	}
+	profile := &cover.Profile{Blocks: []cover.ProfileBlock{
+		{StartLine: 1, EndLine: 10, NumStmt: 5},
+		{StartLine: 12, EndLine: 20, NumStmt: 5},
+	}}
+
+	s := CoverageForFile(profile, extent, nil)
+	assert.Equal(t, Stats{Total: 10, Covered: 0}, s)
+
+	// Coverage should be empty when there every function is excluded
+	s = CoverageForFile(profile, extent, extent)
+	assert.Empty(t, s)
 }
 
 func pluckStartLine(extents []Extent) []int {
