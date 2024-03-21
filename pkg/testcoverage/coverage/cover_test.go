@@ -124,6 +124,7 @@ func Test_findComments(t *testing.T) {
 		return a
 	}
 	`
+
 	comments, err := FindComments([]byte(source))
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
@@ -148,6 +149,7 @@ func Test_findFuncs(t *testing.T) {
 		return 1
 	}
 	`
+
 	funcs, err := FindFuncs([]byte(source))
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 7}, pluckStartLine(funcs))
