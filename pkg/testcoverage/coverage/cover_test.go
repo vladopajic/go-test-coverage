@@ -1,11 +1,11 @@
 package coverage_test
 
 import (
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/tools/cover"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
@@ -65,6 +65,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NotEmpty(t, stats3)
 	assert.Equal(t, CalcTotalStats(stats1), CalcTotalStats(stats3))
 	assert.NotContains(t, stats3[0].Name, prefix)
+	assert.NotEqual(t, 100, CalcTotalStats(stats3).CoveredPercentage())
 
 	// should have total coverage because of second profle
 	stats4, err := GenerateCoverageStats(Config{
@@ -107,35 +108,30 @@ func Test_findFile(t *testing.T) {
 func Test_findComments(t *testing.T) {
 	t.Parallel()
 
-	if testing.Short() {
-		return
-	}
-
 	_, err := FindComments(nil)
 	assert.Error(t, err)
 
 	_, err = FindComments([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
-	assert.NoError(t, err)
+	const source = `
+	package foo
+	func foo() int { // coverage-ignore
+		a := 0
+		for i := range 10 { // coverage-ignore
+			a += i
+		}
+		return a
+	}
+	`
 
-	source, err := os.ReadFile(file)
+	comments, err := FindComments([]byte(source))
 	assert.NoError(t, err)
-
-	comments, err := FindComments(source)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, comments)
-
-	assert.Equal(t, []int{44, 49, 54, 81}, pluckStartLine(comments))
+	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
 	t.Parallel()
-
-	if testing.Short() {
-		return
-	}
 
 	_, err := FindFuncs(nil)
 	assert.Error(t, err)
@@ -143,17 +139,40 @@ func Test_findFuncs(t *testing.T) {
 	_, err = FindFuncs([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
-	assert.NoError(t, err)
+	const source = `
+	package foo
+	func foo() int {
+		a := 0
+		return a
+	}
+	func bar() int {
+		return 1
+	}
+	`
 
-	source, err := os.ReadFile(file)
+	funcs, err := FindFuncs([]byte(source))
 	assert.NoError(t, err)
+	assert.Equal(t, []int{3, 7}, pluckStartLine(funcs))
+}
 
-	comments, err := FindFuncs(source)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, comments)
+func Test_coverageForFile(t *testing.T) {
+	t.Parallel()
 
-	assert.Equal(t, []int{24, 77, 100, 104, 124, 145, 161, 175, 206}, pluckStartLine(comments))
+	extent := []Extent{
+		{StartLine: 1, EndLine: 10},
+		{StartLine: 12, EndLine: 20},
+	}
+	profile := &cover.Profile{Blocks: []cover.ProfileBlock{
+		{StartLine: 1, EndLine: 10, NumStmt: 5},
+		{StartLine: 12, EndLine: 20, NumStmt: 5},
+	}}
+
+	s := CoverageForFile(profile, extent, nil)
+	assert.Equal(t, Stats{Total: 10, Covered: 0}, s)
+
+	// Coverage should be empty when there every function is excluded
+	s = CoverageForFile(profile, extent, extent)
+	assert.Empty(t, s)
 }
 
 func pluckStartLine(extents []Extent) []int {
