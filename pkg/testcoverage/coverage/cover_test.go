@@ -1,7 +1,6 @@
 package coverage_test
 
 import (
-	"os"
 	"strings"
 	"testing"
 
@@ -109,35 +108,30 @@ func Test_findFile(t *testing.T) {
 func Test_findComments(t *testing.T) {
 	t.Parallel()
 
-	if testing.Short() {
-		return
-	}
-
 	_, err := FindComments(nil)
 	assert.Error(t, err)
 
 	_, err = FindComments([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
-	assert.NoError(t, err)
+	const source = `
+		package foo
 
-	source, err := os.ReadFile(file)
+		func foo() int { // coverage-ignore
+			a := 0
+			for i := range 10 { // coverage-ignore
+				a += i
+			}
+			return a
+		}
+	`
+	comments, err := FindComments([]byte(source))
 	assert.NoError(t, err)
-
-	comments, err := FindComments(source)
-	assert.NoError(t, err)
-	assert.NotEmpty(t, comments)
-
-	assert.Equal(t, []int{44, 49, 54, 75}, pluckStartLine(comments))
+	assert.Equal(t, []int{4, 6}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
 	t.Parallel()
-
-	if testing.Short() {
-		return
-	}
 
 	_, err := FindFuncs(nil)
 	assert.Error(t, err)
@@ -145,25 +139,25 @@ func Test_findFuncs(t *testing.T) {
 	_, err = FindFuncs([]byte{})
 	assert.Error(t, err)
 
-	file, _, err := FindFile(prefix+"/"+coverFilename, prefix)
-	assert.NoError(t, err)
+	const source = `
+	package foo
 
-	source, err := os.ReadFile(file)
-	assert.NoError(t, err)
+	func foo() int {
+		a := 0
+		return a
+	}
 
-	funcs, err := FindFuncs(source)
+	func bar() int {
+		return 1
+	}
+	`
+	funcs, err := FindFuncs([]byte(source))
 	assert.NoError(t, err)
-	assert.NotEmpty(t, funcs)
-
-	assert.Equal(t, []int{24, 71, 94, 98, 118, 139, 155, 171, 207, 217}, pluckStartLine(funcs))
+	assert.Equal(t, []int{4, 9}, pluckStartLine(funcs))
 }
 
 func Test_coverageForFile(t *testing.T) {
 	t.Parallel()
-
-	if testing.Short() {
-		return
-	}
 
 	extent := []Extent{
 		{StartLine: 1, EndLine: 10},

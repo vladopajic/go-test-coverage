@@ -56,10 +56,8 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 		}
 
 		s := coverageForFile(profile, funcs, comments)
-		if s.Total != 0 { // add only files that have source code
-			s.Name = noPrefixName
-			fileStats = append(fileStats, s)
-		}
+		s.Name = noPrefixName
+		fileStats = append(fileStats, s)
 	}
 
 	return fileStats, nil
