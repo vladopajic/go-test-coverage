@@ -115,19 +115,18 @@ func Test_findComments(t *testing.T) {
 	assert.Error(t, err)
 
 	const source = `
-		package foo
-
-		func foo() int { // coverage-ignore
-			a := 0
-			for i := range 10 { // coverage-ignore
-				a += i
-			}
-			return a
+	package foo
+	func foo() int { // coverage-ignore
+		a := 0
+		for i := range 10 { // coverage-ignore
+			a += i
 		}
+		return a
+	}
 	`
 	comments, err := FindComments([]byte(source))
 	assert.NoError(t, err)
-	assert.Equal(t, []int{4, 6}, pluckStartLine(comments))
+	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
 }
 
 func Test_findFuncs(t *testing.T) {
@@ -141,19 +140,17 @@ func Test_findFuncs(t *testing.T) {
 
 	const source = `
 	package foo
-
 	func foo() int {
 		a := 0
 		return a
 	}
-
 	func bar() int {
 		return 1
 	}
 	`
 	funcs, err := FindFuncs([]byte(source))
 	assert.NoError(t, err)
-	assert.Equal(t, []int{4, 9}, pluckStartLine(funcs))
+	assert.Equal(t, []int{3, 7}, pluckStartLine(funcs))
 }
 
 func Test_coverageForFile(t *testing.T) {
