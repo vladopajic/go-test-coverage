@@ -16,6 +16,7 @@ const (
 	profileOK               = testdataDir + testdata.ProfileOK
 	profileOKFull           = testdataDir + testdata.ProfileOKFull
 	profileOKNoPath         = testdataDir + testdata.ProfileOKNoPath
+	profileOKNoStatements   = testdataDir + testdata.ProfileOKNoStatements
 	profileNOK              = testdataDir + testdata.ProfileNOK
 	profileNOKInvalidLength = testdataDir + testdata.ProfileNOKInvalidLength
 	profileNOKInvalidData   = testdataDir + testdata.ProfileNOKInvalidData
@@ -74,6 +75,14 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats4)
 	assert.Equal(t, 100, CalcTotalStats(stats4).CoveredPercentage())
+
+	// should not have `path/path.go` in statatistics because it has no statments
+	stats5, err := GenerateCoverageStats(Config{
+		Profiles: []string{profileOKNoStatements},
+	})
+	assert.NoError(t, err)
+	assert.Len(t, stats5, 1)
+	assert.NotContains(t, `path/path.go`, stats5[0].Name)
 }
 
 func Test_findFile(t *testing.T) {
