@@ -56,12 +56,14 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 		}
 
 		s := coverageForFile(profile, funcs, comments)
-		if s.Total != 0 {
-			// include only files that have statements, because it could be the case that there are
-			// no statments (everything could be excluded with comments)
-			s.Name = noPrefixName
-			fileStats = append(fileStats, s)
+		if s.Total == 0 {
+			// do not include files that doesn't have statements
+			// everything could be excluded with comments or simply file doesn't have them
+			continue
 		}
+
+		s.Name = noPrefixName
+		fileStats = append(fileStats, s)
 	}
 
 	return fileStats, nil
