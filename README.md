@@ -138,14 +138,23 @@ exclude:
 #   to properly work on Windows
 ```
 
-### Exclude a code blocks from coverage statistics
+### Exclude code from coverage statistics with comment annotation
 
-For cases where there is a code block that does not need to be tested, it can be ignored from coverage statistics by adding the comment `// coverage-ignore` at the beginning of the code block.
+For cases where there is a code block that does not need to be tested, it can be ignored from coverage statistics by adding the comment `// coverage-ignore` at the start line of the code block.
 
 ```go
+...
 result, err := foo()
 if err != nil { // coverage-ignore
 	return err
+}
+...
+```
+
+Similarly, the entire function can be excluded from coverage statistics when a comment is found at the start line of the function body.
+```go
+func bar() { // coverage-ignore
+...
 }
 ```
 
