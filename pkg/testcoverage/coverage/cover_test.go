@@ -142,26 +142,50 @@ func Test_findComments(t *testing.T) {
 func Test_findFuncs(t *testing.T) {
 	t.Parallel()
 
-	_, err := FindFuncs(nil)
+	_, _, err := FindFuncsAndBlocks(nil)
 	assert.Error(t, err)
 
-	_, err = FindFuncs([]byte{})
+	_, _, err = FindFuncsAndBlocks([]byte{})
 	assert.Error(t, err)
 
 	const source = `
 	package foo
 	func foo() int {
-		a := 0
-		return a
+		return 1
 	}
 	func bar() int {
-		return 1
+		a := 0
+		for range 10 {
+			a += 1
+		}
+		return a
+	}
+	func baraba() int {
+		a := 0
+		for i:=0;i<10; i++ {
+			a += 1
+		}
+		return a
+	}
+	func zab(a int) int {
+		if a == 0 {
+			return a + 1
+		} else if a == 1 {
+			return a + 2
+		}
+		return a
 	}
 	`
 
-	funcs, err := FindFuncs([]byte(source))
+	funcs, blocks, err := FindFuncsAndBlocks([]byte(source))
 	assert.NoError(t, err)
-	assert.Equal(t, []int{3, 7}, pluckStartLine(funcs))
+	assert.Equal(t, []int{3, 6, 13, 20}, pluckStartLine(funcs))
+	assert.Equal(t, []Extent{
+		{8, 16, 10, 4},
+		{15, 22, 17, 4},
+		{21, 13, 23, 4},
+		{23, 20, 25, 4},
+	}, blocks)
 }
 
 func Test_coverageForFile(t *testing.T) {
@@ -176,11 +200,11 @@ func Test_coverageForFile(t *testing.T) {
 		{StartLine: 12, EndLine: 20, NumStmt: 5},
 	}}
 
-	s := CoverageForFile(profile, extent, nil)
+	s := CoverageForFile(profile, extent, nil, nil)
 	assert.Equal(t, Stats{Total: 10, Covered: 0}, s)
 
 	// Coverage should be empty when there every function is excluded
-	s = CoverageForFile(profile, extent, extent)
+	s = CoverageForFile(profile, extent, nil, extent)
 	assert.Empty(t, s)
 }
 
