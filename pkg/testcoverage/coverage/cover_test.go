@@ -114,13 +114,13 @@ func Test_findFile(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func Test_findComments(t *testing.T) {
+func Test_findAnotations(t *testing.T) {
 	t.Parallel()
 
-	_, err := FindComments(nil)
+	_, err := FindAnnotations(nil)
 	assert.Error(t, err)
 
-	_, err = FindComments([]byte{})
+	_, err = FindAnnotations([]byte{})
 	assert.Error(t, err)
 
 	const source = `
@@ -134,7 +134,7 @@ func Test_findComments(t *testing.T) {
 	}
 	`
 
-	comments, err := FindComments([]byte(source))
+	comments, err := FindAnnotations([]byte(source))
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
 }

@@ -40,7 +40,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		source, err := readFileSource(file)
+		source, err := os.ReadFile(file)
 		if err != nil { // coverage-ignore
 			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
 		}
@@ -50,15 +50,16 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			return nil, err
 		}
 
-		comments, err := findComments(source)
+		annotations, err := findAnnotations(source)
 		if err != nil { // coverage-ignore
 			return nil, err
 		}
 
-		s := coverageForFile(profile, funcs, blocks, comments)
+		s := coverageForFile(profile, funcs, blocks, annotations)
 		if s.Total == 0 {
 			// do not include files that doesn't have statements
-			// everything could be excluded with comments or simply file doesn't have them
+			// this can happen when everything is excluded with comment annotations, or
+			// simply file doesn't have any statement
 			continue
 		}
 
@@ -70,8 +71,6 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 }
 
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
-//
-//nolint:goerr113 // relax
 func findFile(file, prefix string) (string, string, error) {
 	profileFile := file
 
@@ -95,27 +94,23 @@ func findFile(file, prefix string) (string, string, error) {
 	return "", "", fmt.Errorf("can't find file %q", profileFile)
 }
 
-func readFileSource(filename string) ([]byte, error) {
-	return os.ReadFile(filename) //nolint:wrapcheck // relax
-}
-
-func findComments(source []byte) ([]extent, error) {
+func findAnnotations(source []byte) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // relax
+		return nil, fmt.Errorf("can't parse comments: %w", err)
 	}
 
-	var comments []extent
+	var res []extent
 
 	for _, c := range node.Comments {
 		if strings.Contains(c.Text(), IgnoreText) {
-			comments = append(comments, newExtent(fset, c))
+			res = append(res, newExtent(fset, c))
 		}
 	}
 
-	return comments, nil
+	return res, nil
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
@@ -123,7 +118,7 @@ func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
 
 	parsedFile, err := parser.ParseFile(fset, "", source, 0)
 	if err != nil {
-		return nil, nil, err //nolint:wrapcheck // relax
+		return nil, nil, fmt.Errorf("can't parse source: %w", err)
 	}
 
 	v := &visitor{fset: fset}
@@ -178,12 +173,39 @@ func newExtent(fset *token.FileSet, n ast.Node) extent {
 	}
 }
 
+func findExtentWithStartLine(ee []extent, line int) (extent, bool) {
+	for _, e := range ee {
+		if e.StartLine <= line && e.EndLine >= line {
+			return e, true
+		}
+	}
+
+	return extent{}, false
+}
+
+func hasExtentWithStartLine(ee []extent, startLine int) bool {
+	_, found := findExtentWithStartLine(ee, startLine)
+	return found
+}
+
+func coverageForFile(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
+	s := Stats{}
+
+	for _, f := range funcs {
+		c, t := coverage(profile, f, blocks, annotations)
+		s.Total += t
+		s.Covered += c
+	}
+
+	return s
+}
+
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
 //
 //nolint:cyclop,gocognit // relax
-func (f extent) coverage(profile *cover.Profile, blocks, comments []extent) (int64, int64) {
-	if hasExtentWithStartLine(comments, f.StartLine) {
+func coverage(profile *cover.Profile, f extent, blocks, annotations []extent) (int64, int64) {
+	if hasExtentWithStartLine(annotations, f.StartLine) {
 		// case when entire function is ignored
 		return 0, 0
 	}
@@ -211,8 +233,8 @@ func (f extent) coverage(profile *cover.Profile, blocks, comments []extent) (int
 			continue
 		}
 
-		// add block to coverage statistics only if it was not ignored using comment
-		if hasExtentWithStartLine(comments, b.StartLine) {
+		// add block to coverage statistics only if it was not ignored using comment annotations
+		if hasExtentWithStartLine(annotations, b.StartLine) {
 			if e, found := findExtentWithStartLine(blocks, b.StartLine); found {
 				skip = e
 			}
@@ -228,31 +250,4 @@ func (f extent) coverage(profile *cover.Profile, blocks, comments []extent) (int
 	}
 
 	return covered, total
-}
-
-func findExtentWithStartLine(ee []extent, line int) (extent, bool) {
-	for _, e := range ee {
-		if e.StartLine <= line && e.EndLine >= line {
-			return e, true
-		}
-	}
-
-	return extent{}, false
-}
-
-func hasExtentWithStartLine(ee []extent, startLine int) bool {
-	_, found := findExtentWithStartLine(ee, startLine)
-	return found
-}
-
-func coverageForFile(profile *cover.Profile, funcs, blocks, comments []extent) Stats {
-	s := Stats{}
-
-	for _, f := range funcs {
-		c, t := f.coverage(profile, blocks, comments)
-		s.Total += t
-		s.Covered += c
-	}
-
-	return s
 }

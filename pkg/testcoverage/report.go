@@ -124,13 +124,17 @@ func SetGithubActionOutput(result AnalyzeResult) error {
 }
 
 func openGitHubOutput(p string) (io.WriteCloser, error) {
-	//nolint:gomnd,wrapcheck //relax
+	//nolint:gomnd,wrapcheck // error is wrapped at level above
 	return os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 }
 
 func setOutputValue(w io.Writer, name, value string) error {
 	data := []byte(fmt.Sprintf("%s=%s\n", name, value))
-	_, err := w.Write(data)
 
-	return err //nolint:wrapcheck //relax
+	_, err := w.Write(data)
+	if err != nil {
+		return fmt.Errorf("set output for value: %w", err)
+	}
+
+	return nil
 }

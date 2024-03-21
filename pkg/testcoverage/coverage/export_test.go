@@ -2,7 +2,7 @@ package coverage
 
 var (
 	FindFile           = findFile
-	FindComments       = findComments
+	FindAnnotations    = findAnnotations
 	FindFuncsAndBlocks = findFuncsAndBlocks
 	ParseProfiles      = parseProfiles
 	CoverageForFile    = coverageForFile

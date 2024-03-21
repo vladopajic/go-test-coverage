@@ -122,6 +122,7 @@ linters-settings:
     min-complexity: 20
   goconst:
     numbers: true
+    min-occurrences: 3
   grouper:
     import-require-single-import: true
   testifylint: 
@@ -135,7 +136,6 @@ linters-settings:
   misspell:
     locale: US
   govet:
-    check-shadowing: true
     enable-all: true
     disable:
      - fieldalignment
@@ -177,3 +177,7 @@ issues:
     - text: "require-error" ## Option to disable this error does not work
       linters:
         - testifylint
+    
+    - text: "do not define dynamic errors" ## dynamic errors are okay is this is simple tool
+      linters:
+        - goerr113

@@ -13,7 +13,7 @@ const (
 )
 
 func Generate(coverage int) ([]byte, error) {
-	return badge.RenderBytes( //nolint:wrapcheck // relax
+	return badge.RenderBytes( //nolint:wrapcheck // error should never happen
 		label,
 		strconv.Itoa(coverage)+"%",
 		badge.Color(Color(coverage)),

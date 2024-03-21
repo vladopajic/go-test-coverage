@@ -168,7 +168,6 @@ type mockStorer struct {
 	err     error
 }
 
-//nolint:revive // Store method implements badgestorer.Storer interface
-func (s mockStorer) Store(data []byte) (bool, error) {
+func (s mockStorer) Store([]byte) (bool, error) {
 	return s.updated, s.err
 }

@@ -3,7 +3,7 @@
 profile: cover.short.profile,cover.long.profile
 local-prefix: "github.com/vladopajic/go-test-coverage/v2"
 threshold:
-  total: 90
+  total: 95
 override:
   - threshold: 100
     path: ^pkg/testcoverage/coverage$

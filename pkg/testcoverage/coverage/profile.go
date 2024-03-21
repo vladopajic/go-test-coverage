@@ -62,7 +62,6 @@ func findProfileForFile(profiles []*cover.Profile, file string) (int, bool) {
 	return -1, false
 }
 
-//nolint:goerr113 // relax
 func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 	if len(ap.Blocks) != len(bp.Blocks) {
 		return nil, fmt.Errorf("inconsistent profiles length [%q, %q]", ap.FileName, bp.FileName)

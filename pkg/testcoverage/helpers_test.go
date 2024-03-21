@@ -134,6 +134,12 @@ func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
 	assert.Equal(t, count, strings.Count(content, "::error"))
 }
 
+func assertFailedToSaveBadge(t *testing.T, content string) {
+	t.Helper()
+
+	assert.Contains(t, content, "failed to generate and save badge")
+}
+
 func assertPrefix(t *testing.T, result AnalyzeResult, prefix string, has bool) {
 	t.Helper()
 
