@@ -12,6 +12,9 @@ const (
 	// just like `ok.profile` but does not have entires for `path/path.go` file
 	ProfileOKNoPath = "ok_no_path.profile"
 
+	// this profile has no statments for file
+	ProfileOKNoStatements = "ok_no_statements.profile"
+
 	// contains profile item with invalid file
 	ProfileNOK = "nok.profile"
 
