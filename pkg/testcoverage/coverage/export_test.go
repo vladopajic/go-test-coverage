@@ -1,11 +1,11 @@
 package coverage
 
 var (
-	FindFile        = findFile
-	FindComments    = findComments
-	FindFuncs       = findFuncs
-	ParseProfiles   = parseProfiles
-	CoverageForFile = coverageForFile
+	FindFile           = findFile
+	FindComments       = findComments
+	FindFuncsAndBlocks = findFuncsAndBlocks
+	ParseProfiles      = parseProfiles
+	CoverageForFile    = coverageForFile
 )
 
 type Extent = extent

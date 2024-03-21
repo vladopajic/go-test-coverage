@@ -45,7 +45,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
 		}
 
-		funcs, err := findFuncs(source)
+		funcs, blocks, err := findFuncsAndBlocks(source)
 		if err != nil { // coverage-ignore
 			return nil, err
 		}
@@ -55,7 +55,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			return nil, err
 		}
 
-		s := coverageForFile(profile, funcs, comments)
+		s := coverageForFile(profile, funcs, blocks, comments)
 		if s.Total == 0 {
 			// do not include files that doesn't have statements
 			// everything could be excluded with comments or simply file doesn't have them
@@ -118,32 +118,42 @@ func findComments(source []byte) ([]extent, error) {
 	return comments, nil
 }
 
-// findFuncs parses the file and returns a slice of FuncExtent descriptors.
-func findFuncs(source []byte) ([]extent, error) {
+func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
 	fset := token.NewFileSet()
 
 	parsedFile, err := parser.ParseFile(fset, "", source, 0)
 	if err != nil {
-		return nil, err //nolint:wrapcheck // relax
+		return nil, nil, err //nolint:wrapcheck // relax
 	}
 
-	visitor := &funcVisitor{fset: fset}
-	ast.Walk(visitor, parsedFile)
+	v := &visitor{fset: fset}
+	ast.Walk(v, parsedFile)
 
-	return visitor.funcs, nil
+	return v.funcs, v.blocks, nil
 }
 
-// funcVisitor implements the visitor that builds the function position list for a file.
-type funcVisitor struct {
-	fset  *token.FileSet
-	funcs []extent
+type visitor struct {
+	fset   *token.FileSet
+	funcs  []extent
+	blocks []extent
 }
 
 // Visit implements the ast.Visitor interface.
-func (v *funcVisitor) Visit(node ast.Node) ast.Visitor {
-	if n, ok := node.(*ast.FuncDecl); ok {
-		fn := newExtent(v.fset, n)
+func (v *visitor) Visit(node ast.Node) ast.Visitor {
+	switch n := node.(type) {
+	case *ast.FuncDecl:
+		fn := newExtent(v.fset, n.Body)
 		v.funcs = append(v.funcs, fn)
+
+	case *ast.IfStmt:
+		fn := newExtent(v.fset, n.Body)
+		v.blocks = append(v.blocks, fn)
+	case *ast.ForStmt:
+		fn := newExtent(v.fset, n.Body)
+		v.blocks = append(v.blocks, fn)
+	case *ast.RangeStmt:
+		fn := newExtent(v.fset, n.Body)
+		v.blocks = append(v.blocks, fn)
 	}
 
 	return v
@@ -171,14 +181,17 @@ func newExtent(fset *token.FileSet, n ast.Node) extent {
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
 //
-//nolint:cyclop // relax
-func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int64) {
-	if hasCommentOnLine(comments, f.StartLine) {
+//nolint:cyclop,gocognit // relax
+func (f extent) coverage(profile *cover.Profile, blocks, comments []extent) (int64, int64) {
+	if hasExtentWithStartLine(comments, f.StartLine) {
 		// case when entire function is ignored
 		return 0, 0
 	}
 
-	var covered, total int64
+	var (
+		covered, total int64
+		skip           extent
+	)
 
 	// the blocks are sorted, so we can stop counting as soon as
 	// we reach the end of the relevant block.
@@ -193,8 +206,17 @@ func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int6
 			continue
 		}
 
-		if hasCommentOnLine(comments, b.StartLine) {
-			// add block to coverage statistics only if it was not ignored using comment
+		if b.StartLine < skip.EndLine || (b.EndLine == f.StartLine && b.StartCol <= skip.EndCol) {
+			// this block has comment annotation
+			continue
+		}
+
+		// add block to coverage statistics only if it was not ignored using comment
+		if hasExtentWithStartLine(comments, b.StartLine) {
+			if e, found := findExtentWithStartLine(blocks, b.StartLine); found {
+				skip = e
+			}
+
 			continue
 		}
 
@@ -208,21 +230,26 @@ func (f extent) coverage(profile *cover.Profile, comments []extent) (int64, int6
 	return covered, total
 }
 
-func hasCommentOnLine(comments []extent, startLine int) bool {
-	for _, c := range comments {
-		if c.StartLine == startLine {
-			return true
+func findExtentWithStartLine(ee []extent, line int) (extent, bool) {
+	for _, e := range ee {
+		if e.StartLine <= line && e.EndLine >= line {
+			return e, true
 		}
 	}
 
-	return false
+	return extent{}, false
 }
 
-func coverageForFile(profile *cover.Profile, funcs, comments []extent) Stats {
+func hasExtentWithStartLine(ee []extent, startLine int) bool {
+	_, found := findExtentWithStartLine(ee, startLine)
+	return found
+}
+
+func coverageForFile(profile *cover.Profile, funcs, blocks, comments []extent) Stats {
 	s := Stats{}
 
 	for _, f := range funcs {
-		c, t := f.coverage(profile, comments)
+		c, t := f.coverage(profile, blocks, comments)
 		s.Total += t
 		s.Covered += c
 	}
