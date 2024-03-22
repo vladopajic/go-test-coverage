@@ -55,7 +55,7 @@ type Badge struct {
 func (c Config) Validate() error {
 	validateRegexp := func(s string) error {
 		_, err := regexp.Compile("(?i)" + s)
-		return err //nolint:wrapcheck // relax
+		return err //nolint:wrapcheck // error is wrapped at level above
 	}
 
 	if c.Profile == "" {
@@ -142,7 +142,7 @@ func hasNonEmptyFields(obj any) error {
 
 		name := strings.ToLower(v.Type().Field(i).Name)
 
-		return fmt.Errorf("property [%v] should be set", name) //nolint:goerr113 // relax
+		return fmt.Errorf("property [%v] should be set", name)
 	}
 
 	return nil

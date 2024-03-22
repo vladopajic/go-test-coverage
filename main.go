@@ -81,7 +81,7 @@ func (args) Version() string {
 	return Name + " " + Version
 }
 
-//nolint:cyclop,maintidx,gomnd,goerr113 // relax
+//nolint:cyclop,maintidx,gomnd // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	if !isCIDefaultString(a.Profile) {
 		cfg.Profile = a.Profile

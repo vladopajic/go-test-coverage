@@ -13,5 +13,5 @@ func NormalizePathInRegex(path string) string {
 		return path
 	}
 
-	return strings.ReplaceAll(path, "/", separatorToReplace)
+	return strings.ReplaceAll(path, "/", separatorToReplace) // coverage-ignore
 }

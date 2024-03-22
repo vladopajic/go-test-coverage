@@ -2,6 +2,7 @@ package testcoverage_test
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"strings"
 	"testing"
@@ -166,11 +167,17 @@ func Test_ReportForGithubAction(t *testing.T) {
 	})
 }
 
-// must not be parallel because it uses env
+//nolint:paralleltest // must not be parallel because it uses env
 func Test_SetGithubActionOutput(t *testing.T) {
 	if testing.Short() {
 		return
 	}
+
+	t.Run("writing value to output with error", func(t *testing.T) {
+		err := SetOutputValue(errWriter{}, "key", "val")
+		assert.ErrorIs(t, err, io.ErrUnexpectedEOF)
+		assert.Contains(t, err.Error(), "key")
+	})
 
 	t.Run("no env file", func(t *testing.T) {
 		t.Setenv(GaOutputFileEnv, "")
@@ -195,4 +202,10 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
 	})
+}
+
+type errWriter struct{}
+
+func (errWriter) Write([]byte) (int, error) {
+	return 0, io.ErrUnexpectedEOF
 }

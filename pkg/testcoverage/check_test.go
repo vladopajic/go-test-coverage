@@ -130,6 +130,22 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 1, 2)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
+
+	t.Run("valid profile - fail couldn't save badge", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{File: 10},
+			Badge: Badge{
+				FileName: t.TempDir(), // should faild because this is dir
+			},
+		}
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
+		assertFailedToSaveBadge(t, buf.String())
+	})
 }
 
 // must not be parallel because it uses env
