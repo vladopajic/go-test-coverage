@@ -133,7 +133,7 @@ func setOutputValue(w io.Writer, name, value string) error {
 
 	_, err := w.Write(data)
 	if err != nil {
-		return fmt.Errorf("set output for value: %w", err)
+		return fmt.Errorf("set output for [%s]: %w", name, err)
 	}
 
 	return nil

@@ -12,6 +12,7 @@ var (
 	PackageForFile       = packageForFile
 	StoreBadge           = storeBadge
 	GenerateAndSaveBadge = generateAndSaveBadge
+	SetOutputValue       = setOutputValue
 )
 
 type (
