@@ -145,8 +145,8 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 		v.addBlock(n.Body)
 	case *ast.TypeSwitchStmt:
 		v.addBlock(n.Body)
-	case *ast.SelectStmt:
-		v.addBlock(n.Body) //coverage-ignore
+	case *ast.SelectStmt: // coverage-ignore
+		v.addBlock(n.Body)
 	case *ast.ForStmt:
 		v.addBlock(n.Body)
 	case *ast.RangeStmt:
