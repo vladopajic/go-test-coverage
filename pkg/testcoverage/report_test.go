@@ -167,15 +167,13 @@ func Test_ReportForGithubAction(t *testing.T) {
 	})
 }
 
-// must not be parallel because it uses env
+//nolint:paralleltest // must not be parallel because it uses env
 func Test_SetGithubActionOutput(t *testing.T) {
 	if testing.Short() {
 		return
 	}
 
 	t.Run("writing value to output with error", func(t *testing.T) {
-		t.Parallel()
-
 		err := SetOutputValue(errWriter{}, "key", "val")
 		assert.ErrorIs(t, err, io.ErrUnexpectedEOF)
 		assert.Contains(t, err.Error(), "key")
