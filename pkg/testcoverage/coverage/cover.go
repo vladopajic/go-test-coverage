@@ -137,21 +137,27 @@ type visitor struct {
 func (v *visitor) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.FuncDecl:
-		fn := newExtent(v.fset, n.Body)
-		v.funcs = append(v.funcs, fn)
+		v.funcs = append(v.funcs, newExtent(v.fset, n.Body))
 
 	case *ast.IfStmt:
-		fn := newExtent(v.fset, n.Body)
-		v.blocks = append(v.blocks, fn)
+		v.addBlock(n.Body)
+	case *ast.SwitchStmt:
+		v.addBlock(n.Body)
+	case *ast.TypeSwitchStmt:
+		v.addBlock(n.Body)
+	case *ast.SelectStmt:
+		v.addBlock(n.Body) //coverage-ignore
 	case *ast.ForStmt:
-		fn := newExtent(v.fset, n.Body)
-		v.blocks = append(v.blocks, fn)
+		v.addBlock(n.Body)
 	case *ast.RangeStmt:
-		fn := newExtent(v.fset, n.Body)
-		v.blocks = append(v.blocks, fn)
+		v.addBlock(n.Body)
 	}
 
 	return v
+}
+
+func (v *visitor) addBlock(n ast.Node) {
+	v.blocks = append(v.blocks, newExtent(v.fset, n))
 }
 
 type extent struct {
