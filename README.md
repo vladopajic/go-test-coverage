@@ -140,7 +140,7 @@ exclude:
 
 ### Exclude code from coverage statistics with comment annotation
 
-For cases where there is a code block that does not need to be tested, it can be ignored from coverage statistics by adding the comment `// coverage-ignore` at the start line of the code block.
+For cases where there is a code block that does not need to be tested, it can be ignored from coverage statistics by adding the comment `// coverage-ignore` at the start line of the statement body (right after `{`).
 
 ```go
 ...
@@ -151,7 +151,7 @@ if err != nil { // coverage-ignore
 ...
 ```
 
-Similarly, the entire function can be excluded from coverage statistics when a comment is found at the start line of the function body.
+Similarly, the entire function can be excluded from coverage statistics when a comment is found at the start line of the function body (right after `{`).
 ```go
 func bar() { // coverage-ignore
 ...
