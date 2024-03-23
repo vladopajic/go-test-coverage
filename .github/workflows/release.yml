@@ -23,26 +23,26 @@ jobs:
           echo "Release version: ${{ env.RELEASE_VERSION }}"
           [[ "$image" == *"${{ env.RELEASE_VERSION }}" ]]
             
-      # - name: update the major version tag
-      #   id: majorver
-      #   uses: actions/publish-action@v0.3.0
-      #   with:
-      #     source-tag: ${{ env.RELEASE_VERSION }}
+      - name: update the major version tag
+        id: majorver
+        uses: actions/publish-action@v0.3.0
+        with:
+          source-tag: ${{ env.RELEASE_VERSION }}
 
-      # - name: login to GitHub container registry
-      #   uses: docker/login-action@v3
-      #   with:
-      #     registry: ghcr.io
-      #     username: ${{ github.repository_owner }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
+      - name: login to GitHub container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: build and push
-      #   uses: docker/build-push-action@v5
-      #   with:
-      #     push: true
-      #     build-args: |
-      #       VERSION=${{ env.RELEASE_VERSION }}
-      #     tags: |
-      #       ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
-      #       ghcr.io/vladopajic/go-test-coverage:${{ steps.majorver.outputs.major-tag }}
-      #       ghcr.io/vladopajic/go-test-coverage:latest
+      - name: build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          build-args: |
+            VERSION=${{ env.RELEASE_VERSION }}
+          tags: |
+            ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
+            ghcr.io/vladopajic/go-test-coverage:${{ steps.majorver.outputs.major-tag }}
+            ghcr.io/vladopajic/go-test-coverage:latest
