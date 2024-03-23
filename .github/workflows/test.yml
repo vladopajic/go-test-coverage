@@ -21,6 +21,5 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.github/.testcoverage.yml
-          profile: cover.out
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
