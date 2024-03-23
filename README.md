@@ -19,7 +19,7 @@ These are the most important features and benefits of `go-test-coverage`:
   -  check never fails due to connectivity/server issues
 - **ensures data privacy**, no leaks to third parties
   - [risks of information leakage through remote code coverage services](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266)
-- runs blazingly fast - (~1 sec on [go-test-coverage repo](https://github.com/vladopajic/go-test-coverage/actions/runs/5457149078/job/14774054108))
+- runs blazingly fast - (~1 sec on [go-test-coverage repo](https://github.com/vladopajic/go-test-coverage/actions/runs/8401578681/job/23010110385))
 - versatile for local and CI use
 - extensive configuration options
 - stylish badges
