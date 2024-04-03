@@ -73,8 +73,6 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 }
 
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
-//
-//nolint:goerr113 // relax
 func findFile(file, prefix, srcDir string) (string, string, error) {
 	profileFile := file
 
