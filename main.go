@@ -103,7 +103,7 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 		cfg.Threshold.Package = a.ThresholdPackage
 	}
 
-	if !isCIDefaultInt(a.ThresholdPackage) {
+	if !isCIDefaultInt(a.ThresholdTotal) {
 		cfg.Threshold.Total = a.ThresholdTotal
 	}
 
