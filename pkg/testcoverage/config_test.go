@@ -216,6 +216,7 @@ func nonZeroYaml() string {
 	return `
 profile: cover.out
 local-prefix: prefix
+source-dir: ""
 threshold:
     file: 100
     package: 100
