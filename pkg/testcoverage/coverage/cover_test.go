@@ -191,21 +191,31 @@ func Test_findFuncs(t *testing.T) {
 func Test_coverageForFile(t *testing.T) {
 	t.Parallel()
 
-	extent := []Extent{
+	funcs := []Extent{
 		{StartLine: 1, EndLine: 10},
 		{StartLine: 12, EndLine: 20},
 	}
 	profile := &cover.Profile{Blocks: []cover.ProfileBlock{
-		{StartLine: 1, EndLine: 10, NumStmt: 5},
+		{StartLine: 1, EndLine: 2, NumStmt: 1},
+		{StartLine: 2, EndLine: 3, NumStmt: 1},
+		{StartLine: 4, EndLine: 5, NumStmt: 1},
+		{StartLine: 5, EndLine: 6, NumStmt: 1},
+		{StartLine: 6, EndLine: 10, NumStmt: 1},
 		{StartLine: 12, EndLine: 20, NumStmt: 5},
 	}}
 
-	s := CoverageForFile(profile, extent, nil, nil)
+	s := CoverageForFile(profile, funcs, nil, nil)
 	assert.Equal(t, Stats{Total: 10, Covered: 0}, s)
 
-	// Coverage should be empty when there every function is excluded
-	s = CoverageForFile(profile, extent, nil, extent)
-	assert.Empty(t, s)
+	// Coverage should be empty when every function is excluded
+	s = CoverageForFile(profile, funcs, nil, funcs)
+	assert.Equal(t, Stats{Total: 0, Covered: 0}, s)
+
+	// Case when annotations is set on block (it should ignore whole block)
+	annotations := []Extent{{StartLine: 4, EndLine: 4}}
+	blocks := []Extent{{StartLine: 4, EndLine: 10}}
+	s = CoverageForFile(profile, funcs, blocks, annotations)
+	assert.Equal(t, Stats{Total: 7, Covered: 0}, s)
 }
 
 func pluckStartLine(extents []Extent) []int {
