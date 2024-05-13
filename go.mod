@@ -4,7 +4,7 @@ module github.com/vladopajic/go-test-coverage/v2
 go 1.22
 
 require (
-	github.com/alexflint/go-arg v1.4.3
+	github.com/alexflint/go-arg v1.5.0
 	github.com/aws/aws-sdk-go v1.49.4
 	github.com/google/go-github/v56 v56.0.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
@@ -16,7 +16,7 @@ require (
 )
 
 require (
-	github.com/alexflint/go-scalar v1.1.0 // indirect
+	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
