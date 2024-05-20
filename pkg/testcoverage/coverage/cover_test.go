@@ -68,7 +68,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NotContains(t, stats3[0].Name, prefix)
 	assert.NotEqual(t, 100, CalcTotalStats(stats3).CoveredPercentage())
 
-	// should have total coverage because of second profle
+	// should have total coverage because of second profile
 	stats4, err := GenerateCoverageStats(Config{
 		Profiles: []string{profileOK, profileOKFull},
 	})
@@ -76,7 +76,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NotEmpty(t, stats4)
 	assert.Equal(t, 100, CalcTotalStats(stats4).CoveredPercentage())
 
-	// should not have `path/path.go` in statatistics because it has no statments
+	// should not have `path/path.go` in statistics because it has no statements
 	stats5, err := GenerateCoverageStats(Config{
 		Profiles: []string{profileOKNoStatements},
 	})
@@ -114,7 +114,7 @@ func Test_findFile(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func Test_findAnotations(t *testing.T) {
+func Test_findAnnotations(t *testing.T) {
 	t.Parallel()
 
 	_, err := FindAnnotations(nil)
