@@ -139,7 +139,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 10},
 			Badge: Badge{
-				FileName: t.TempDir(), // should faild because this is dir
+				FileName: t.TempDir(), // should failed because this is dir
 			},
 		}
 		pass := Check(buf, cfg)
