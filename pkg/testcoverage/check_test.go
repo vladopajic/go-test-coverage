@@ -164,7 +164,7 @@ func TestCheckNoParallel(t *testing.T) {
 	})
 
 	t.Run("ok pass; with github output file", func(t *testing.T) {
-		testFile := t.TempDir() + "/ga.output" //nolint: goconst // relax
+		testFile := t.TempDir() + "/ga.output"
 		t.Setenv(GaOutputFileEnv, testFile)
 
 		buf := &bytes.Buffer{}
