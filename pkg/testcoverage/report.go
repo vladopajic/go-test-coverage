@@ -17,7 +17,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
-	tabber := tabwriter.NewWriter(out, 1, 8, 2, '\t', 0) //nolint:gomnd // relax
+	tabber := tabwriter.NewWriter(out, 1, 8, 2, '\t', 0) //nolint:mnd // relax
 	defer tabber.Flush()
 
 	statusStr := func(passing bool) string {
@@ -124,7 +124,7 @@ func SetGithubActionOutput(result AnalyzeResult) error {
 }
 
 func openGitHubOutput(p string) (io.WriteCloser, error) {
-	//nolint:gomnd,wrapcheck // error is wrapped at level above
+	//nolint:mnd,wrapcheck // error is wrapped at level above
 	return os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 }
 
