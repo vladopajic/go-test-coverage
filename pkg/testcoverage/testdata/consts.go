@@ -6,13 +6,13 @@ const (
 	// the most recent profile
 	ProfileOK = "ok.profile"
 
-	// this profile is syntetically made with full coverage
+	// this profile is synthetically made with full coverage
 	ProfileOKFull = "ok_full.profile"
 
-	// just like `ok.profile` but does not have entires for `path/path.go` file
+	// just like `ok.profile` but does not have entries for `path/path.go` file
 	ProfileOKNoPath = "ok_no_path.profile"
 
-	// this profile has no statments for file
+	// this profile has no statements for file
 	ProfileOKNoStatements = "ok_no_statements.profile"
 
 	// contains profile item with invalid file

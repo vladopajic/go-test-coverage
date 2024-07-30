@@ -22,8 +22,8 @@ Example:
     local-prefix: github.com/org/project
     threshold-total: 95
 
-    ## when token is not specified (value '') this feature is turend off
-    ## in this example badge is created and committed only for main brach
+    ## when token is not specified (value '') this feature is turned off
+    ## in this example badge is created and committed only for main branch
     git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
     ## name of branch where badges are stored
     ## ideally this should be orphan branch (see below how to create this branch)
@@ -72,11 +72,11 @@ Example:
     local-prefix: github.com/org/project
     threshold-total: 95
 
-    ## when secret is not specified (value '') this feature is turend off.
-    ## in this example badge is created and uploaded only for main brach.
+    ## when secret is not specified (value '') this feature is turned off.
+    ## in this example badge is created and uploaded only for main branch.
     cdn-secret:  ${{ github.ref_name == 'main' && secrets.CDN_SECRET || '' }}
     cdn-key: ${{ secrets.CDN_KEY }}
-    ## in case of DigitalOcean Spaces use `us-ease-1` always as reagion,
+    ## in case of DigitalOcean Spaces use `us-ease-1` always as region,
     ## otherwise use region of your CDN.
     cdn-region: us-east-1 
     ## in case of DigitalOcean Spaces endpoint should be with region and without bucket
@@ -126,11 +126,11 @@ Example:
     ## format should be `{owner}/{repository}`
     git-repository: org/badges-repository
     ## use custom file name that will have repository name as prefix.
-    ## this could be usefull if you want to create badges for multiple repositories.
+    ## this could be useful if you want to create badges for multiple repositories.
     git-file-name: .badges/${{ github.repository }}/${{ github.ref_name }}/coverage.svg
 ```
 
-Like in the first example `badges` branch should be created with same method as described abow.
+Like in the first example `badges` branch should be created with same method as described above.
 
 ## Badge examples
 

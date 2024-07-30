@@ -25,7 +25,7 @@ func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 		out.Flush()
 
 		if buffer.Len() != 0 {
-			// add visual sparator before writing result
+			// add visual separator before writing result
 			// of generate and save badge action
 			fmt.Fprintf(w, "\n-------------------------\n")
 			w.Write(buffer.Bytes()) //nolint:errcheck // relax

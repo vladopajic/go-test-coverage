@@ -1,7 +1,7 @@
 GO ?= go
 GOBIN ?= $$($(GO) env GOPATH)/bin
 GOLANGCI_LINT ?= $(GOBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v1.56.2
+GOLANGCI_LINT_VERSION ?= v1.59.1
 
 # Code tidy
 .PHONY: tidy

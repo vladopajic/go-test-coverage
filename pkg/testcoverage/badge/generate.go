@@ -21,7 +21,7 @@ func Generate(coverage int) ([]byte, error) {
 }
 
 func Color(coverage int) string {
-	//nolint:gomnd // relax
+	//nolint:mnd // relax
 	switch {
 	case coverage >= 100:
 		return "#44cc11" // strong green

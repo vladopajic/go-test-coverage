@@ -111,7 +111,7 @@ func (c Config) validateThreshold() error {
 }
 
 func (c Config) validateCDN() error {
-	// when cnd config is empty, cnd featue is disabled and it's not need to validate
+	// when cnd config is empty, cnd feature is disabled and it's not need to validate
 	if reflect.DeepEqual(c.Badge.CDN, badgestorer.CDN{}) {
 		return nil
 	}
@@ -120,7 +120,7 @@ func (c Config) validateCDN() error {
 }
 
 func (c Config) validateGit() error {
-	// when git config is empty, git featue is disabled and it's not need to validate
+	// when git config is empty, git feature is disabled and it's not need to validate
 	if reflect.DeepEqual(c.Badge.Git, badgestorer.Git{}) {
 		return nil
 	}

@@ -18,7 +18,7 @@ func (s Stats) CoveredPercentage() int {
 	return CoveredPercentage(s.Total, s.Covered)
 }
 
-//nolint:gomnd // relax
+//nolint:mnd // relax
 func CoveredPercentage(total, covered int64) int {
 	if total == 0 {
 		return 0

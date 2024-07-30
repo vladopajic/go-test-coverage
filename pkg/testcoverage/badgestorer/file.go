@@ -10,7 +10,7 @@ func NewFile(filename string) Storer {
 	return &fileStorer{filename: filename}
 }
 
-//nolint:gosec,gomnd,wrapcheck // relax
+//nolint:gosec,mnd,wrapcheck // relax
 func (s *fileStorer) Store(data []byte) (bool, error) {
 	err := os.WriteFile(s.filename, data, 0o644)
 	if err != nil {
