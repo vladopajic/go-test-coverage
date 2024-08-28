@@ -47,9 +47,9 @@ func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 	}
 }
 
-func makeCoverageGenFn(min, max int) func() (total, covered int64) {
+func makeCoverageGenFn(minc, maxc int) func() (total, covered int64) {
 	return func() (int64, int64) {
-		tc := rand.Intn(max-min+1) + min
+		tc := rand.Intn(maxc-minc+1) + minc
 		if tc == 0 {
 			return 0, 0
 		}
@@ -59,7 +59,7 @@ func makeCoverageGenFn(min, max int) func() (total, covered int64) {
 			total := int64(float64(100*covered) / float64(tc))
 
 			cp := coverage.CoveredPercentage(total, covered)
-			if cp >= min && cp <= max {
+			if cp >= minc && cp <= maxc {
 				return total, covered
 			}
 		}

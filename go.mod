@@ -1,7 +1,7 @@
 module github.com/vladopajic/go-test-coverage/v2
 
 // GO_VERSION: when changing go version update version in other places
-go 1.22
+go 1.23
 
 require (
 	github.com/alexflint/go-arg v1.4.3
