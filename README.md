@@ -173,6 +173,9 @@ Following command will generate `cover.html` page with visualized coverage profi
 go tool cover -html=cover.out -o=cover.html
 ```
 
+## Sponsor this project
+
+This project is offered free of charge. However, if you are using go-test-coverage in a for-profit organization or have switched from a paid coverage reporting service, please consider [sponsoring the project](https://github.com/sponsors/vladopajic). Your support helps maintain and improve it!
 
 ## Contribution
 
