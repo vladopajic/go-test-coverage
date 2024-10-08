@@ -27,6 +27,7 @@ type args struct {
 	ConfigPath         string `arg:"-c,--config"`
 	Profile            string `arg:"-p,--profile"              help:"path to coverage profile"`
 	LocalPrefix        string `arg:"-l,--local-prefix"`
+	SourceDir          string `arg:"-s,--source-dir"`
 	GithubActionOutput bool   `arg:"-o,--github-action-output"`
 	ThresholdFile      int    `arg:"-f,--threshold-file"`
 	ThresholdPackage   int    `arg:"-k,--threshold-package"`
@@ -52,6 +53,7 @@ func newArgs() args {
 		ConfigPath:         ciDefaultString,
 		Profile:            ciDefaultString,
 		LocalPrefix:        ciDefaultString,
+		SourceDir:          ciDefaultString,
 		GithubActionOutput: false,
 		ThresholdFile:      ciDefaultInt,
 		ThresholdPackage:   ciDefaultInt,
@@ -93,6 +95,10 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 
 	if !isCIDefaultString(a.LocalPrefix) {
 		cfg.LocalPrefix = a.LocalPrefix
+	}
+
+	if !isCIDefaultString(a.SourceDir) {
+		cfg.SourceDir = a.SourceDir
 	}
 
 	if !isCIDefaultInt(a.ThresholdFile) {
