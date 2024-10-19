@@ -1,17 +1,19 @@
 # Coverage badge
 
-Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
+Repositories using the go-test-coverage GitHub action can easily generate and embed coverage badges in markdown files, allowing you to visualize and track your test coverage. For example: 
+
+![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg).
 
 
-`go-test-coverage` offers multiple mechanisms for creating and storing these badges:
-* generate a badge and save it within the same GitHub repository (ideal for public repositories)
-* generate a badge and store it on a Content Delivery Network (CDN) (ideal for private repositories)
-* generate a badge and choose a custom method for storage, allowing flexibility to align with your repository's specific requirements
-* generate a badge and store it in another public GitHub repository
+The go-test-coverage action supports several methods for generating and storing these badges, depending on your repository’s needs:
+- **Storing badges within the same GitHub repository** (ideal for public repositories).
+- **Storing badges on a Content Delivery Network (CDN)** (suitable for private repositories).
+- **Using a custom method for storage**, allowing flexibility.
+- **Storing badges in a different public GitHub repository**.
 
-## Coverage badge hosted on same GitHub repository
+## Hosting the Coverage Badge in the Same GitHub Repository
 
-`go-test-coverage` can create a coverage badge and automatically commit it to the same GitHub repository. This feature is particularly well-suited for public repositories.
+For public repositories, `go-test-coverage` can automatically create and commit a badge to the same GitHub repository. This is especially useful for keeping all assets together within the project.
 
 Example:
 ```yml
@@ -30,7 +32,7 @@ Example:
     git-branch: badges 
 ```
 
-Orphan branch needs to be created prior to running this workflow, to create an orphan branch manually:
+Orphan branch (has no history from other branches) needs to be created prior to running this workflow, to create an orphan branch manually:
 
 ```bash
 git checkout --orphan badges
@@ -42,26 +44,22 @@ git commit -m 'init'
 git push origin badges
 ```
 
-Lastly, check output of `check test coverage` step to see markdown snippet which can be added to markdown files. 
-
-If instruction from this example was followed through, this link should be
+Once the workflow completes, check the output of the `Check test coverage` step for a markdown snippet to embed the badge in your documentation. The link should look like:
 
 ```markdown
 ![coverage](https://raw.githubusercontent.com/org/project/badges/.badges/main/coverage.svg)
 ```
 
-where `org/project` part would match corresponding project.
-
 Notes:
-- Allow some time for GitHub to do it's thing if file is not immediately accessible via it's link.
-- `check test coverage` step may fail if GitHub token does not have permissions to write. To fix this you can:
-  - set write permission to job with `permissions: write-all` directive, or
-  - give write permissions to GitHub token: Go to repository Settings -> Actions -> Workflow Permissions section and give actions Read and Write permissions
-- For private repositories this will not work because only content from public repository could be accessible via `raw.githubusercontent.com`. For private repositories coverage badge could be hosted with methods described below.
+- Allow some time for GitHub to make the file available via its link.
+- The workflow may fail if the GitHub token doesn’t have write permissions. To fix this:
+  - Set `permissions: write-all` in your job configuration, or
+  - Navigate to repository settings → Actions → Workflow permissions, and grant Read and Write permissions.
+- This method only works for public repositories because private repository content is not accessible via `raw.githubusercontent.com`. For private repositories, refer to the CDN method described below.
 
-## Coverage badge hosted on CDN
+## Hosting the Coverage Badge on a CDN
 
-`go-test-coverage` can generate a coverage badge and upload it to a content delivery network (CDN) such as Amazon S3 or DigitalOcean Spaces. This option is especially suitable for private repositories.
+For private repositories, `go-test-coverage` can generate a badge and upload it to a CDN like Amazon S3 or DigitalOcean Spaces, making it accessible while keeping the repository private.
 
 Example:
 ```yml
@@ -86,9 +84,9 @@ Example:
     cdn-force-path-style: false
 ```
 
-## Generate badge
+## Generating a Local Badge
 
-With `go-test-coverage`, you can generate a coverage badge and save it locally on the file system. This badge file can be managed and utilized using a custom mechanism tailored to your specific needs.
+`go-test-coverage` can also generate a badge and store it locally on the file system, giving you the flexibility to handle badge storage through custom methods.
 
 Example:
 ```yml
@@ -105,9 +103,9 @@ Example:
   ## ... implement your method for storing badge 
 ```
 
-## Coverage badge hosted on another public GitHub repository
+## Hosting the Badge in Another Public GitHub Repository
 
-Just like the method where badges are hosted within the same repository, `go-test-coverage` provides a straightforward configuration to commit badges to any other repository, preferably one that is public. 
+You can also store the coverage badge in a separate public GitHub repository, which is particularly useful when managing multiple repositories or projects.
 
 Example:
 ```yml
@@ -130,11 +128,11 @@ Example:
     git-file-name: .badges/${{ github.repository }}/${{ github.ref_name }}/coverage.svg
 ```
 
-Like in the first example `badges` branch should be created with same method as described above.
+Ensure the `badges` branch is created in the target repository using the same steps as described for orphan branches earlier.
 
-## Badge examples
+## Badge Examples
 
-Badge examples created with this method would look like this:
+Here are some example badges generated with this method:
 
 ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/badge-examples/coverage-0.svg)
 ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/badge-examples/coverage-50.svg)

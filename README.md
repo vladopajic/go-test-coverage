@@ -8,34 +8,35 @@
 [![Release](https://img.shields.io/github/release/vladopajic/go-test-coverage.svg?style=flat-square)](https://github.com/vladopajic/go-test-coverage/releases/latest)
 
 
-`go-test-coverage` is tool which reports issues when test coverage is below set threshold.
+`go-test-coverage` is a tool designed to report issues when test coverage falls below a specified threshold, ensuring higher code quality and preventing regressions in test coverage over time.
 
 ## Why?
 
-These are the most important features and benefits of `go-test-coverage`:
+Here are the key features and benefits:
 
-- quick, 5-minute installation
-- server-less with no registration or permissions required
-  -  check never fails due to connectivity/server issues
-- **ensures data privacy**, no leaks to third parties
-  - [risks of information leakage through remote code coverage services](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266)
-- runs blazingly fast - (~1 sec on [go-test-coverage repo](https://github.com/vladopajic/go-test-coverage/actions/runs/8401578681/job/23010110385))
-- versatile for local and CI use
-- extensive configuration options
-- stylish badges
-- free and open-source!
+- **Quick Setup**: Install and configure in just 5 minutes.
+- **Serverless Operation**: No need for external servers, registration, or permissions.
+  - Eliminates connectivity or server-related failures.
+- **Data Privacy**: All coverage checks are done locally, so no sensitive information leaks to third parties.
+  - Learn more about [information leakage risks](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266).
+- **Performance**: Lightning-fast execution (e.g., ~1 second on [this repo](https://github.com/vladopajic/go-test-coverage/actions/runs/8401578681/job/23010110385)).
+- **Versatility**: Can be used both locally and in CI pipelines.
+- **Customizable**: Extensive configuration options to fit any project's needs.
+- **Stylish Badges**: Generate beautiful coverage badges for your repository.
+- **Open Source**: Free to use and contribute to!
 
 ## Usage
 
-`go-test-coverage` can be used in two ways:
- - as local tool, and/or
- - as step of GitHub workflow
+You can use  `go-test-coverage` in two ways:
+ - Locally as part of your development process.
+ - As a step in your GitHub Workflow.
 
-It is recommended to have both options in go repositories.
+It’s recommended to utilize both options for Go projects.
 
-### Local tool
+### Local Usage
 
-Example of `Makefile` which has `check-coverage` command that runs `go-test-coverage` locally:
+Here’s an example `Makefile` with a `check-coverage` command that runs `go-test-coverage` locally:
+
 
 ```makefile
 GOBIN ?= $$(go env GOPATH)/bin
@@ -50,9 +51,9 @@ check-coverage: install-go-test-coverage
 	${GOBIN}/go-test-coverage --config=./.testcoverage.yml
 ```
 
-### Github workflow
+### GitHub Workflow
 
-Example to run `go-test-coverage` as step of workflow:
+Here’s an example of how to integrate `go-test-coverage` into a GitHub Actions workflow:
 
 
 ```yml
@@ -83,7 +84,7 @@ steps:
 
 ### Config
 
-Example of [.testcoverage.yml](./.testcoverage.example.yml) config file:
+Here’s an example [.testcoverage.yml](./.testcoverage.example.yml) configuration file:
 
 ```yml
 # (mandatory) 
@@ -138,7 +139,7 @@ exclude:
 #   to properly work on Windows
 ```
 
-### Exclude code from coverage statistics with comment annotation
+### Exclude Code from Coverage
 
 For cases where there is a code block that does not need to be tested, it can be ignored from coverage statistics by adding the comment `// coverage-ignore` at the start line of the statement body (right after `{`).
 
@@ -160,13 +161,13 @@ func bar() { // coverage-ignore
 
 ## Coverage badge
 
-Repositories which use `go-test-coverage` action in their workflows could easily create beautiful coverage badge and embed them in markdown files (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
+You can easily generate a stylish coverage badge for your repository and embed it in your markdown files. Here’s an example badge: (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
-Read instructions on creating coverage badge [here](./docs/badge.md).
+Instructions for badge creation are available [here](./docs/badge.md).
 
-## Visualise coverage profile
+## Visualise Coverage
 
-Go's toolchain includes a utility for visualizing coverage profiles, providing valuable insights into which statements have not been covered by tests. This feature proves highly beneficial for understanding the extent of test coverage in your codebase.
+Go includes a built-in tool for visualizing coverage profiles, allowing you to see which parts of the code are not covered by tests. To generate a visual report:
 
 Following command will generate `cover.html` page with visualized coverage profile: 
 ```console
@@ -175,8 +176,8 @@ go tool cover -html=cover.out -o=cover.html
 
 ## Sponsor this project
 
-This project is offered free of charge. However, if you are using go-test-coverage in a for-profit organization or have switched from a paid coverage reporting service, please consider [sponsoring the project](https://github.com/sponsors/vladopajic). Your support helps maintain and improve it!
+This project is offered free of charge. However, if you are using `go-test-coverage` in a for-profit organization or have switched from a paid coverage reporting service, please consider [sponsoring the project](https://github.com/sponsors/vladopajic). Your support helps maintain and improve it!
 
 ## Contribution
 
-All contributions are useful, whether it is a simple typo, a more complex change, or just pointing out an issue. We welcome any contribution so feel free to open PR or issue. 
+We welcome all contributions—whether it's fixing a typo, adding new features, or pointing out an issue. Feel free to open a pull request or issue to contribute!
