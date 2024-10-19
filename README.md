@@ -10,7 +10,7 @@
 
 `go-test-coverage` is a tool designed to report issues when test coverage falls below a specified threshold, ensuring higher code quality and preventing regressions in test coverage over time.
 
-## Why?
+## Why Use go-test-coverage?
 
 Here are the key features and benefits:
 
@@ -82,7 +82,7 @@ steps:
       threshold-total: 95
 ```
 
-### Config
+### Configuration
 
 Here’s an example [.testcoverage.yml](./.testcoverage.example.yml) configuration file:
 
@@ -159,7 +159,7 @@ func bar() { // coverage-ignore
 }
 ```
 
-## Coverage badge
+## Generate Coverage Badge
 
 You can easily generate a stylish coverage badge for your repository and embed it in your markdown files. Here’s an example badge: (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
 
@@ -174,9 +174,10 @@ Following command will generate `cover.html` page with visualized coverage profi
 go tool cover -html=cover.out -o=cover.html
 ```
 
-## Sponsor this project
+## Support the Project
 
-This project is offered free of charge. However, if you are using `go-test-coverage` in a for-profit organization or have switched from a paid coverage reporting service, please consider [sponsoring the project](https://github.com/sponsors/vladopajic). Your support helps maintain and improve it!
+`go-test-coverage` is freely available for all users. If your organization benefits from this tool, especially if you’ve transitioned from a paid coverage service, consider [sponsoring the project](https://github.com/sponsors/vladopajic). 
+Your sponsorship will help sustain development, introduce new features, and maintain high-quality support. Every contribution directly impacts the future growth and stability of this project.
 
 ## Contribution
 
