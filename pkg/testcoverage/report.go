@@ -2,12 +2,12 @@ package testcoverage
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"strconv"
-	"strings"
 	"text/tabwriter"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
@@ -143,9 +143,6 @@ func setOutputValue(w io.Writer, name, value string) error {
 }
 
 func multiline(s string) string {
-	s = strings.ReplaceAll(s, "%", "%25")
-	s = strings.ReplaceAll(s, "\n", "%0A")
-	s = strings.ReplaceAll(s, "\r", "%0D")
-
-	return s
+	resp, _ := json.Marshal(s) //nolint:errcheck // relax
+	return string(resp)
 }
