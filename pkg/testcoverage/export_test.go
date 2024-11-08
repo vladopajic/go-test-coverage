@@ -5,6 +5,7 @@ const (
 	GaOutputTotalCoverage = gaOutputTotalCoverage
 	GaOutputBadgeColor    = gaOutputBadgeColor
 	GaOutputBadgeText     = gaOutputBadgeText
+	GaOutputReport        = gaOutputReport
 )
 
 var (
