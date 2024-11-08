@@ -1,6 +1,8 @@
 package testcoverage
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -21,12 +23,12 @@ func Check(w io.Writer, cfg Config) bool {
 
 	result := Analyze(cfg, stats)
 
-	ReportForHuman(w, result)
+	report := reportForHuman(w, result)
 
 	if cfg.GithubActionOutput {
 		ReportForGithubAction(w, result)
 
-		err = SetGithubActionOutput(result)
+		err = SetGithubActionOutput(result, report)
 		if err != nil {
 			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
 			return false
@@ -40,6 +42,18 @@ func Check(w io.Writer, cfg Config) bool {
 	}
 
 	return result.Pass()
+}
+
+func reportForHuman(w io.Writer, result AnalyzeResult) string {
+	buffer := &bytes.Buffer{}
+	out := bufio.NewWriter(buffer)
+
+	ReportForHuman(out, result)
+	out.Flush()
+
+	w.Write(buffer.Bytes()) //nolint:errcheck // relax
+
+	return buffer.String()
 }
 
 func Analyze(cfg Config, coverageStats []coverage.Stats) AnalyzeResult {

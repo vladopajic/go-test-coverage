@@ -182,7 +182,7 @@ func Test_SetGithubActionOutput(t *testing.T) {
 	t.Run("no env file", func(t *testing.T) {
 		t.Setenv(GaOutputFileEnv, "")
 
-		err := SetGithubActionOutput(AnalyzeResult{})
+		err := SetGithubActionOutput(AnalyzeResult{}, "")
 		assert.Error(t, err)
 	})
 
@@ -191,7 +191,7 @@ func Test_SetGithubActionOutput(t *testing.T) {
 
 		t.Setenv(GaOutputFileEnv, testFile)
 
-		err := SetGithubActionOutput(AnalyzeResult{})
+		err := SetGithubActionOutput(AnalyzeResult{}, "")
 		assert.NoError(t, err)
 
 		contentBytes, err := os.ReadFile(testFile)
@@ -201,6 +201,7 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
+		assert.Equal(t, 1, strings.Count(content, GaOutputReport))
 	})
 }
 

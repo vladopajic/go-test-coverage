@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
@@ -105,9 +106,10 @@ const (
 	gaOutputTotalCoverage = "total-coverage"
 	gaOutputBadgeColor    = "badge-color"
 	gaOutputBadgeText     = "badge-text"
+	gaOutputReport        = "report"
 )
 
-func SetGithubActionOutput(result AnalyzeResult) error {
+func SetGithubActionOutput(result AnalyzeResult, report string) error {
 	file, err := openGitHubOutput(os.Getenv(gaOutputFileEnv))
 	if err != nil {
 		return fmt.Errorf("could not open GitHub output file: %w", err)
@@ -119,6 +121,7 @@ func SetGithubActionOutput(result AnalyzeResult) error {
 		setOutputValue(file, gaOutputTotalCoverage, totalStr),
 		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalCoverage)),
 		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
+		setOutputValue(file, gaOutputReport, multiline(report)),
 		file.Close(),
 	)
 }
@@ -137,4 +140,12 @@ func setOutputValue(w io.Writer, name, value string) error {
 	}
 
 	return nil
+}
+
+func multiline(s string) string {
+	s = strings.ReplaceAll(s, "%", "%25")
+	s = strings.ReplaceAll(s, "\n", "%0A")
+	s = strings.ReplaceAll(s, "\r", "%0D")
+
+	return s
 }
