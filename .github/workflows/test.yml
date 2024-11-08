@@ -15,12 +15,17 @@ jobs:
           go-version-file: go.mod
       - name: test
         run: make test
+      - name: set action image version to dev
+        run: |
+          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
+          image=$(yq '.runs.image' action.yml)
+          echo "Image: $image"
       - name: check test coverage
         id: coverage
-        uses: vladopajic/go-test-coverage@v2
+        uses: ./
         with:
           config: ./.github/.testcoverage.yml
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
       - name: echo
-        run: echo ${{ steps.coverage.outputs.report }}
+        run: echo "${{ steps.coverage.outputs.report }}"
