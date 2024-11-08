@@ -143,6 +143,6 @@ func setOutputValue(w io.Writer, name, value string) error {
 }
 
 func multiline(s string) string {
-	resp, _ := json.Marshal(s) //nolint:errcheck // relax
+	resp, _ := json.Marshal(s) //nolint:errcheck,errchkjson // relax
 	return string(resp)
 }
