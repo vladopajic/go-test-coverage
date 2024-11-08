@@ -143,9 +143,9 @@ func setOutputValue(w io.Writer, name, value string) error {
 }
 
 func multiline(s string) string {
+	s = strings.ReplaceAll(s, "%", "%25")
 	s = strings.ReplaceAll(s, "\n", "%0A")
 	s = strings.ReplaceAll(s, "\r", "%0D")
-	s = strings.ReplaceAll(s, "%", "%25")
 
 	return s
 }
