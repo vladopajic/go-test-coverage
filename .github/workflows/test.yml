@@ -16,8 +16,11 @@ jobs:
       - name: test
         run: make test
       - name: check test coverage
+        id: coverage
         uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.github/.testcoverage.yml
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
+      - name: echo
+        run: echo ${{ steps.coverage.outputs.report }}
