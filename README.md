@@ -69,18 +69,10 @@ steps:
   - name: check test coverage
     uses: vladopajic/go-test-coverage@v2
     with:
-      # Configure action using config file (option 1)
       config: ./.testcoverage.yml
-      
-      # Configure action by specifying input parameters individually (option 2).
-      # If you are using config file (option 1) you shouldn't use these parameters, however
-      # specifing these action parameters will override appropriate config values.
-      profile: cover.out
-      local-prefix: github.com/org/project
-      threshold-file: 80
-      threshold-package: 80
-      threshold-total: 95
 ```
+
+For detailed information about the GitHub Action, check out [this page](./docs/github_action.md).
 
 ### Configuration
 
