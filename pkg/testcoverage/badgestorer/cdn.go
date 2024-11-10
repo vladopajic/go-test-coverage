@@ -32,10 +32,7 @@ func NewCDN(cfg CDN) Storer {
 }
 
 func (s *cdnStorer) Store(data []byte) (bool, error) {
-	s3Client, err := createS3Client(s.cfg)
-	if err != nil {
-		return false, fmt.Errorf("create s3 client: %w", err)
-	}
+	s3Client := createS3Client(s.cfg)
 
 	// First get object and check if data differs that currently uploaded
 	result, err := s3Client.GetObject(&s3.GetObjectInput{
@@ -67,7 +64,7 @@ func (s *cdnStorer) Store(data []byte) (bool, error) {
 	return true, nil // has changed
 }
 
-func createS3Client(cfg CDN) (*s3.S3, error) {
+func createS3Client(cfg CDN) *s3.S3 {
 	s3Config := &aws.Config{
 		Credentials:      credentials.NewStaticCredentials(cfg.Key, cfg.Secret, ""),
 		Endpoint:         aws.String(cfg.Endpoint),
@@ -75,12 +72,10 @@ func createS3Client(cfg CDN) (*s3.S3, error) {
 		S3ForcePathStyle: aws.Bool(cfg.ForcePathStyle),
 	}
 
-	newSession, err := session.NewSession(s3Config)
-	if err != nil {
-		return nil, fmt.Errorf("create session: %w", err)
-	}
+	// calling `session.Must` can potentially panic, which is not practice of this
+	// codebase to panic outside of main function. however it will never happen as
+	// this panic only happens when sessions could not be created using env variables.
+	newSession := session.Must(session.NewSession(s3Config))
 
-	s3Client := s3.New(newSession)
-
-	return s3Client, nil
+	return s3.New(newSession)
 }

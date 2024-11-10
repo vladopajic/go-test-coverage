@@ -9,7 +9,6 @@ import (
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
@@ -66,8 +65,7 @@ func Test_CDN(t *testing.T) {
 	assert.False(t, updated)
 
 	// create bucket and assert again
-	s3Client, err := CreateS3Client(cfg)
-	require.NoError(t, err)
+	s3Client := CreateS3Client(cfg)
 
 	_, err = s3Client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(cfg.BucketName),
