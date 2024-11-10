@@ -54,7 +54,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 3, 0)
+		assertHumanReport(t, buf.String(), 1, 0)
 	})
 
 	t.Run("valid profile with exclude - pass", func(t *testing.T) {
@@ -71,7 +71,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 3, 0)
+		assertHumanReport(t, buf.String(), 1, 0)
 	})
 
 	t.Run("valid profile - fail", func(t *testing.T) {
@@ -82,7 +82,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 2, 1)
+		assertHumanReport(t, buf.String(), 0, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 
@@ -95,7 +95,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 3, 0)
+		assertHumanReport(t, buf.String(), 1, 0)
 		assert.Equal(t, 0, strings.Count(buf.String(), prefix))
 	})
 
@@ -111,7 +111,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 3, 0)
+		assertHumanReport(t, buf.String(), 1, 0)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 
@@ -127,7 +127,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 1, 2)
+		assertHumanReport(t, buf.String(), 0, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 
@@ -172,7 +172,7 @@ func TestCheckNoParallel(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 3, 0)
+		assertHumanReport(t, buf.String(), 1, 0)
 		assertGithubOutputValues(t, testFile)
 	})
 
@@ -185,7 +185,7 @@ func TestCheckNoParallel(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 1)
-		assertHumanReport(t, buf.String(), 2, 1)
+		assertHumanReport(t, buf.String(), 0, 1)
 		assertGithubOutputValues(t, testFile)
 	})
 }

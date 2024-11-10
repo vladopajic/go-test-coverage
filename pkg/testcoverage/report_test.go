@@ -16,12 +16,13 @@ func Test_ReportForHuman(t *testing.T) {
 	t.Parallel()
 
 	prefix := "organization.org"
+	thr := Threshold{100, 100, 100}
 
 	t.Run("all - pass", func(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: true})
+		ReportForHuman(buf, AnalyzeResult{Threshold: thr, MeetsTotalCoverage: true})
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
 
@@ -29,7 +30,7 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{MeetsTotalCoverage: false})
+		ReportForHuman(buf, AnalyzeResult{Threshold: thr, MeetsTotalCoverage: false})
 		assertHumanReport(t, buf.String(), 2, 1)
 	})
 
@@ -42,7 +43,7 @@ func Test_ReportForHuman(t *testing.T) {
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
 		ReportForHuman(buf, result)
-		assertHumanReport(t, buf.String(), 2, 1)
+		assertHumanReport(t, buf.String(), 0, 1)
 		assertContainStats(t, buf.String(), statsWithError)
 		assertNotContainStats(t, buf.String(), statsNoError)
 	})
@@ -56,7 +57,7 @@ func Test_ReportForHuman(t *testing.T) {
 		statsNoError := randStats(prefix, 10, 100)
 		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
 		ReportForHuman(buf, result)
-		assertHumanReport(t, buf.String(), 2, 1)
+		assertHumanReport(t, buf.String(), 0, 1)
 		assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 		assertNotContainStats(t, buf.String(), statsWithError)
