@@ -31,21 +31,27 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 
 	thr := result.Threshold
 
-	// File threshold report
-	fmt.Fprintf(tabber, "File coverage threshold (%d%%) satisfied:\t", thr.File)
-	fmt.Fprint(tabber, statusStr(len(result.FilesBelowThreshold) == 0))
-	reportIssuesForHuman(tabber, result.FilesBelowThreshold)
+	if thr.File > 0 { // File threshold report
+		fmt.Fprintf(tabber, "File coverage threshold (%d%%) satisfied:\t", thr.File)
+		fmt.Fprint(tabber, statusStr(len(result.FilesBelowThreshold) == 0))
+		reportIssuesForHuman(tabber, result.FilesBelowThreshold)
+		fmt.Fprint(tabber, "\n")
+	}
 
-	// Package threshold report
-	fmt.Fprintf(tabber, "\nPackage coverage threshold (%d%%) satisfied:\t", thr.Package)
-	fmt.Fprint(tabber, statusStr(len(result.PackagesBelowThreshold) == 0))
-	reportIssuesForHuman(tabber, result.PackagesBelowThreshold)
+	if thr.Package > 0 { // Package threshold report
+		fmt.Fprintf(tabber, "Package coverage threshold (%d%%) satisfied:\t", thr.Package)
+		fmt.Fprint(tabber, statusStr(len(result.PackagesBelowThreshold) == 0))
+		reportIssuesForHuman(tabber, result.PackagesBelowThreshold)
+		fmt.Fprint(tabber, "\n")
+	}
 
-	// Total threshold report
-	fmt.Fprintf(tabber, "\nTotal coverage threshold (%d%%) satisfied:\t", thr.Total)
-	fmt.Fprint(tabber, statusStr(result.MeetsTotalCoverage))
+	if thr.Total > 0 { // Total threshold report
+		fmt.Fprintf(tabber, "Total coverage threshold (%d%%) satisfied:\t", thr.Total)
+		fmt.Fprint(tabber, statusStr(result.MeetsTotalCoverage))
+		fmt.Fprint(tabber, "\n")
+	}
 
-	fmt.Fprintf(tabber, "\nTotal test coverage: %d%%\n", result.TotalCoverage)
+	fmt.Fprintf(tabber, "Total test coverage: %d%%\n", result.TotalCoverage)
 }
 
 func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
