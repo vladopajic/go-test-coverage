@@ -1,6 +1,6 @@
 name: go-test-coverage
 author: vladopajic
-description: go-test-coverage is a tool designed to report issues when test coverage falls below a specified threshold, ensuring higher code quality and preventing regressions in test coverage over time.
+description: go-test-coverage is a tool designed to report issues when test coverage falls below a specified threshold.
 inputs:
   # Config
   config:
