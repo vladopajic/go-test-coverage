@@ -16,6 +16,8 @@ jobs:
           go-version-file: go.mod
       
       - name: test
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for Github test
         run: make test
       
       - name: check test coverage

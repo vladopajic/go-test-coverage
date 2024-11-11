@@ -50,7 +50,7 @@ func Test_Github(t *testing.T) {
 		Token:      getEnv(envGitToken),
 		Owner:      "vladopajic",
 		Repository: "go-test-coverage",
-		Branch:     "unit-test",
+		Branch:     "badges-unit-test",
 		FileName:   "badge.svg",
 	}
 	s := NewGithub(cfg)
@@ -82,7 +82,17 @@ func deleteFile(t *testing.T, cfg Git) {
 	t.Helper()
 
 	client := github.NewClient(nil).WithAuthToken(cfg.Token)
-	_, _, err := client.Repositories.DeleteFile(
+
+	fc, _, _, err := client.Repositories.GetContents(
+		context.Background(),
+		cfg.Owner,
+		cfg.Repository,
+		cfg.FileName,
+		&github.RepositoryContentGetOptions{Ref: cfg.Branch},
+	)
+	assert.NoError(t, err)
+
+	_, _, err = client.Repositories.DeleteFile(
 		context.Background(),
 		cfg.Owner,
 		cfg.Repository,
@@ -90,6 +100,7 @@ func deleteFile(t *testing.T, cfg Git) {
 		&github.RepositoryContentFileOptions{
 			Message: github.String("delete testing badge " + cfg.FileName),
 			Branch:  &cfg.Branch,
+			SHA:     fc.SHA,
 		},
 	)
 	assert.NoError(t, err)
