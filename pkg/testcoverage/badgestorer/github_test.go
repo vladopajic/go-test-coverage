@@ -11,7 +11,7 @@ import (
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
-const envGitToken = "GITHUB_TOKEN"
+const envGitToken = "GITHUB_TOKEN" //nolint:gosec // false-positive
 
 func Test_Github_Error(t *testing.T) {
 	t.Parallel()
