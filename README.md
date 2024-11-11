@@ -173,4 +173,7 @@ Your sponsorship will help sustain development, introduce new features, and main
 
 ## Contribution
 
-We welcome all contributions—whether it's fixing a typo, adding new features, or pointing out an issue. Feel free to open a pull request or issue to contribute!
+We welcome all contributions - whether it's fixing a typo, adding new features, or pointing out an issue. Feel free to open a pull request or issue to contribute!
+
+
+Happy coding 🌞
