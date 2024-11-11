@@ -65,12 +65,12 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 		return updateBadge(nil)
 	}
 
-	if err != nil {
+	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("get badge content: %w", err)
 	}
 
 	content, err := fc.GetContent()
-	if err != nil {
+	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("decode badge content: %w", err)
 	}
 

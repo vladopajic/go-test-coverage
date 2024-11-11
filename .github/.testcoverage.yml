@@ -4,10 +4,7 @@ profile: cover.short.profile,cover.long.profile
 local-prefix: "github.com/vladopajic/go-test-coverage/v2"
 threshold:
   file: 100
-  total: 95
-override:
-  - threshold: 50
-    path: badgestorer/github.go$
+  total: 100
 exclude:
   paths:
     - main\.go$
