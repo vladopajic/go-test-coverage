@@ -33,11 +33,12 @@ The GitHub Action will set the following outputs, which can be used later in you
 
 | Name            | Description                  |
 |-----------------|------------------------------|
-|`total-coverage` | Integer value in the range [0-100], representing the total coverage percentage. |
-|`badge-color`    | String value holding the color hex code for the badge (e.g., `#44cc11`). |
-|`badge-text`     | The total-coverage value concatenated with a % (e.g., `100%`). |
-|`report`         | JSON-encoded string representing the coverage report from `go-test-coverage`. |
+|`total-coverage` | Integer value in the range [0-100], representing the overall project test coverage percentage. |
+|`badge-color`    | Color hex code for the badge  (e.g., `#44cc11`), representing the coverage status. |
+|`badge-text`     | Deprecated! Text label for the badge. |
+|`report`         | JSON-encoded string containing the detailed test coverage report. |
 
+Note: Action outputs and inputs are also documented in [action.yml](/action.yml) file.
 
 # Post Coverage Report to PR
 
