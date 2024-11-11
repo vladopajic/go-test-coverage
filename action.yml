@@ -114,7 +114,7 @@ outputs:
 
 runs:
   using: docker
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.10.4
+  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.10.5
   args:
     - --config=${{ inputs.config || '''''' }}
     - --profile=${{ inputs.profile || '''''' }}
