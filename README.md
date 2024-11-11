@@ -80,7 +80,7 @@ Here’s an example [.testcoverage.yml](./.testcoverage.example.yml) configurati
 
 ```yml
 # (mandatory) 
-# Path to coverprofile file (output of `go test -coverprofile` command).
+# Path to coverage profile file (output of `go test -coverprofile` command).
 #
 # For cases where there are many coverage profiles, such as when running 
 # unit tests and integration tests separately, you can combine all those
@@ -89,21 +89,21 @@ Here’s an example [.testcoverage.yml](./.testcoverage.example.yml) configurati
 profile: cover.out
 
 # (optional; but recommended to set) 
-# When specified reported file paths will not contain local prefix in the output
+# When specified reported file paths will not contain local prefix in the output.
 local-prefix: "github.com/org/project"
 
-# Holds coverage thresholds percentages, values should be in range [0-100]
+# Holds coverage thresholds percentages, values should be in range [0-100].
 threshold:
   # (optional; default 0) 
-  # The minimum coverage that each file should have
+  # Minimum coverage percentage required for individual files.
   file: 70
 
   # (optional; default 0) 
-  # The minimum coverage that each package should have
+  # Minimum coverage percentage required for each package.
   package: 80
 
   # (optional; default 0) 
-  # The minimum total coverage project should have
+  # Minimum overall project coverage percentage required.
   total: 95
 
 # Holds regexp rules which will override thresholds for matched files or packages 
@@ -114,12 +114,12 @@ threshold:
 # override rules should be listed in order from specific to more general rules.
 override:
   # Increase coverage threshold to 100% for `foo` package 
-  # (default is 80, as configured above in this example)
+  # (default is 80, as configured above in this example).
   - threshold: 100
     path: ^pkg/lib/foo$
 
 # Holds regexp rules which will exclude matched files or packages 
-# from coverage statistics
+# from coverage statistics.
 exclude:
   # Exclude files or packages matching their paths
   paths:
@@ -128,7 +128,7 @@ exclude:
  
 # NOTES:
 # - symbol `/` in all path regexps will be replaced by current OS file path separator
-#   to properly work on Windows
+#   to properly work on Windows.
 ```
 
 ### Exclude Code from Coverage
