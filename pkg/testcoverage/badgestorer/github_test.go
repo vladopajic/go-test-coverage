@@ -50,7 +50,7 @@ func Test_Github(t *testing.T) {
 		Token:      getEnv(envGitToken),
 		Owner:      "vladopajic",
 		Repository: "go-test-coverage",
-		Branch:     "badges-unit-test",
+		Branch:     "badges-integration-test",
 		FileName:   "badge.svg",
 	}
 	s := NewGithub(cfg)

@@ -17,7 +17,7 @@ jobs:
       
       - name: test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for Github test
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
         run: make test
       
       - name: check test coverage
