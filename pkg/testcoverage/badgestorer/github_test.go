@@ -7,6 +7,7 @@ import (
 
 	"github.com/google/go-github/v56/github"
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/exp/rand"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
@@ -51,7 +52,7 @@ func Test_Github(t *testing.T) {
 		Owner:      "vladopajic",
 		Repository: "go-test-coverage",
 		Branch:     "badges-integration-test",
-		FileName:   "badge.svg",
+		FileName:   "badge-" + randString() + ".svg",
 	}
 	s := NewGithub(cfg)
 
@@ -104,4 +105,15 @@ func deleteFile(t *testing.T, cfg Git) {
 		},
 	)
 	assert.NoError(t, err)
+}
+
+func randString() string {
+	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
+
+	b := make([]rune, rand.Intn(10))
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+
+	return string(b)
 }
