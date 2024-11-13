@@ -2,12 +2,14 @@ package badgestorer_test
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"runtime"
 	"testing"
+	"time"
 
 	"github.com/google/go-github/v56/github"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/exp/rand"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
@@ -52,9 +54,9 @@ func Test_Github(t *testing.T) {
 		Owner:      "vladopajic",
 		Repository: "go-test-coverage",
 		Branch:     "badges-integration-test",
-		// random badge name must be used because two tests running from different platforms
+		// badge name must be unique because two tests running from different platforms
 		// in CI can cause race condition if badge has the same name
-		FileName: "badge_" + randString() + ".svg",
+		FileName: fmt.Sprintf("badge_%s_%d.svg", runtime.GOOS, time.Now().UnixNano()),
 	}
 	s := NewGithub(cfg)
 
@@ -107,15 +109,4 @@ func deleteFile(t *testing.T, cfg Git) {
 		},
 	)
 	assert.NoError(t, err)
-}
-
-func randString() string {
-	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
-
-	b := make([]rune, 10)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-
-	return string(b)
 }
