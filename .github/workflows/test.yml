@@ -5,8 +5,11 @@ permissions:
   pull-requests: write
 jobs:
   test:
-    name: test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -18,13 +21,38 @@ jobs:
       - name: test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
-        run: make test
+        run: go test -timeout=60s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.${{ matrix.os }}.profile -covermode=atomic -coverpkg=./...
+
+      - name: upload cover profile artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: cover.${{ matrix.os }}
+          path: cover.${{ matrix.os }}.profile
+  
+  check-coverage:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: download cover.ubuntu-latest
+        uses: actions/download-artifact@v3
+        with:
+          name: cover.ubuntu-latest
       
+      - name: download cover.macos-latest
+        uses: actions/download-artifact@v3
+        with:
+          name: cover.macos-latest
+
       - name: check test coverage
         id: coverage
         uses: vladopajic/go-test-coverage@v2
         with:
           config: ./.github/.testcoverage.yml
+          profile: cover.ubuntu-latest.profile,cover.macos-latest.profile
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
       
