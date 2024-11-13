@@ -111,11 +111,10 @@ func deleteFile(t *testing.T, cfg Git) {
 
 func randString() string {
 	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
-	l := len(letterRunes)
 
-	b := make([]rune, rand.Intn(10))
+	b := make([]rune, 10)
 	for i := range b {
-		b[i] = letterRunes[rand.Intn(l)]
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
 	}
 
 	return string(b)
