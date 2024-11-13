@@ -34,6 +34,9 @@ jobs:
     needs: test
 
     steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
       - name: download cover.ubuntu-latest
         uses: actions/download-artifact@v3
         with:
