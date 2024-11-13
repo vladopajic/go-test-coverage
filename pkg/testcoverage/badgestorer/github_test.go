@@ -54,7 +54,7 @@ func Test_Github(t *testing.T) {
 		Branch:     "badges-integration-test",
 		// random badge name must be used because two tests running from different platforms
 		// in CI can cause race condition if badge has the same name
-		FileName: "badge-" + randString() + ".svg",
+		FileName: "badge_" + randString() + ".svg",
 	}
 	s := NewGithub(cfg)
 
@@ -111,10 +111,11 @@ func deleteFile(t *testing.T, cfg Git) {
 
 func randString() string {
 	letterRunes := []rune("abcdefghijklmnopqrstuvwxyz")
+	l := len(letterRunes)
 
 	b := make([]rune, rand.Intn(10))
 	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+		b[i] = letterRunes[rand.Intn(l)]
 	}
 
 	return string(b)
