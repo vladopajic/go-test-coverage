@@ -52,7 +52,9 @@ func Test_Github(t *testing.T) {
 		Owner:      "vladopajic",
 		Repository: "go-test-coverage",
 		Branch:     "badges-integration-test",
-		FileName:   "badge-" + randString() + ".svg",
+		// random badge name must be used because two tests running from different platforms
+		// in CI can cause race condition if badge has the same name
+		FileName: "badge-" + randString() + ".svg",
 	}
 	s := NewGithub(cfg)
 
