@@ -3,8 +3,6 @@ package coverage
 import (
 	"regexp"
 	"strings"
-
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 )
 
 type Stats struct {
@@ -61,7 +59,6 @@ func compileExcludePathRules(excludePaths []string) []*regexp.Regexp {
 	compiled := make([]*regexp.Regexp, len(excludePaths))
 
 	for i, pattern := range excludePaths {
-		pattern = path.NormalizePathInRegex(pattern)
 		compiled[i] = regexp.MustCompile(pattern)
 	}
 

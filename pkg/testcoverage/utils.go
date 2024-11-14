@@ -2,8 +2,6 @@ package testcoverage
 
 import (
 	"regexp"
-
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 )
 
 type regRule struct {
@@ -29,7 +27,7 @@ func compileOverridePathRules(cfg Config) []regRule {
 	compiled := make([]regRule, len(cfg.Override))
 
 	for i, o := range cfg.Override {
-		pattern := path.NormalizePathInRegex(o.Path)
+		pattern := o.Path
 		compiled[i] = regRule{
 			reg:       regexp.MustCompile(pattern),
 			threshold: o.Threshold,
