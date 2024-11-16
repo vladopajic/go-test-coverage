@@ -36,11 +36,11 @@ func Test_parseProfiles(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, p3)
 
-	p4, err := ParseProfiles([]string{profileOKNoPath, profileOK})
+	p4, err := ParseProfiles([]string{profileOKNoBadge, profileOK})
 	assert.NoError(t, err)
 	assert.Equal(t, p3, p4)
 
-	p5, err := ParseProfiles([]string{profileOK, profileOKNoPath})
+	p5, err := ParseProfiles([]string{profileOK, profileOKNoBadge})
 	assert.NoError(t, err)
 	assert.Equal(t, p4, p5)
 }

@@ -1,3 +1,4 @@
 mode: atomic
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:11.47,12.31 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:12.31,14.3 1 0
+github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge/generate.go:15.45,21.2 1 12
+github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge/generate.go:23.33,25.9 1 15
+github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge/generate.go:26.23,27.19 1 5

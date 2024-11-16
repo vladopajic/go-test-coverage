@@ -15,7 +15,7 @@ const (
 	testdataDir             = "../testdata/"
 	profileOK               = testdataDir + testdata.ProfileOK
 	profileOKFull           = testdataDir + testdata.ProfileOKFull
-	profileOKNoPath         = testdataDir + testdata.ProfileOKNoPath
+	profileOKNoBadge        = testdataDir + testdata.ProfileOKNoBadge
 	profileOKNoStatements   = testdataDir + testdata.ProfileOKNoStatements
 	profileNOK              = testdataDir + testdata.ProfileNOK
 	profileNOKInvalidLength = testdataDir + testdata.ProfileNOKInvalidLength
