@@ -76,13 +76,13 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NotEmpty(t, stats4)
 	assert.Equal(t, 100, CalcTotalStats(stats4).CoveredPercentage())
 
-	// should not have `path/path.go` in statistics because it has no statements
+	// should not have `badge/generate.go` in statistics because it has no statements
 	stats5, err := GenerateCoverageStats(Config{
 		Profiles: []string{profileOKNoStatements},
 	})
 	assert.NoError(t, err)
 	assert.Len(t, stats5, 1)
-	assert.NotContains(t, `path/path.go`, stats5[0].Name)
+	assert.NotContains(t, `badge/generate.go`, stats5[0].Name)
 }
 
 func Test_findFile(t *testing.T) {
