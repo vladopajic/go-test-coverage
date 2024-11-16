@@ -1,7 +1,4 @@
 mode: atomic
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:11.47,12.31 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:12.31,14.3 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:16.2,16.58 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:13.77,15.16 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:15.16,17.3 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:19.2,24.15 3 0
@@ -242,9 +239,6 @@ github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:68.
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:71.50,74.38 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:74.38,77.3 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:79.2,79.19 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:11.47,12.31 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:12.31,14.3 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:16.2,16.58 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:13.77,15.16 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:15.16,17.3 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:19.2,24.15 3 0
@@ -485,9 +479,6 @@ github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:68.
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:71.50,74.38 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:74.38,77.3 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:79.2,79.19 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:11.47,12.31 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:12.31,14.3 1 0
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:16.2,16.58 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:13.77,15.16 2 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:15.16,17.3 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:19.2,24.15 3 0
@@ -728,9 +719,6 @@ github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:68.
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:71.50,74.38 2 4
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:74.38,77.3 2 39
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:79.2,79.19 1 4
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:11.47,12.31 1 1
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:12.31,14.3 1 1
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:16.2,16.58 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:13.77,15.16 2 10
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:15.16,17.3 1 0
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge.go:19.2,24.15 3 10
@@ -971,6 +959,3 @@ github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:68.
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:71.50,74.38 2 26
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:74.38,77.3 2 2486
 github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage/types.go:79.2,79.19 1 26
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:11.47,12.31 1 6
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:12.31,14.3 1 6
-github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path/path.go:16.2,16.58 1 0
