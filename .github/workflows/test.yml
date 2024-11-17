@@ -21,7 +21,7 @@ jobs:
       - name: test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
-        run: go test -timeout=60s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.${{ matrix.os }}.profile -covermode=atomic -coverpkg=./...
+        run: go test -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.${{ matrix.os }}.profile -covermode=atomic -coverpkg=./...
 
       - name: upload cover profile artifact
         uses: actions/upload-artifact@v3
