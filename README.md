@@ -125,10 +125,6 @@ exclude:
   paths:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
- 
-# NOTES:
-# - symbol `/` in all path regexps will be replaced by current OS file path separator
-#   to properly work on Windows.
 ```
 
 ### Exclude Code from Coverage
