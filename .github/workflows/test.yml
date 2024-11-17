@@ -50,6 +50,7 @@ jobs:
       - name: check test coverage
         id: coverage
         uses: vladopajic/go-test-coverage@v2
+        continue-on-error: true # Should fail after coverage comment is posted
         with:
           config: ./.github/.testcoverage.yml
           profile: cover.ubuntu-latest.profile,cover.macos-latest.profile
@@ -89,3 +90,8 @@ jobs:
             ${{ fromJSON(steps.coverage.outputs.report) }}
             ```
           edit-mode: replace
+      
+      - name: "finally check coverage"
+        if: steps.coverage.outcome == 'failure'
+        shell: bash
+        run: echo "coverage check failed" && exit 1
