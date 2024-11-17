@@ -21,13 +21,13 @@ jobs:
       - name: test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
-        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}.profile -covermode=atomic -coverpkg=./... ./... 
+        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.os }}.profile
-          path: ${{ matrix.os }}.profile
+          name: ${{ matrix.os }}-profile
+          path: ${{ matrix.os }}-profile
           if-no-files-found: error
   
   check-coverage:
@@ -38,18 +38,18 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: download ubuntu-latest.profile
+      - name: download ubuntu-latest-profile
         uses: actions/download-artifact@v4
         with:
-          name: ubuntu-latest.profile
-      - name: download macos-latest.profile
+          name: ubuntu-latest-profile
+      - name: download macos-latest-profile
         uses: actions/download-artifact@v4
         with:
-          name: macos-latest.profile
-      - name: download windows-latest.profile
+          name: macos-latest-profile
+      - name: download windows-latest-profile
         uses: actions/download-artifact@v4
         with:
-          name: windows-latest.profile
+          name: windows-latest-profile
   
       - name: check test coverage
         id: coverage
@@ -57,7 +57,7 @@ jobs:
         continue-on-error: true # Should fail after coverage comment is posted
         with:
           config: ./.github/.testcoverage.yml
-          profile: ubuntu-latest.profile,macos-latest.profile,windows-latest.profile
+          profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
       
