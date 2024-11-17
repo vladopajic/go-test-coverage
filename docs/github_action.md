@@ -48,6 +48,7 @@ Here is an example of how to post comments with the coverage report to your pull
   - name: check test coverage
     id: coverage
     uses: vladopajic/go-test-coverage@v2
+    continue-on-error: true # Should fail after coverage comment is posted
     with:
         config: ./.github/.testcoverage.yml
     
@@ -84,4 +85,9 @@ Here is an example of how to post comments with the coverage report to your pull
         ${{ fromJSON(steps.coverage.outputs.report) }} 
         ```
         edit-mode: replace
+
+  - name: "finally check coverage"
+    if: steps.coverage.outcome == 'failure'
+    shell: bash
+    run: echo "coverage check failed" && exit 1
 ```          
