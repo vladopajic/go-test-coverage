@@ -27,18 +27,9 @@ Alternatively, if you don't need advanced configuration options from a config fi
 
 Note: When using a config file alongside action properties, specifying these parameters will override the corresponding values in the config file.
 
-## Action Outputs
+## Action Inputs and Outputs
 
-The GitHub Action will set the following outputs, which can be used later in your workflow:
-
-| Name            | Description                  |
-|-----------------|------------------------------|
-|`total-coverage` | Integer value in the range [0-100], representing the overall project test coverage percentage. |
-|`badge-color`    | Color hex code for the badge  (e.g., `#44cc11`), representing the coverage status. |
-|`badge-text`     | Deprecated! Text label for the badge. |
-|`report`         | JSON-encoded string containing the detailed test coverage report. |
-
-Note: Action outputs and inputs are also documented in [action.yml](/action.yml) file.
+Action inputs and outputs are documented in [action.yml](/action.yml) file.
 
 ## Liberal Coverage Check
 
