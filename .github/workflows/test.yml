@@ -24,7 +24,7 @@ jobs:
         run: go test -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.${{ matrix.os }}.profile -covermode=atomic -coverpkg=./...
 
       - name: upload cover profile artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: cover.${{ matrix.os }}
           path: cover.${{ matrix.os }}.profile
@@ -38,15 +38,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: download cover.ubuntu-latest
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cover.ubuntu-latest
       - name: download cover.macos-latest
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cover.macos-latest
       - name: download cover.windows-latest
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: cover.windows-latest
   
