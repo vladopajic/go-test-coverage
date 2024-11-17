@@ -2,11 +2,11 @@ package badgestorer_test
 
 import (
 	"context"
+	crand "crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"os"
-	"runtime"
 	"testing"
-	"time"
 
 	"github.com/google/go-github/v56/github"
 	"github.com/stretchr/testify/assert"
@@ -56,7 +56,7 @@ func Test_Github(t *testing.T) {
 		Branch:     "badges-integration-test",
 		// badge name must be unique because two tests running from different platforms
 		// in CI can cause race condition if badge has the same name
-		FileName: fmt.Sprintf("badge_%s_%d.svg", runtime.GOOS, time.Now().UnixNano()),
+		FileName: fmt.Sprintf("badge_%s.svg", randName()),
 	}
 	s := NewGithub(cfg)
 
@@ -109,4 +109,15 @@ func deleteFile(t *testing.T, cfg Git) {
 		},
 	)
 	assert.NoError(t, err)
+}
+
+func randName() string {
+	buf := make([]byte, 20)
+
+	_, err := crand.Read(buf)
+	if err != nil {
+		panic(err) //nolint:forbidigo // okay here because it is only used for tests
+	}
+
+	return hex.EncodeToString(buf)
 }

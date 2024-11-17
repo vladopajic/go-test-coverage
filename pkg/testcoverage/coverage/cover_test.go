@@ -8,6 +8,7 @@ import (
 	"golang.org/x/tools/cover"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
 
@@ -97,12 +98,12 @@ func Test_findFile(t *testing.T) {
 	file, noPrefixName, err := FindFile(prefix+"/"+filename, "")
 	assert.NoError(t, err)
 	assert.Equal(t, filename, noPrefixName)
-	assert.True(t, strings.HasSuffix(file, filename))
+	assert.True(t, strings.HasSuffix(file, path.NormalizeForOS(filename)))
 
 	file, noPrefixName, err = FindFile(prefix+"/"+filename, prefix)
 	assert.NoError(t, err)
 	assert.Equal(t, filename, noPrefixName)
-	assert.True(t, strings.HasSuffix(file, filename))
+	assert.True(t, strings.HasSuffix(file, path.NormalizeForOS(filename)))
 
 	_, _, err = FindFile(prefix+"/main1.go", "")
 	assert.Error(t, err)
