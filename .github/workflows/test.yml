@@ -8,7 +8,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - name: checkout
@@ -21,13 +21,14 @@ jobs:
       - name: test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
-        run: go test -timeout=60s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.${{ matrix.os }}.profile -covermode=atomic -coverpkg=./...
+        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: cover.${{ matrix.os }}
-          path: cover.${{ matrix.os }}.profile
+          name: ${{ matrix.os }}-profile
+          path: ${{ matrix.os }}-profile
+          if-no-files-found: error
   
   check-coverage:
     runs-on: ubuntu-latest
@@ -37,23 +38,26 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: download cover.ubuntu-latest
-        uses: actions/download-artifact@v3
+      - name: download ubuntu-latest-profile
+        uses: actions/download-artifact@v4
         with:
-          name: cover.ubuntu-latest
-      
-      - name: download cover.macos-latest
-        uses: actions/download-artifact@v3
+          name: ubuntu-latest-profile
+      - name: download macos-latest-profile
+        uses: actions/download-artifact@v4
         with:
-          name: cover.macos-latest
-
+          name: macos-latest-profile
+      - name: download windows-latest-profile
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-latest-profile
+  
       - name: check test coverage
         id: coverage
         uses: vladopajic/go-test-coverage@v2
         continue-on-error: true # Should fail after coverage comment is posted
         with:
           config: ./.github/.testcoverage.yml
-          profile: cover.ubuntu-latest.profile,cover.macos-latest.profile
+          profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
       
