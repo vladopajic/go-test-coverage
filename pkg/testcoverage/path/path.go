@@ -8,10 +8,18 @@ import (
 
 const separatorToReplace = string(filepath.Separator)
 
-func NormalizePathInRegex(path string) string {
+// func NormalizeForOS(path string) string {
+// 	if runtime.GOOS != "windows" {
+// 		return path
+// 	}
+
+// 	return strings.ReplaceAll(path, "/", separatorToReplace)
+// }
+
+func NormalizeForTool(path string) string {
 	if runtime.GOOS != "windows" {
 		return path
 	}
 
-	return strings.ReplaceAll(path, "/", separatorToReplace) // coverage-ignore
+	return strings.ReplaceAll(path, separatorToReplace, "/")
 }

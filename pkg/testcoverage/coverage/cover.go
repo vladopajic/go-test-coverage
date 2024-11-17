@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
+
 	"golang.org/x/tools/cover"
 )
 
@@ -88,7 +90,7 @@ func findFile(file, prefix string) (string, string, error) {
 
 	file = filepath.Join(pkg.Dir, file)
 	if _, err := os.Stat(file); err == nil {
-		return file, stripPrefix(file, pkg.Root), nil
+		return file, stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root)), nil
 	}
 
 	return "", "", fmt.Errorf("can't find file %q", profileFile)
