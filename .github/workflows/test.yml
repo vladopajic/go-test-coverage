@@ -21,13 +21,13 @@ jobs:
       - name: test
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
-        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=cover.${{ matrix.os }}.profile -covermode=atomic -coverpkg=./... ./... 
+        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}.profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cover.${{ matrix.os }}
-          path: cover.${{ matrix.os }}.profile
+          name: ${{ matrix.os }}.profile
+          path: ${{ matrix.os }}.profile
           if-no-files-found: error
   
   check-coverage:
@@ -38,18 +38,18 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
 
-      - name: download cover.ubuntu-latest
+      - name: download ubuntu-latest.profile
         uses: actions/download-artifact@v4
         with:
-          name: cover.ubuntu-latest
-      - name: download cover.macos-latest
+          name: ubuntu-latest.profile
+      - name: download macos-latest.profile
         uses: actions/download-artifact@v4
         with:
-          name: cover.macos-latest
-      - name: download cover.windows-latest
+          name: macos-latest.profile
+      - name: download windows-latest.profile
         uses: actions/download-artifact@v4
         with:
-          name: cover.windows-latest
+          name: windows-latest.profile
   
       - name: check test coverage
         id: coverage
@@ -57,7 +57,7 @@ jobs:
         continue-on-error: true # Should fail after coverage comment is posted
         with:
           config: ./.github/.testcoverage.yml
-          profile: cover.ubuntu-latest.profile,cover.macos-latest.profile,cover.windows-latest.profile
+          profile: ubuntu-latest.profile,macos-latest.profile,windows-latest.profile
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
       
