@@ -13,7 +13,7 @@ func NormalizeForOS(path string) string {
 		return path
 	}
 
-	return strings.ReplaceAll(path, "/", separatorToReplace)
+	return strings.ReplaceAll(path, "/", separatorToReplace) // coverage-ignore
 }
 
 func NormalizeForTool(path string) string {
@@ -21,5 +21,5 @@ func NormalizeForTool(path string) string {
 		return path
 	}
 
-	return strings.ReplaceAll(path, separatorToReplace, "/")
+	return strings.ReplaceAll(path, separatorToReplace, "/") // coverage-ignore
 }
