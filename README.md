@@ -149,7 +149,7 @@ func bar() { // coverage-ignore
 
 ## Generate Coverage Badge
 
-You can easily generate a stylish coverage badge for your repository and embed it in your markdown files. Here’s an example badge: (eg. ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)).
+You can easily generate a stylish coverage badge for your repository and embed it in your markdown files. Here’s an example badge: ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)
 
 Instructions for badge creation are available [here](./docs/badge.md).
 

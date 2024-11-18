@@ -2,7 +2,7 @@
 
 Repositories using the go-test-coverage GitHub action can easily generate and embed coverage badges in markdown files, allowing you to visualize and track your test coverage. For example: 
 
-![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg).
+![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)
 
 
 The go-test-coverage action supports several methods for generating and storing these badges, depending on your repository’s needs:
