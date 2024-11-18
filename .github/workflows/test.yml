@@ -20,7 +20,7 @@ jobs:
       
       - name: test
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
+          GITHUB_TOKEN: ${{ matrix.os == 'ubuntu-latest' && secrets.GITHUB_TOKEN || '' }} # Needed for GitHub badge storer integration test
         run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
