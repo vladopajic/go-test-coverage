@@ -1,6 +1,11 @@
 # go-test-coverage GitHub Action
 
+The `go-test-coverage` GitHub Action provides the following capabilities:
+- Enforce success of GitHub workflows only when a specified coverage threshold is met.
+- Generate a coverage badge to display the total test coverage.
+- Post a detailed coverage report as a comment on pull requests, including current test coverage and the difference compared to the base branch (to be implemented in https://github.com/vladopajic/go-test-coverage/issues/42).
 
+ 
 ## Usage
 
 Here’s an example of how to integrate `go-test-coverage` in a GitHub workflow that uses a config file. This is the preferred way because the same config file can be used for running coverage checks locally.
