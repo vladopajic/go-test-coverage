@@ -16,6 +16,13 @@ jobs:
         with:
           go-version-file: go.mod
 
+      - uses: actions/delete-package-versions@v5
+        with: 
+          owner: vladopajic
+          package-name: go-test-coverage
+          package-type: container
+          delete-only-untagged-versions: true
+
       - name: set action image version to dev
         run: |
           yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
