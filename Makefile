@@ -21,17 +21,16 @@ lint: get-golangcilint
 # Runs tests on entire repo
 .PHONY: test
 test: 
-	go test -timeout=3s -race -count=10 -failfast -shuffle=on -short ./... -coverprofile=./cover.short.profile -covermode=atomic -coverpkg=./...
-	go test -timeout=10s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.long.profile -covermode=atomic -coverpkg=./...
+	go test -timeout=3s -race -count=10 -failfast -shuffle=on -short ./...
+	go test -timeout=10s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.profile -covermode=atomic -coverpkg=./...
 
 # Runs test coverage check
 .PHONY: check-coverage
 check-coverage: test
-	go run ./main.go --config=./.github/.testcoverage.yml
+	go run ./main.go --config=./.github/.testcoverage-local.yml
 
 # View coverage profile
 .PHONY: view-coverage
 view-coverage:
-	go test ./... -coverprofile=./cover.all.profile -covermode=atomic -coverpkg=./...
-	go tool cover -html=cover.all.profile -o=cover.html
+	go tool cover -html=cover.profile -o=cover.html
 	xdg-open cover.html
