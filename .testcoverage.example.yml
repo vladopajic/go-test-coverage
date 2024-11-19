@@ -34,8 +34,8 @@ threshold:
 override:
   # Increase coverage threshold to 100% for `foo` package 
   # (default is 80, as configured above in this example).
-  - threshold: 100
-    path: ^pkg/lib/foo$
+  - path: ^pkg/lib/foo$
+    threshold: 100
 
 # Holds regexp rules which will exclude matched files or packages 
 # from coverage statistics.
