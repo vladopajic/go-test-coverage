@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func Test_ReportForHuman(t *testing.T) {
@@ -22,7 +23,7 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{Threshold: thr, MeetsTotalCoverage: true})
+		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{}})
 		assertHumanReport(t, buf.String(), 3, 0)
 	})
 
@@ -30,7 +31,7 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{Threshold: thr, MeetsTotalCoverage: false})
+		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{Total: 1}})
 		assertHumanReport(t, buf.String(), 2, 1)
 	})
 

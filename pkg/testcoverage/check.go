@@ -35,7 +35,7 @@ func Check(w io.Writer, cfg Config) bool {
 		}
 	}
 
-	err = generateAndSaveBadge(w, cfg, result.TotalCoverage)
+	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate and save badge: %v\n", err)
 		return false
@@ -58,23 +58,14 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 
 func Analyze(cfg Config, coverageStats []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
-
 	overrideRules := compileOverridePathRules(cfg)
 
-	filesBelowThreshold := checkCoverageStatsBelowThreshold(coverageStats, thr.File, overrideRules)
-
-	packagesBelowThreshold := checkCoverageStatsBelowThreshold(
-		makePackageStats(coverageStats), thr.Package, overrideRules,
-	)
-
-	totalStats := coverage.CalcTotalStats(coverageStats)
-	meetsTotalCoverage := len(coverageStats) == 0 || totalStats.CoveredPercentage() >= thr.Total
-
 	return AnalyzeResult{
-		Threshold:              thr,
-		FilesBelowThreshold:    filesBelowThreshold,
-		PackagesBelowThreshold: packagesBelowThreshold,
-		MeetsTotalCoverage:     meetsTotalCoverage,
-		TotalCoverage:          totalStats.CoveredPercentage(),
+		Threshold:           thr,
+		FilesBelowThreshold: checkCoverageStatsBelowThreshold(coverageStats, thr.File, overrideRules),
+		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
+			makePackageStats(coverageStats), thr.Package, overrideRules,
+		),
+		TotalStats: coverage.CalcTotalStats(coverageStats),
 	}
 }
