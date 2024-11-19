@@ -201,7 +201,7 @@ func Test_Analyze(t *testing.T) {
 		result := Analyze(Config{}, nil)
 		assert.Empty(t, result.FilesBelowThreshold)
 		assert.Empty(t, result.PackagesBelowThreshold)
-		assert.Equal(t, 0, result.TotalCoverage)
+		assert.Equal(t, 0, result.TotalStats.CoveredPercentage())
 	})
 
 	t.Run("total coverage above threshold", func(t *testing.T) {

@@ -12,14 +12,17 @@ type AnalyzeResult struct {
 	Threshold              Threshold
 	FilesBelowThreshold    []coverage.Stats
 	PackagesBelowThreshold []coverage.Stats
-	MeetsTotalCoverage     bool
-	TotalCoverage          int
+	TotalStats             coverage.Stats
 }
 
 func (r *AnalyzeResult) Pass() bool {
-	return r.MeetsTotalCoverage &&
+	return r.MeetsTotalCoverage() &&
 		len(r.FilesBelowThreshold) == 0 &&
 		len(r.PackagesBelowThreshold) == 0
+}
+
+func (r *AnalyzeResult) MeetsTotalCoverage() bool {
+	return r.TotalStats.Total == 0 || r.TotalStats.CoveredPercentage() >= r.Threshold.Total
 }
 
 func packageForFile(filename string) string {

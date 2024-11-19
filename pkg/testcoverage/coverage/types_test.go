@@ -28,3 +28,12 @@ func TestCoveredPercentage(t *testing.T) {
 		assert.Equal(t, tc.percentage, CoveredPercentage(tc.total, tc.covered))
 	}
 }
+
+func TestStatStr(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, " 0.0% (0/0)", Stats{}.Str())
+	assert.Equal(t, " 9.1% (1/11)", Stats{Covered: 1, Total: 11}.Str())
+	assert.Equal(t, "22.2% (2/9)", Stats{Covered: 2, Total: 9}.Str())
+	assert.Equal(t, "100% (10/10)", Stats{Covered: 10, Total: 10}.Str())
+}

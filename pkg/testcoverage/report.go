@@ -47,11 +47,11 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 
 	if thr.Total > 0 { // Total threshold report
 		fmt.Fprintf(tabber, "Total coverage threshold (%d%%) satisfied:\t", thr.Total)
-		fmt.Fprint(tabber, statusStr(result.MeetsTotalCoverage))
+		fmt.Fprint(tabber, statusStr(result.MeetsTotalCoverage()))
 		fmt.Fprint(tabber, "\n")
 	}
 
-	fmt.Fprintf(tabber, "Total test coverage: %d%%\n", result.TotalCoverage)
+	fmt.Fprintf(tabber, "Total test coverage: %s\n", result.TotalStats.Str())
 }
 
 func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
@@ -62,7 +62,7 @@ func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 	fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
 
 	for _, stats := range coverageStats {
-		fmt.Fprintf(w, "\n  %s\t%d%%\t%d%%", stats.Name, stats.CoveredPercentage(), stats.Threshold)
+		fmt.Fprintf(w, "\n  %s\t%s\t%d%%", stats.Name, stats.Str(), stats.Threshold)
 	}
 
 	fmt.Fprintf(w, "\n")
@@ -82,8 +82,8 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 	for _, stats := range result.FilesBelowThreshold {
 		title := "File test coverage below threshold"
 		msg := fmt.Sprintf(
-			"%s: coverage: %d%%; threshold: %d%%",
-			title, stats.CoveredPercentage(), stats.Threshold,
+			"%s: coverage: %s; threshold: %d%%",
+			title, stats.Str(), stats.Threshold,
 		)
 		reportLineError(stats.Name, title, msg)
 	}
@@ -91,17 +91,17 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 	for _, stats := range result.PackagesBelowThreshold {
 		title := "Package test coverage below threshold"
 		msg := fmt.Sprintf(
-			"%s: package: %s; coverage: %d%%; threshold: %d%%",
-			title, stats.Name, stats.CoveredPercentage(), stats.Threshold,
+			"%s: package: %s; coverage: %s; threshold: %d%%",
+			title, stats.Name, stats.Str(), stats.Threshold,
 		)
 		reportError(title, msg)
 	}
 
-	if !result.MeetsTotalCoverage {
+	if !result.MeetsTotalCoverage() {
 		title := "Total test coverage below threshold"
 		msg := fmt.Sprintf(
-			"%s: coverage: %d%%; threshold: %d%%",
-			title, result.TotalCoverage, result.Threshold.Total,
+			"%s: coverage: %s; threshold: %d%%",
+			title, result.TotalStats.Str(), result.Threshold.Total,
 		)
 		reportError(title, msg)
 	}
@@ -121,11 +121,11 @@ func SetGithubActionOutput(result AnalyzeResult, report string) error {
 		return fmt.Errorf("could not open GitHub output file: %w", err)
 	}
 
-	totalStr := strconv.Itoa(result.TotalCoverage)
+	totalStr := strconv.Itoa(result.TotalStats.CoveredPercentage())
 
 	return errors.Join(
 		setOutputValue(file, gaOutputTotalCoverage, totalStr),
-		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalCoverage)),
+		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalStats.CoveredPercentage())),
 		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
 		setOutputValue(file, gaOutputReport, multiline(report)),
 		file.Close(),

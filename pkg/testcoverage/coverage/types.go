@@ -1,6 +1,7 @@
 package coverage
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
 )
@@ -17,7 +18,24 @@ func (s Stats) CoveredPercentage() int {
 }
 
 //nolint:mnd // relax
+func (s Stats) Str() string {
+	c := s.CoveredPercentage()
+
+	if c == 100 { // precision not needed
+		return fmt.Sprintf("%d%% (%d/%d)", c, s.Covered, s.Total)
+	} else if c < 10 { // adds space for singe digit number
+		return fmt.Sprintf(" %.1f%% (%d/%d)", coveredPercentageF(s.Total, s.Covered), s.Covered, s.Total)
+	}
+
+	return fmt.Sprintf("%.1f%% (%d/%d)", coveredPercentageF(s.Total, s.Covered), s.Covered, s.Total)
+}
+
 func CoveredPercentage(total, covered int64) int {
+	return int(coveredPercentageF(total, covered))
+}
+
+//nolint:mnd // relax
+func coveredPercentageF(total, covered int64) float64 {
 	if total == 0 {
 		return 0
 	}
@@ -26,7 +44,7 @@ func CoveredPercentage(total, covered int64) int {
 		return 100
 	}
 
-	return int(float64(covered*100) / float64(total))
+	return float64(covered*100) / float64(total)
 }
 
 func stripPrefix(name, prefix string) string {
