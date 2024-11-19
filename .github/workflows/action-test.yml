@@ -1,49 +1,56 @@
 name: action-test
 on: [push]
 jobs:
-  test:
-    name: test
+  build-dev-image:
+    name: build dev image
     permissions:
       contents: write
       packages: write
+    runs-on: ubuntu-latest 
+    steps:
+    - name: checkout
+      uses: actions/checkout@v4
+
+    - name: set action image version to dev
+      run: |
+        yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
+        image=$(yq '.runs.image' action.yml)
+        echo "Image: $image"
+
+    - name: login to GitHub container registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: build and push
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        build-args: |
+          VERSION=dev
+        tags: |
+          ghcr.io/vladopajic/go-test-coverage:dev
+
+    - uses: actions/delete-package-versions@v5
+      with: 
+        owner: vladopajic
+        package-name: go-test-coverage
+        package-type: container
+        min-versions-to-keep: 5
+        delete-only-untagged-versions: true
+  test:
+    name: test
     runs-on: ubuntu-latest
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      
+
       - name: setup go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - uses: actions/delete-package-versions@v5
-        with: 
-          owner: vladopajic
-          package-name: go-test-coverage
-          package-type: container
-          delete-only-untagged-versions: true
-
-      - name: set action image version to dev
-        run: |
-          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
-          image=$(yq '.runs.image' action.yml)
-          echo "Image: $image"
-
-      - name: login to GitHub container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: build and push
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          build-args: |
-            VERSION=dev
-          tags: |
-            ghcr.io/vladopajic/go-test-coverage:dev
 
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
