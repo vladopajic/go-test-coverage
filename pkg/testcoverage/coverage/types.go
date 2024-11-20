@@ -1,8 +1,11 @@
 package coverage
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 )
 
@@ -83,13 +86,71 @@ func compileExcludePathRules(excludePaths []string) []*regexp.Regexp {
 	return compiled
 }
 
-func CalcTotalStats(coverageStats []Stats) Stats {
-	totalStats := Stats{}
+func CalcTotalStats(stats []Stats) Stats {
+	total := Stats{}
 
-	for _, stats := range coverageStats {
-		totalStats.Total += stats.Total
-		totalStats.Covered += stats.Covered
+	for _, s := range stats {
+		total.Total += s.Total
+		total.Covered += s.Covered
 	}
 
-	return totalStats
+	return total
+}
+
+func SerializeStats(stats []Stats) []byte {
+	b := bytes.Buffer{}
+	sep, nl := []byte(";"), []byte("\n")
+
+	//nolint:errcheck // relax
+	for _, s := range stats {
+		b.WriteString(s.Name)
+		b.Write(sep)
+		b.WriteString(strconv.FormatInt(s.Total, 10))
+		b.Write(sep)
+		b.WriteString(strconv.FormatInt(s.Covered, 10))
+		b.Write(nl)
+	}
+
+	return b.Bytes()
+}
+
+var ErrInvalidFormat = errors.New("invalid format")
+
+func DeserializeStats(b []byte) ([]Stats, error) {
+	deserializeLine := func(bl []byte) (Stats, error) {
+		fields := bytes.Split(bl, []byte(";"))
+		if len(fields) != 3 { //nolint:mnd // relax
+			return Stats{}, ErrInvalidFormat
+		}
+
+		t, err := strconv.ParseInt(string(fields[1]), 10, 64)
+		if err != nil {
+			return Stats{}, ErrInvalidFormat
+		}
+
+		c, err := strconv.ParseInt(string(fields[2]), 10, 64)
+		if err != nil {
+			return Stats{}, ErrInvalidFormat
+		}
+
+		return Stats{Name: string(fields[0]), Total: t, Covered: c}, nil
+	}
+
+	lines := bytes.Split(b, []byte("\n"))
+	result := make([]Stats, 0, len(lines))
+
+	for _, l := range lines {
+		if len(l) == 0 {
+			continue
+		}
+
+		s, err := deserializeLine(l)
+		if err != nil {
+			return nil, err
+		}
+
+		result = append(result, s)
+	}
+
+	return result, nil
 }

@@ -37,3 +37,34 @@ func TestStatStr(t *testing.T) {
 	assert.Equal(t, "22.2% (2/9)", Stats{Covered: 2, Total: 9}.Str())
 	assert.Equal(t, "100% (10/10)", Stats{Covered: 10, Total: 10}.Str())
 }
+
+func TestStatsSerialization(t *testing.T) {
+	t.Parallel()
+
+	stats := []Stats{
+		{Name: "foo", Total: 11, Covered: 1},
+		{Name: "bar", Total: 9, Covered: 2},
+	}
+
+	b := SerializeStats(stats)
+	assert.Equal(t, "foo;11;1\nbar;9;2\n", string(b))
+
+	ds, err := DeserializeStats(b)
+	assert.NoError(t, err)
+	assert.Equal(t, stats, ds)
+
+	// ignore empty lines
+	ds, err = DeserializeStats([]byte("\n\n\n\n"))
+	assert.NoError(t, err)
+	assert.Empty(t, ds)
+
+	// invalid formats
+	_, err = DeserializeStats([]byte("foo;11;"))
+	assert.Error(t, err)
+
+	_, err = DeserializeStats([]byte("foo;;11"))
+	assert.Error(t, err)
+
+	_, err = DeserializeStats([]byte("foo;"))
+	assert.Error(t, err)
+}
