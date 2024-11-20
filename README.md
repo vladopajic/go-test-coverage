@@ -7,7 +7,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/vladopajic/go-test-coverage?cache=v1)](https://goreportcard.com/report/github.com/vladopajic/go-test-coverage)
 [![Release](https://img.shields.io/github/release/vladopajic/go-test-coverage.svg?color=%23007ec6)](https://github.com/vladopajic/go-test-coverage/releases/latest)
 
-![go-test-coverage cover image](https://github.com/user-attachments/assets/611018bd-83ba-488d-a5a8-8feeba9cfc32)
+![go-test-coverage cover image](https://github.com/user-attachments/assets/2febc74e-7437-4dc6-87a4-0ca47f8e714e)
 
 `go-test-coverage` is a tool designed to report issues when test coverage falls below a specified threshold, ensuring higher code quality and preventing regressions in test coverage over time.
 
