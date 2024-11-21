@@ -10,6 +10,7 @@ import (
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
 
@@ -357,15 +358,21 @@ func TestLoadBaseCoverageBreakdown(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, stats)
 
-	stats, err = LoadBaseCoverageBreakdown(Config{Diff: Diff{BaseBreakdownFileName: breakdownOK}})
+	stats, err = LoadBaseCoverageBreakdown(Config{
+		Diff: Diff{BaseBreakdownFileName: path.NormalizeForOS(breakdownOK)},
+	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats)
 
-	stats, err = LoadBaseCoverageBreakdown(Config{Diff: Diff{BaseBreakdownFileName: t.TempDir()}})
+	stats, err = LoadBaseCoverageBreakdown(Config{
+		Diff: Diff{BaseBreakdownFileName: t.TempDir()},
+	})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
 
-	stats, err = LoadBaseCoverageBreakdown(Config{Diff: Diff{BaseBreakdownFileName: breakdownNOK}})
+	stats, err = LoadBaseCoverageBreakdown(Config{
+		Diff: Diff{BaseBreakdownFileName: path.NormalizeForOS(breakdownNOK)},
+	})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
 }
