@@ -51,6 +51,15 @@ jobs:
         with:
           name: windows-latest-profile
   
+      - name: download artifact (main.breakdown)
+        id: download-artifact
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          branch: main
+          workflow_conclusion: success
+          name: main.breakdown
+          if_no_artifact_found: fail
+
       - name: check test coverage
         id: coverage
         uses: vladopajic/go-test-coverage@v2
@@ -61,6 +70,7 @@ jobs:
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
+          diff-base-breakdown-file-name: ${{ github.ref_name != 'main' && 'main.breakdown' || '' }}
       
       # Post coverage report as comment
       - name: find pull request ID
