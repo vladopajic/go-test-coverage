@@ -362,7 +362,7 @@ func TestLoadBaseCoverageBreakdown(t *testing.T) {
 		Diff: Diff{BaseBreakdownFileName: path.NormalizeForOS(breakdownOK)},
 	})
 	assert.NoError(t, err)
-	assert.NotEmpty(t, stats)
+	assert.Len(t, stats, 14)
 
 	stats, err = LoadBaseCoverageBreakdown(Config{
 		Diff: Diff{BaseBreakdownFileName: t.TempDir()},
