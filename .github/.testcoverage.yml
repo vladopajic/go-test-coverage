@@ -3,7 +3,6 @@
 profile: '' # set via github action
 local-prefix: github.com/vladopajic/go-test-coverage/v2
 threshold:
-  file: 100
   total: 100
 exclude:
   paths:
