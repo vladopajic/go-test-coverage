@@ -57,7 +57,8 @@ Below is an example that reports files with coverage below 80% without causing t
 
 Using go-test-coverage, you can display a detailed comparison of code coverage changes relative to the base branch. When this feature is enabled, the report highlights files with coverage differences compared to the base branch.
 
-The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
+The same logic is used in workflow in [this repo](/.github/workflows/test.yml). 
+Example of report that includes coverage difference is [this PR](https://github.com/vladopajic/go-test-coverage/pull/129).
 
 ```yml
   # Download main (aka base) branch breakdown
@@ -97,6 +98,7 @@ The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
 Here is an example of how to post comments with the coverage report to your pull request. 
 
 The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
+Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage/pull/129).
 
 ```yml
   - name: check test coverage
