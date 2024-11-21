@@ -2,12 +2,14 @@ package testcoverage_test
 
 import (
 	"bytes"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
 
@@ -136,8 +138,7 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
-			Profile:   profileOK,
-			Threshold: Threshold{File: 10},
+			Profile: profileOK,
 			Badge: Badge{
 				FileName: t.TempDir(), // should failed because this is dir
 			},
@@ -145,6 +146,39 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertFailedToSaveBadge(t, buf.String())
+	})
+
+	t.Run("valid profile - fail invalid breakdown file", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:           profileOK,
+			BreakdownFileName: t.TempDir(), // should failed because this is di
+		}
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
+		assert.Contains(t, buf.String(), "failed to save coverage breakdown")
+	})
+
+	t.Run("valid profile - valid breakdown file", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:           profileOK,
+			BreakdownFileName: t.TempDir() + "/breakdown.testcoverage",
+		}
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
+
+		contentBytes, err := os.ReadFile(cfg.BreakdownFileName)
+		assert.NoError(t, err)
+		assert.NotEmpty(t, contentBytes)
+
+		stats, err := GenerateCoverageStats(cfg)
+		assert.NoError(t, err)
+		assert.Equal(t, coverage.SerializeStats(stats), contentBytes)
 	})
 }
 

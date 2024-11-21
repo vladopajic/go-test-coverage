@@ -27,6 +27,7 @@ type Config struct {
 	Threshold          Threshold  `yaml:"threshold"`
 	Override           []Override `yaml:"override,omitempty"`
 	Exclude            Exclude    `yaml:"exclude"`
+	BreakdownFileName  string     `yaml:"breakdown-file-name"`
 	GithubActionOutput bool       `yaml:"github-action-output"`
 	Badge              Badge      `yaml:"-"`
 }

@@ -5,19 +5,22 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func Check(w io.Writer, cfg Config) bool {
-	stats, err := coverage.GenerateCoverageStats(coverage.Config{
-		Profiles:     strings.Split(cfg.Profile, ","),
-		LocalPrefix:  cfg.LocalPrefix,
-		ExcludePaths: cfg.Exclude.Paths,
-	})
+	stats, err := GenerateCoverageStats(cfg)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
+		return false
+	}
+
+	err = saveCoverageBreakdown(cfg, stats)
+	if err != nil {
+		fmt.Fprintf(w, "failed to save coverage breakdown: %v\n", err)
 		return false
 	}
 
@@ -56,16 +59,33 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 	return buffer.String()
 }
 
-func Analyze(cfg Config, coverageStats []coverage.Stats) AnalyzeResult {
+func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
+	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
+		Profiles:     strings.Split(cfg.Profile, ","),
+		LocalPrefix:  cfg.LocalPrefix,
+		ExcludePaths: cfg.Exclude.Paths,
+	})
+}
+
+func Analyze(cfg Config, stats []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
 	overrideRules := compileOverridePathRules(cfg)
 
 	return AnalyzeResult{
 		Threshold:           thr,
-		FilesBelowThreshold: checkCoverageStatsBelowThreshold(coverageStats, thr.File, overrideRules),
+		FilesBelowThreshold: checkCoverageStatsBelowThreshold(stats, thr.File, overrideRules),
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
-			makePackageStats(coverageStats), thr.Package, overrideRules,
+			makePackageStats(stats), thr.Package, overrideRules,
 		),
-		TotalStats: coverage.CalcTotalStats(coverageStats),
+		TotalStats: coverage.CalcTotalStats(stats),
 	}
+}
+
+func saveCoverageBreakdown(cfg Config, stats []coverage.Stats) error {
+	if cfg.BreakdownFileName == "" {
+		return nil
+	}
+
+	//nolint:mnd,wrapcheck,gosec // relax
+	return os.WriteFile(cfg.BreakdownFileName, coverage.SerializeStats(stats), 0o644)
 }

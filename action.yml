@@ -36,6 +36,12 @@ inputs:
     default: -1
     type: number
 
+  breakdown-file-name:
+    description: File name of go-test-coverage breakdown file, which can be used to analyze coverage difference. Overrides value from configuration.
+    required: false
+    default: ""
+    type: string
+
   # Badge (as file)
   badge-file-name:
     description: If specified, a coverage badge will be generated and saved to the given file path.
