@@ -3,10 +3,16 @@
 The `go-test-coverage` GitHub Action provides the following capabilities:
 - Enforce success of GitHub workflows only when a specified coverage threshold is met.
 - Generate a coverage badge to display the total test coverage.
-- Post a detailed coverage report as a comment on pull requests.
+- Post a detailed coverage report as a comment on pull requests, including:
+  - current test coverage
+  - the difference compared to the base branch
 
- 
-## Usage
+## Action Inputs and Outputs
+
+Action inputs and outputs are documented in [action.yml](/action.yml) file.
+
+
+## Basic Usage
 
 Here’s an example of how to integrate `go-test-coverage` in a GitHub workflow that uses a config file. This is the preferred way because the same config file can be used for running coverage checks locally.
 
@@ -32,10 +38,6 @@ Alternatively, if you don't need advanced configuration options from a config fi
 
 Note: When using a config file alongside action properties, specifying these parameters will override the corresponding values in the config file.
 
-## Action Inputs and Outputs
-
-Action inputs and outputs are documented in [action.yml](/action.yml) file.
-
 ## Liberal Coverage Check
 
 The `go-test-coverage` GitHub Action can be configured to report the current test coverage without enforcing specific thresholds. To enable this functionality in your GitHub workflow, include the `continue-on-error: true` property in the job step configuration. This ensures that the workflow proceeds even if the coverage check fails.
@@ -51,9 +53,50 @@ Below is an example that reports files with coverage below 80% without causing t
       threshold-file: 80
 ```
 
+## Report Coverage Difference
+
+Using go-test-coverage, you can display a detailed comparison of code coverage changes relative to the base branch. When this feature is enabled, the report highlights files with coverage differences compared to the base branch.
+
+The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
+
+```yml
+  # Download main (aka base) branch breakdown
+  - name: download artifact (main.breakdown)
+    id: download-main-breakdown
+    uses: dawidd6/action-download-artifact@v6
+    with:
+      branch: main
+      workflow_conclusion: success
+      name: main.breakdown
+
+  - name: check test coverage
+    uses: vladopajic/go-test-coverage@v2
+    with:
+      config: ./.github/.testcoverage.yml
+      profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
+
+      # Save current coverage breakdown if current branch is main. It will be  
+      # uploaded as artifact in step below.
+      breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
+
+      # If this is not main brach we want to show report including
+      # file coverage difference from main branch.
+      diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact && 'main.breakdown' || '' }}
+    
+  - name: upload artifact (main.breakdown)
+    uses: actions/upload-artifact@v4
+    if: github.ref_name == 'main'
+    with:
+      name: main.breakdown
+      path: main.breakdown # as specified via `breakdown-file-name`
+      if-no-files-found: error
+```
+
 ## Post Coverage Report to PR
 
-Here is an example of how to post comments with the coverage report to your pull request. The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
+Here is an example of how to post comments with the coverage report to your pull request. 
+
+The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
 
 ```yml
   - name: check test coverage
