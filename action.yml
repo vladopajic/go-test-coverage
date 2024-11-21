@@ -42,6 +42,12 @@ inputs:
     default: ""
     type: string
 
+  diff-base-breakdown-file-name:
+    description: File name of go-test-coverage breakdown file used to calculate coverage difference from current (head).
+    required: false
+    default: ""
+    type: string
+
   # Badge (as file)
   badge-file-name:
     description: If specified, a coverage badge will be generated and saved to the given file path.
@@ -129,6 +135,8 @@ runs:
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}
     - --threshold-total=${{ inputs.threshold-total }}
+    - --breakdown-file-name=${{ inputs.breakdown-file-name || '''''' }}
+    - --diff-base-breakdown-file-name=${{ inputs.diff-base-breakdown-file-name || '''''' }}
     - --badge-file-name=${{ inputs.badge-file-name || '''''' }}
     - --cdn-key=${{ inputs.cdn-key || '''''' }}
     - --cdn-secret=${{ inputs.cdn-secret || '''''' }}

@@ -208,7 +208,10 @@ func nonZeroConfig() Config {
 		Exclude: Exclude{
 			Paths: []string{"path1", "path2"},
 		},
-		BreakdownFileName:  "breakdown.testcoverage",
+		BreakdownFileName: "breakdown.testcoverage",
+		Diff: Diff{
+			BaseBreakdownFileName: "breakdown.testcoverage",
+		},
 		GithubActionOutput: true,
 	}
 }
@@ -229,6 +232,8 @@ exclude:
     - path1
     - path2
 breakdown-file-name: 'breakdown.testcoverage'
+diff:
+  base-breakdown-file-name: 'breakdown.testcoverage'	
 github-action-output: true`
 }
 

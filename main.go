@@ -32,7 +32,8 @@ type args struct {
 	ThresholdPackage   int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     int    `arg:"-t,--threshold-total"`
 
-	BreakdownFileName string `arg:"--breakdown-file-name"`
+	BreakdownFileName         string `arg:"--breakdown-file-name"`
+	DiffBaseBreakdownFileName string `arg:"--diff-base-breakdown-file-name"`
 
 	BadgeFileName string `arg:"-b,--badge-file-name"`
 
@@ -60,6 +61,9 @@ func newArgs() args {
 		ThresholdPackage:   ciDefaultInt,
 		ThresholdTotal:     ciDefaultInt,
 
+		BreakdownFileName:         ciDefaultString,
+		DiffBaseBreakdownFileName: ciDefaultString,
+
 		// Badge
 		BadgeFileName: ciDefaultString,
 
@@ -84,7 +88,7 @@ func (args) Version() string {
 	return Name + " " + Version
 }
 
-//nolint:cyclop,maintidx,mnd // relax
+//nolint:cyclop,maintidx,mnd,funlen // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	if !isCIDefaultString(a.Profile) {
 		cfg.Profile = a.Profile
@@ -108,6 +112,14 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 
 	if !isCIDefaultInt(a.ThresholdTotal) {
 		cfg.Threshold.Total = a.ThresholdTotal
+	}
+
+	if !isCIDefaultString(a.BreakdownFileName) {
+		cfg.BreakdownFileName = a.BreakdownFileName
+	}
+
+	if !isCIDefaultString(a.DiffBaseBreakdownFileName) {
+		cfg.Diff.BaseBreakdownFileName = a.DiffBaseBreakdownFileName
 	}
 
 	if !isCIDefaultString(a.BreakdownFileName) {

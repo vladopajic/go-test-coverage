@@ -12,19 +12,25 @@ import (
 )
 
 func Check(w io.Writer, cfg Config) bool {
-	stats, err := GenerateCoverageStats(cfg)
+	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
 		return false
 	}
 
-	err = saveCoverageBreakdown(cfg, stats)
+	err = saveCoverageBreakdown(cfg, currentStats)
 	if err != nil {
 		fmt.Fprintf(w, "failed to save coverage breakdown: %v\n", err)
 		return false
 	}
 
-	result := Analyze(cfg, stats)
+	baseStats, err := loadBaseCoverageBreakdown(cfg)
+	if err != nil {
+		fmt.Fprintf(w, "failed to load base coverage breakdown: %v\n", err)
+		return false
+	}
+
+	result := Analyze(cfg, currentStats, baseStats)
 
 	report := reportForHuman(w, result)
 
@@ -67,17 +73,19 @@ func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 	})
 }
 
-func Analyze(cfg Config, stats []coverage.Stats) AnalyzeResult {
+func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
 	overrideRules := compileOverridePathRules(cfg)
 
 	return AnalyzeResult{
 		Threshold:           thr,
-		FilesBelowThreshold: checkCoverageStatsBelowThreshold(stats, thr.File, overrideRules),
+		FilesBelowThreshold: checkCoverageStatsBelowThreshold(current, thr.File, overrideRules),
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
-			makePackageStats(stats), thr.Package, overrideRules,
+			makePackageStats(current), thr.Package, overrideRules,
 		),
-		TotalStats: coverage.CalcTotalStats(stats),
+		TotalStats:       coverage.CalcTotalStats(current),
+		HasBaseBreakdown: len(base) > 0,
+		Diff:             calculateStatsDiff(current, base),
 	}
 }
 
@@ -88,4 +96,22 @@ func saveCoverageBreakdown(cfg Config, stats []coverage.Stats) error {
 
 	//nolint:mnd,wrapcheck,gosec // relax
 	return os.WriteFile(cfg.BreakdownFileName, coverage.SerializeStats(stats), 0o644)
+}
+
+func loadBaseCoverageBreakdown(cfg Config) ([]coverage.Stats, error) {
+	if cfg.Diff.BaseBreakdownFileName == "" {
+		return nil, nil
+	}
+
+	data, err := os.ReadFile(cfg.Diff.BaseBreakdownFileName)
+	if err != nil {
+		return nil, fmt.Errorf("reading file content failed: %w", err)
+	}
+
+	stats, err := coverage.DeserializeStats(data)
+	if err != nil {
+		return nil, fmt.Errorf("parsing file failed: %w", err)
+	}
+
+	return stats, nil
 }
