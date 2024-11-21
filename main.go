@@ -122,10 +122,6 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 		cfg.Diff.BaseBreakdownFileName = a.DiffBaseBreakdownFileName
 	}
 
-	if !isCIDefaultString(a.BreakdownFileName) {
-		cfg.BreakdownFileName = a.BreakdownFileName
-	}
-
 	if !isCIDefaultString(a.BadgeFileName) {
 		cfg.Badge.FileName = a.BadgeFileName
 	}
