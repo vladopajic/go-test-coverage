@@ -13,6 +13,8 @@ type AnalyzeResult struct {
 	FilesBelowThreshold    []coverage.Stats
 	PackagesBelowThreshold []coverage.Stats
 	TotalStats             coverage.Stats
+	HasBaseBreakdown       bool
+	Diff                   []FileCoverageDiff
 }
 
 func (r *AnalyzeResult) Pass() bool {
@@ -75,4 +77,37 @@ func makePackageStats(coverageStats []coverage.Stats) []coverage.Stats {
 	}
 
 	return maps.Values(packageStats)
+}
+
+type FileCoverageDiff struct {
+	Current coverage.Stats
+	Base    *coverage.Stats
+}
+
+func calculateStatsDiff(current, base []coverage.Stats) []FileCoverageDiff {
+	res := make([]FileCoverageDiff, 0)
+	baseSearchMap := coverage.StatsSearchMap(base)
+
+	for _, s := range current {
+		if b, found := baseSearchMap[s.Name]; found {
+			if s.UncoveredLines() != b.UncoveredLines() {
+				res = append(res, FileCoverageDiff{Current: s, Base: &b})
+			}
+		} else {
+			if s.UncoveredLines() > 0 {
+				res = append(res, FileCoverageDiff{Current: s})
+			}
+		}
+	}
+
+	return res
+}
+
+func TotalLinesDiff(diff []FileCoverageDiff) int {
+	r := 0
+	for _, d := range diff {
+		r += d.Current.UncoveredLines()
+	}
+
+	return r
 }

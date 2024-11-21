@@ -5,23 +5,32 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func Check(w io.Writer, cfg Config) bool {
-	stats, err := coverage.GenerateCoverageStats(coverage.Config{
-		Profiles:     strings.Split(cfg.Profile, ","),
-		LocalPrefix:  cfg.LocalPrefix,
-		ExcludePaths: cfg.Exclude.Paths,
-	})
+	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
 		return false
 	}
 
-	result := Analyze(cfg, stats)
+	err = saveCoverageBreakdown(cfg, currentStats)
+	if err != nil {
+		fmt.Fprintf(w, "failed to save coverage breakdown: %v\n", err)
+		return false
+	}
+
+	baseStats, err := loadBaseCoverageBreakdown(cfg)
+	if err != nil {
+		fmt.Fprintf(w, "failed to load base coverage breakdown: %v\n", err)
+		return false
+	}
+
+	result := Analyze(cfg, currentStats, baseStats)
 
 	report := reportForHuman(w, result)
 
@@ -56,16 +65,53 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 	return buffer.String()
 }
 
-func Analyze(cfg Config, coverageStats []coverage.Stats) AnalyzeResult {
+func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
+	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
+		Profiles:     strings.Split(cfg.Profile, ","),
+		LocalPrefix:  cfg.LocalPrefix,
+		ExcludePaths: cfg.Exclude.Paths,
+	})
+}
+
+func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
 	overrideRules := compileOverridePathRules(cfg)
 
 	return AnalyzeResult{
 		Threshold:           thr,
-		FilesBelowThreshold: checkCoverageStatsBelowThreshold(coverageStats, thr.File, overrideRules),
+		FilesBelowThreshold: checkCoverageStatsBelowThreshold(current, thr.File, overrideRules),
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
-			makePackageStats(coverageStats), thr.Package, overrideRules,
+			makePackageStats(current), thr.Package, overrideRules,
 		),
-		TotalStats: coverage.CalcTotalStats(coverageStats),
+		TotalStats:       coverage.CalcTotalStats(current),
+		HasBaseBreakdown: len(base) > 0,
+		Diff:             calculateStatsDiff(current, base),
 	}
+}
+
+func saveCoverageBreakdown(cfg Config, stats []coverage.Stats) error {
+	if cfg.BreakdownFileName == "" {
+		return nil
+	}
+
+	//nolint:mnd,wrapcheck,gosec // relax
+	return os.WriteFile(cfg.BreakdownFileName, coverage.SerializeStats(stats), 0o644)
+}
+
+func loadBaseCoverageBreakdown(cfg Config) ([]coverage.Stats, error) {
+	if cfg.Diff.BaseBreakdownFileName == "" {
+		return nil, nil
+	}
+
+	data, err := os.ReadFile(cfg.Diff.BaseBreakdownFileName)
+	if err != nil {
+		return nil, fmt.Errorf("reading file content failed: %w", err)
+	}
+
+	stats, err := coverage.DeserializeStats(data)
+	if err != nil {
+		return nil, fmt.Errorf("parsing file failed: %w", err)
+	}
+
+	return stats, nil
 }

@@ -18,7 +18,12 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
-	tabber := tabwriter.NewWriter(out, 1, 8, 2, '\t', 0) //nolint:mnd // relax
+	reportCoverage(out, result)
+	reportDiff(out, result)
+}
+
+func reportCoverage(w io.Writer, result AnalyzeResult) {
+	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
 	defer tabber.Flush()
 
 	statusStr := func(passing bool) string {
@@ -66,6 +71,38 @@ func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 	}
 
 	fmt.Fprintf(w, "\n")
+}
+
+func reportDiff(w io.Writer, result AnalyzeResult) {
+	if !result.HasBaseBreakdown {
+		return
+	}
+
+	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
+	defer tabber.Flush()
+
+	if len(result.Diff) == 0 {
+		fmt.Fprintf(tabber, "\nCurrent tests coverage has not changed.\n")
+		return
+	}
+
+	td := TotalLinesDiff(result.Diff)
+	fmt.Fprintf(tabber, "\nCurrent tests coverage has changed with %d lines missing coverage.", td)
+	fmt.Fprintf(tabber, "\n  file:\tuncovered:\tcurrent coverage:\tbase coverage:")
+
+	for _, d := range result.Diff {
+		var baseStr string
+		if d.Base == nil {
+			baseStr = " / "
+		} else {
+			baseStr = d.Base.Str()
+		}
+
+		dp := d.Current.UncoveredLines()
+		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", d.Current.Name, dp, d.Current.Str(), baseStr)
+	}
+
+	fmt.Fprintf(tabber, "\n")
 }
 
 func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
