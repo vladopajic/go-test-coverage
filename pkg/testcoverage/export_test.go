@@ -9,11 +9,12 @@ const (
 )
 
 var (
-	MakePackageStats     = makePackageStats
-	PackageForFile       = packageForFile
-	StoreBadge           = storeBadge
-	GenerateAndSaveBadge = generateAndSaveBadge
-	SetOutputValue       = setOutputValue
+	MakePackageStats          = makePackageStats
+	PackageForFile            = packageForFile
+	StoreBadge                = storeBadge
+	GenerateAndSaveBadge      = generateAndSaveBadge
+	SetOutputValue            = setOutputValue
+	LoadBaseCoverageBreakdown = loadBaseCoverageBreakdown
 )
 
 type (

@@ -25,4 +25,10 @@ const (
 	// contains profile items for `badge/generate.go` file, but
 	// does not have correct profile items
 	ProfileNOKInvalidData = "invalid_data.profile"
+
+	// holds valid test coverage breakdown
+	BreakdownOK = "breakdown_ok.testcoverage"
+
+	// holds invalid test coverage breakdown
+	BreakdownNOK = "breakdown_nok.testcoverage"
 )

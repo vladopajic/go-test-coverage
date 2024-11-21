@@ -42,7 +42,7 @@ func Test_ReportForHuman(t *testing.T) {
 		cfg := Config{Threshold: Threshold{File: 10}}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
 		ReportForHuman(buf, result)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertContainStats(t, buf.String(), statsWithError)
@@ -56,13 +56,47 @@ func Test_ReportForHuman(t *testing.T) {
 		cfg := Config{Threshold: Threshold{Package: 10}}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
 		ReportForHuman(buf, result)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 		assertNotContainStats(t, buf.String(), statsWithError)
 		assertNotContainStats(t, buf.String(), statsNoError)
+	})
+
+	t.Run("diff - no change", func(t *testing.T) {
+		t.Parallel()
+
+		stats := randStats(prefix, 10, 100)
+
+		buf := &bytes.Buffer{}
+		cfg := Config{}
+		result := Analyze(cfg, stats, stats)
+		ReportForHuman(buf, result)
+
+		assert.Contains(t, buf.String(), "Current tests coverage has not changed")
+	})
+
+	t.Run("diff - has change", func(t *testing.T) {
+		t.Parallel()
+
+		stats := randStats(prefix, 10, 100)
+		base := mergeStats(make([]coverage.Stats, 0), stats)
+
+		stats = append(stats, coverage.Stats{Name: "foo", Total: 9, Covered: 8})
+		stats = append(stats, coverage.Stats{Name: "foo-new", Total: 9, Covered: 8})
+
+		base = append(base, coverage.Stats{Name: "foo", Total: 10, Covered: 10})
+
+		buf := &bytes.Buffer{}
+		cfg := Config{}
+		result := Analyze(cfg, stats, base)
+		ReportForHuman(buf, result)
+
+		assert.Contains(t, buf.String(),
+			"Current tests coverage has changed with 2 lines missing coverage",
+		)
 	})
 }
 
@@ -77,7 +111,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		buf := &bytes.Buffer{}
 		cfg := Config{Threshold: Threshold{Total: 100}}
 		statsNoError := randStats(prefix, 100, 100)
-		result := Analyze(cfg, statsNoError)
+		result := Analyze(cfg, statsNoError, nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertNotContainStats(t, buf.String(), statsNoError)
@@ -90,7 +124,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		cfg := Config{Threshold: Threshold{Total: 10}}
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertNotContainStats(t, buf.String(), statsWithError)
@@ -103,7 +137,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		buf := &bytes.Buffer{}
 		cfg := Config{Threshold: Threshold{File: 10}}
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, statsNoError)
+		result := Analyze(cfg, statsNoError, nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertNotContainStats(t, buf.String(), statsNoError)
@@ -116,7 +150,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		cfg := Config{Threshold: Threshold{File: 10}}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), len(statsWithError))
 		assertContainStats(t, buf.String(), statsWithError)
@@ -129,7 +163,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		buf := &bytes.Buffer{}
 		cfg := Config{Threshold: Threshold{Package: 10}}
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, statsNoError)
+		result := Analyze(cfg, statsNoError, nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
@@ -143,7 +177,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		cfg := Config{Threshold: Threshold{Package: 10}}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), len(MakePackageStats(statsWithError)))
 		assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
@@ -160,7 +194,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		totalErrorsCount := len(MakePackageStats(statsWithError)) + len(statsWithError) + 1
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError))
+		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
 		ReportForGithubAction(buf, result)
 		assertGithubActionErrorsCount(t, buf.String(), totalErrorsCount)
 		assertContainStats(t, buf.String(), statsWithError)
