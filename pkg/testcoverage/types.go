@@ -89,14 +89,17 @@ func calculateStatsDiff(current, base []coverage.Stats) []FileCoverageDiff {
 	baseSearchMap := coverage.StatsSearchMap(base)
 
 	for _, s := range current {
+		sul := s.UncoveredLines()
+		if sul == 0 {
+			continue
+		}
+
 		if b, found := baseSearchMap[s.Name]; found {
-			if s.UncoveredLines() != b.UncoveredLines() {
+			if sul != b.UncoveredLines() {
 				res = append(res, FileCoverageDiff{Current: s, Base: &b})
 			}
 		} else {
-			if s.UncoveredLines() > 0 {
-				res = append(res, FileCoverageDiff{Current: s})
-			}
+			res = append(res, FileCoverageDiff{Current: s})
 		}
 	}
 
