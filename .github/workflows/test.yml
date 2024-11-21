@@ -52,7 +52,7 @@ jobs:
           name: windows-latest-profile
   
       - name: download artifact (main.breakdown)
-        id: download-artifact
+        id: download-main-breakdown
         uses: dawidd6/action-download-artifact@v6
         with:
           branch: main
@@ -70,7 +70,7 @@ jobs:
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
-          diff-base-breakdown-file-name: ${{ github.ref_name != 'main' && 'main.breakdown' || '' }}
+          diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact && 'main.breakdown' || '' }}
       
       # Post coverage report as comment
       - name: find pull request ID
