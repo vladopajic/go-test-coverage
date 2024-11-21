@@ -126,6 +126,15 @@ exclude:
   paths:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
+
+# File name of go-test-coverage breakdown file, which can be used to 
+# analyze coverage difference.
+breakdown-file-name: ''
+
+diff:
+  # File name of go-test-coverage breakdown file which will be used to 
+  # report coverage difference.
+  base-breakdown-file-name: ''
 ```
 
 ### Exclude Code from Coverage
