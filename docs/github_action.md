@@ -69,6 +69,7 @@ Example of report that includes coverage difference is [this PR](https://github.
       branch: main
       workflow_conclusion: success
       name: main.breakdown
+      if_no_artifact_found: warn
 
   - name: check test coverage
     uses: vladopajic/go-test-coverage@v2
@@ -135,12 +136,11 @@ Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage
       token: ${{ secrets.GITHUB_TOKEN }}
       issue-number: ${{ env.pull_request_id }}
       comment-id: ${{ steps.fc.outputs.comment-id }}
+      edit-mode: replace
       body: |
         go-test-coverage report:
         ```
-        ${{ fromJSON(steps.coverage.outputs.report) }} 
-        ```
-      edit-mode: replace
+        ${{ fromJSON(steps.coverage.outputs.report) }} ```
 
   - name: "finally check coverage"
     if: steps.coverage.outcome == 'failure'

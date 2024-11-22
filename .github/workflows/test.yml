@@ -71,7 +71,15 @@ jobs:
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
           diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact && 'main.breakdown' || '' }}
-      
+ 
+      - name: upload artifact (main.breakdown)
+        uses: actions/upload-artifact@v4
+        if: github.ref_name == 'main'
+        with:
+          name: main.breakdown
+          path: main.breakdown
+          if-no-files-found: error
+
       # Post coverage report as comment
       - name: find pull request ID
         run: |
@@ -99,22 +107,13 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ env.pull_request_id }}
           comment-id: ${{ steps.fc.outputs.comment-id }}
+          edit-mode: replace
           body: |
             go-test-coverage report:
             ```
-            ${{ fromJSON(steps.coverage.outputs.report) }}
-            ```
-          edit-mode: replace
+            ${{ fromJSON(steps.coverage.outputs.report) }}```
       
       - name: "finally check coverage"
         if: steps.coverage.outcome == 'failure'
         shell: bash
         run: echo "coverage check failed" && exit 1
-
-      - name: upload artifact (main.breakdown)
-        uses: actions/upload-artifact@v4
-        if: github.ref_name == 'main'
-        with:
-          name: main.breakdown
-          path: main.breakdown
-          if-no-files-found: error
