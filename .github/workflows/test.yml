@@ -70,7 +70,7 @@ jobs:
           git-branch: badges
           git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
-          diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact && 'main.breakdown' || '' }}
+          diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
  
       - name: upload artifact (main.breakdown)
         uses: actions/upload-artifact@v4

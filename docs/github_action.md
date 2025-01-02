@@ -83,7 +83,7 @@ Example of report that includes coverage difference is [this PR](https://github.
 
       # If this is not main brach we want to show report including
       # file coverage difference from main branch.
-      diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact && 'main.breakdown' || '' }}
+      diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
     
   - name: upload artifact (main.breakdown)
     uses: actions/upload-artifact@v4
