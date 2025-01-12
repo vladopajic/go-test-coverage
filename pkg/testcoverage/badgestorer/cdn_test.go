@@ -10,7 +10,7 @@ import (
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
+	. "github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
 func Test_CDN_Error(t *testing.T) {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
+	. "github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
 func Test_File(t *testing.T) {

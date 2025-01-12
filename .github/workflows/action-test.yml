@@ -95,7 +95,7 @@ jobs:
         id: test-3
         with:
           profile: cover.out
-          local-prefix: "github.com/vladopajic/go-test-coverage/v2"
+          local-prefix: "github.com/subhambhardwaj/go-test-coverage/v2"
           threshold-file: 0
           threshold-package: 0
           threshold-total: 0
@@ -108,7 +108,7 @@ jobs:
         continue-on-error: true
         with:
           profile: cover.out
-          local-prefix: "github.com/vladopajic/go-test-coverage/v2"
+          local-prefix: "github.com/subhambhardwaj/go-test-coverage/v2"
           threshold-file: 0
           threshold-package: 0
           threshold-total: 100

@@ -9,10 +9,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
+	. "github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/path"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
 
 const (
@@ -30,7 +30,7 @@ func TestCheck(t *testing.T) {
 		return
 	}
 
-	prefix := "github.com/vladopajic/go-test-coverage/v2"
+	prefix := "github.com/subhambhardwaj/go-test-coverage/v2"
 
 	t.Run("no profile", func(t *testing.T) {
 		t.Parallel()

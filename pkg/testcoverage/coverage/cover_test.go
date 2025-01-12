@@ -7,9 +7,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/tools/cover"
 
-	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
+	. "github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/path"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 	profileNOKInvalidLength = testdataDir + testdata.ProfileNOKInvalidLength
 	profileNOKInvalidData   = testdataDir + testdata.ProfileNOKInvalidData
 
-	prefix        = "github.com/vladopajic/go-test-coverage/v2"
+	prefix        = "github.com/subhambhardwaj/go-test-coverage/v2"
 	coverFilename = "pkg/testcoverage/coverage/cover.go"
 )
 

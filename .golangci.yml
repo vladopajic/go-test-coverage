@@ -145,7 +145,7 @@ linters-settings:
   nlreturn:
     block-size: 5
   goimports:
-    local-prefixes: github.com/vladopajic/go-test-coverage/v2
+    local-prefixes: github.com/subhambhardwaj/go-test-coverage/v2
   tenv:
     all: true
   wsl:

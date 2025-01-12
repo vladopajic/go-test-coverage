@@ -6,13 +6,13 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
-	"log"
 
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/path"
 
 	"golang.org/x/tools/cover"
 )

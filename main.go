@@ -8,7 +8,7 @@ import (
 
 	"github.com/alexflint/go-arg"
 
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage"
 )
 
 const (

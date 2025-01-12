@@ -5,7 +5,7 @@ import (
 
 	"golang.org/x/exp/maps"
 
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 type AnalyzeResult struct {

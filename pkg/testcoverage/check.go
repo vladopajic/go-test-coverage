@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func Check(w io.Writer, cfg Config) bool {

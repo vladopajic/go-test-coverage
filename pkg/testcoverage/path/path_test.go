@@ -4,7 +4,7 @@ import (
 	"runtime"
 	"testing"
 
-	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
+	. "github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/path"
 
 	"github.com/stretchr/testify/assert"
 )

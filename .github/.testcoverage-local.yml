@@ -1,7 +1,7 @@
 # Config file for go-test-coverage running locally.
 
 profile: cover.profile
-local-prefix: github.com/vladopajic/go-test-coverage/v2
+local-prefix: github.com/subhambhardwaj/go-test-coverage/v2
 threshold:
   file: 100
   total: 98

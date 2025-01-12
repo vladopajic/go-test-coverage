@@ -1,4 +1,4 @@
-module github.com/vladopajic/go-test-coverage/v2
+module github.com/subhambhardwaj/go-test-coverage/v2
 
 // GO_VERSION: when changing go version update version in other places
 go 1.23

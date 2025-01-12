@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/badge"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
 func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {

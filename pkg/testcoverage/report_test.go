@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	. "github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage"
+	"github.com/subhambhardwaj/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
 func Test_ReportForHuman(t *testing.T) {
