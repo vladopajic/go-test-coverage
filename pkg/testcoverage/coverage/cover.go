@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+	"log"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 
@@ -16,6 +18,8 @@ import (
 )
 
 const IgnoreText = "coverage-ignore"
+
+var buildCache = make(map[string]*build.Package)
 
 type Config struct {
 	Profiles     []string
@@ -74,24 +78,52 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 
 // findFile finds the location of the named file in GOROOT, GOPATH etc.
 func findFile(file, prefix string) (string, string, error) {
-	profileFile := file
+	start := time.Now()
+	defer func() {
+		log.Printf("Total findFile execution time: %v", time.Since(start))
+	}()
 
+	profileFile := file
+	t1 := time.Now()
 	noPrefixName := stripPrefix(file, prefix)
-	if _, err := os.Stat(noPrefixName); err == nil { // coverage-ignore
+	log.Printf("stripPrefix time: %v", time.Since(t1))
+
+	t2 := time.Now()
+	if _, err := os.Stat(noPrefixName); err == nil {
+		log.Printf("First Stat check time: %v", time.Since(t2))
 		return noPrefixName, noPrefixName, nil
 	}
+	log.Printf("First Stat check time: %v", time.Since(t2))
 
+	t3 := time.Now()
 	dir, file := filepath.Split(file)
+	log.Printf("filepath.Split time: %v", time.Since(t3))
 
-	pkg, err := build.Import(dir, ".", build.FindOnly)
-	if err != nil {
-		return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
+	t4 := time.Now()
+	// Simple map lookup without mutex
+	pkg, exists := buildCache[dir]
+	if !exists {
+		var err error
+		pkg, err = build.Import(dir, ".", build.FindOnly)
+		if err != nil {
+			log.Printf("build.Import time: %v", time.Since(t4))
+			return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
+		}
+		buildCache[dir] = pkg
 	}
+	log.Printf("build.Import time (with cache): %v", time.Since(t4))
 
+	t5 := time.Now()
 	file = filepath.Join(pkg.Dir, file)
+	log.Printf("filepath.Join time: %v", time.Since(t5))
+
+	t6 := time.Now()
 	if _, err := os.Stat(file); err == nil {
-		return file, stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root)), nil
+		finalPath := stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root))
+		log.Printf("Final Stat and path operations time: %v", time.Since(t6))
+		return file, finalPath, nil
 	}
+	log.Printf("Final Stat check time: %v", time.Since(t6))
 
 	return "", "", fmt.Errorf("can't find file %q", profileFile)
 }
