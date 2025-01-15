@@ -17,6 +17,8 @@ import (
 
 const IgnoreText = "coverage-ignore"
 
+var buildCache = make(map[string]*build.Package)
+
 type Config struct {
 	Profiles     []string
 	LocalPrefix  string
@@ -83,9 +85,14 @@ func findFile(file, prefix string) (string, string, error) {
 
 	dir, file := filepath.Split(file)
 
-	pkg, err := build.Import(dir, ".", build.FindOnly)
-	if err != nil {
-		return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
+	pkg, exists := buildCache[dir]
+	if !exists {
+		var err error
+		pkg, err = build.Import(dir, ".", build.FindOnly)
+		if err != nil {
+			return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
+		}
+		buildCache[dir] = pkg
 	}
 
 	file = filepath.Join(pkg.Dir, file)
