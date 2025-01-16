@@ -23,12 +23,47 @@ type Config struct {
 	ExcludePaths []string
 }
 
+func findFileCreator() func(file, prefix string) (string, string, error) {
+	cache := make(map[string]*build.Package)
+
+	return func(file, prefix string) (string, string, error) {
+		profileFile := file
+
+		noPrefixName := stripPrefix(file, prefix)
+		if _, err := os.Stat(noPrefixName); err == nil { // coverage-ignore
+			return noPrefixName, noPrefixName, nil
+		}
+
+		dir, file := filepath.Split(file)
+		pkg, exists := cache[dir]
+
+		if !exists {
+			var err error
+
+			pkg, err = build.Import(dir, ".", build.FindOnly)
+			if err != nil {
+				return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
+			}
+
+			cache[dir] = pkg
+		}
+
+		file = filepath.Join(pkg.Dir, file)
+		if _, err := os.Stat(file); err == nil {
+			return file, stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root)), nil
+		}
+
+		return "", "", fmt.Errorf("can't find file %q", profileFile)
+	}
+}
+
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	profiles, err := parseProfiles(cfg.Profiles)
 	if err != nil {
 		return nil, fmt.Errorf("parsing profiles: %w", err)
 	}
 
+	findFile := findFileCreator()
 	fileStats := make([]Stats, 0, len(profiles))
 	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
 
@@ -70,30 +105,6 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	}
 
 	return fileStats, nil
-}
-
-// findFile finds the location of the named file in GOROOT, GOPATH etc.
-func findFile(file, prefix string) (string, string, error) {
-	profileFile := file
-
-	noPrefixName := stripPrefix(file, prefix)
-	if _, err := os.Stat(noPrefixName); err == nil { // coverage-ignore
-		return noPrefixName, noPrefixName, nil
-	}
-
-	dir, file := filepath.Split(file)
-
-	pkg, err := build.Import(dir, ".", build.FindOnly)
-	if err != nil {
-		return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
-	}
-
-	file = filepath.Join(pkg.Dir, file)
-	if _, err := os.Stat(file); err == nil {
-		return file, stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root)), nil
-	}
-
-	return "", "", fmt.Errorf("can't find file %q", profileFile)
 }
 
 func findAnnotations(source []byte) ([]extent, error) {

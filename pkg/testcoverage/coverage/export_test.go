@@ -1,7 +1,7 @@
 package coverage
 
 var (
-	FindFile           = findFile
+	FindFile           = findFileCreator()
 	FindAnnotations    = findAnnotations
 	FindFuncsAndBlocks = findFuncsAndBlocks
 	ParseProfiles      = parseProfiles
