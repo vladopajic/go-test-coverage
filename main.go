@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Version = "v2.11.1"
+	Version = "v2.11.2"
 	Name    = "go-test-coverage"
 )
 
