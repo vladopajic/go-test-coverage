@@ -75,10 +75,11 @@ func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 
 func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
-	overrideRules := compileOverridePathRules(cfg)
+	overrideRules, hasOverrides := compileOverridePathRules(cfg)
 
 	return AnalyzeResult{
 		Threshold:           thr,
+		HasOverrides:        hasOverrides,
 		FilesBelowThreshold: checkCoverageStatsBelowThreshold(current, thr.File, overrideRules),
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
 			makePackageStats(current), thr.Package, overrideRules,

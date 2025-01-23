@@ -15,6 +15,7 @@ type AnalyzeResult struct {
 	TotalStats             coverage.Stats
 	HasBaseBreakdown       bool
 	Diff                   []FileCoverageDiff
+	HasOverrides           bool
 }
 
 func (r *AnalyzeResult) Pass() bool {

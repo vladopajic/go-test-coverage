@@ -118,7 +118,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 1, 0)
+		assertHumanReport(t, buf.String(), 2, 0)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 
@@ -134,7 +134,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 0, 1)
+		assertHumanReport(t, buf.String(), 0, 2)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 

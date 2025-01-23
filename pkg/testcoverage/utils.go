@@ -19,9 +19,9 @@ func matches(regexps []regRule, str string) (int, bool) {
 	return 0, false
 }
 
-func compileOverridePathRules(cfg Config) []regRule {
+func compileOverridePathRules(cfg Config) ([]regRule, bool) {
 	if len(cfg.Override) == 0 {
-		return nil
+		return nil, false
 	}
 
 	compiled := make([]regRule, len(cfg.Override))
@@ -33,5 +33,5 @@ func compileOverridePathRules(cfg Config) []regRule {
 		}
 	}
 
-	return compiled
+	return compiled, true
 }

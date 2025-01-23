@@ -36,14 +36,14 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 
 	thr := result.Threshold
 
-	if thr.File > 0 { // File threshold report
+	if thr.File > 0 || result.HasOverrides { // File threshold report
 		fmt.Fprintf(tabber, "File coverage threshold (%d%%) satisfied:\t", thr.File)
 		fmt.Fprint(tabber, statusStr(len(result.FilesBelowThreshold) == 0))
 		reportIssuesForHuman(tabber, result.FilesBelowThreshold)
 		fmt.Fprint(tabber, "\n")
 	}
 
-	if thr.Package > 0 { // Package threshold report
+	if thr.Package > 0 || result.HasOverrides { // Package threshold report
 		fmt.Fprintf(tabber, "Package coverage threshold (%d%%) satisfied:\t", thr.Package)
 		fmt.Fprint(tabber, statusStr(len(result.PackagesBelowThreshold) == 0))
 		reportIssuesForHuman(tabber, result.PackagesBelowThreshold)
