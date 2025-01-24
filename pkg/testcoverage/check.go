@@ -76,9 +76,12 @@ func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
 	overrideRules := compileOverridePathRules(cfg)
+	hasFileOverrides, hasPackageOverrides := detectOverrides(cfg.Override)
 
 	return AnalyzeResult{
 		Threshold:           thr,
+		HasFileOverrides:    hasFileOverrides,
+		HasPackageOverrides: hasPackageOverrides,
 		FilesBelowThreshold: checkCoverageStatsBelowThreshold(current, thr.File, overrideRules),
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
 			makePackageStats(current), thr.Package, overrideRules,
@@ -87,6 +90,21 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 		HasBaseBreakdown: len(base) > 0,
 		Diff:             calculateStatsDiff(current, base),
 	}
+}
+
+func detectOverrides(overrides []Override) (bool, bool) {
+	hasFileOverrides := false
+	hasPackageOverrides := false
+
+	for _, override := range overrides {
+		if strings.HasSuffix(override.Path, ".go") || strings.HasSuffix(override.Path, ".go$") {
+			hasFileOverrides = true
+		} else {
+			hasPackageOverrides = true
+		}
+	}
+
+	return hasFileOverrides, hasPackageOverrides
 }
 
 func saveCoverageBreakdown(cfg Config, stats []coverage.Stats) error {

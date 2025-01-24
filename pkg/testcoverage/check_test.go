@@ -118,7 +118,7 @@ func TestCheck(t *testing.T) {
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 1, 0)
+		assertHumanReport(t, buf.String(), 2, 0)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 	})
 
@@ -130,6 +130,38 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 10},
 			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
+		}
+		pass := Check(buf, cfg)
+		assert.False(t, pass)
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 0, 2)
+		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+	})
+
+	t.Run("valid profile - pass after file override", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{File: 70},
+			Override:  []Override{{Threshold: 60, Path: "pkg/testcoverage/badgestorer/github.go"}},
+		}
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
+		assertGithubActionErrorsCount(t, buf.String(), 0)
+		assertHumanReport(t, buf.String(), 1, 0)
+		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+	})
+
+	t.Run("valid profile - fail after file override", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{File: 70},
+			Override:  []Override{{Threshold: 80, Path: "pkg/testcoverage/badgestorer/github.go"}},
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
