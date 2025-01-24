@@ -74,14 +74,9 @@ func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 }
 
 func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
-	var hasFileOverrides, hasPackageOverrides bool
-
 	thr := cfg.Threshold
 	overrideRules := compileOverridePathRules(cfg)
-
-	if len(cfg.Override) > 0 {
-		hasFileOverrides, hasPackageOverrides = detectOverrides(cfg.Override)
-	}
+	hasFileOverrides, hasPackageOverrides := detectOverrides(cfg.Override)
 
 	return AnalyzeResult{
 		Threshold:           thr,
@@ -102,16 +97,10 @@ func detectOverrides(overrides []Override) (bool, bool) {
 	hasPackageOverrides := false
 
 	for _, override := range overrides {
-		if strings.HasSuffix(override.Path, ".go") {
+		if strings.HasSuffix(override.Path, ".go") || strings.HasSuffix(override.Path, ".go$") {
 			hasFileOverrides = true
-		}
-
-		if strings.HasPrefix(override.Path, "^") {
+		} else {
 			hasPackageOverrides = true
-		}
-
-		if hasFileOverrides && hasPackageOverrides {
-			return hasFileOverrides, hasPackageOverrides
 		}
 	}
 
