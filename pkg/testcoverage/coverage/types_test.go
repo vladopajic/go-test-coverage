@@ -22,6 +22,7 @@ func TestCoveredPercentage(t *testing.T) {
 		{percentage: 10, total: 10, covered: 1},
 		{percentage: 22, total: 9, covered: 2}, // 22.222.. should round down to 22
 		{percentage: 66, total: 9, covered: 6}, // 66.666.. should round down to 66
+		{percentage: 73, total: 274, covered: 200},
 	}
 
 	for _, tc := range tests {
@@ -35,6 +36,7 @@ func TestStatStr(t *testing.T) {
 	assert.Equal(t, " 0.0% (0/0)", Stats{}.Str())
 	assert.Equal(t, " 9.1% (1/11)", Stats{Covered: 1, Total: 11}.Str())
 	assert.Equal(t, "22.2% (2/9)", Stats{Covered: 2, Total: 9}.Str())
+	assert.Equal(t, "73.0% (200/274)", Stats{Covered: 200, Total: 274}.Str())
 	assert.Equal(t, "100% (10/10)", Stats{Covered: 10, Total: 10}.Str())
 }
 
