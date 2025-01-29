@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -64,7 +65,10 @@ func coveredPercentageF(total, covered int64) float64 {
 		return 100
 	}
 
-	return float64(covered*100) / float64(total)
+	p := float64(covered*100) / float64(total)
+
+	// round to %.1f
+	return float64(int(math.Round(p*10))) / 10
 }
 
 func stripPrefix(name, prefix string) string {
