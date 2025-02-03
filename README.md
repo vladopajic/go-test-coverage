@@ -165,8 +165,7 @@ Instructions for badge creation are available [here](./docs/badge.md).
 
 ## Visualise Coverage
 
-Go includes a built-in tool for visualizing coverage profiles, allowing you to see which parts of the code are not covered by tests. To generate a visual report:
-
+Go includes a built-in tool for visualizing coverage profiles, allowing you to see which parts of the code are not covered by tests.
 Following command will generate `cover.html` page with visualized coverage profile: 
 ```console
 go tool cover -html=cover.out -o=cover.html
