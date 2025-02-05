@@ -1,9 +1,9 @@
 package testcoverage
 
 import (
+	"maps"
+	"slices"
 	"strings"
-
-	"golang.org/x/exp/maps"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
@@ -78,7 +78,7 @@ func makePackageStats(coverageStats []coverage.Stats) []coverage.Stats {
 		packageStats[pkg] = pkgStats
 	}
 
-	return maps.Values(packageStats)
+	return slices.Collect(maps.Values(packageStats))
 }
 
 type FileCoverageDiff struct {

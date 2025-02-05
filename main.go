@@ -84,7 +84,7 @@ func newArgs() args {
 	}
 }
 
-func (args) Version() string {
+func (*args) Version() string {
 	return Name + " " + Version
 }
 
