@@ -130,6 +130,10 @@ linters-settings:
     min-occurrences: 3
   grouper:
     import-require-single-import: true
+  iface:
+    enable:
+      - identical
+      - unused 
   testifylint: 
     enable-all: true
   unparam:
