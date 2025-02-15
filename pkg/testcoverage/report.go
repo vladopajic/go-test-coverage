@@ -65,12 +65,14 @@ func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats, withLiens
 	}
 
 	fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
+
 	if withLiens {
 		fmt.Fprintf(w, "\tuncovered lines:")
 	}
 
 	for _, stats := range coverageStats {
 		fmt.Fprintf(w, "\n  %s\t%s\t%d%%", stats.Name, stats.Str(), stats.Threshold)
+
 		if withLiens {
 			fmt.Fprintf(w, "\t")
 			compressUncoveredLines(w, stats.UncoveredLines)
@@ -205,6 +207,7 @@ func compressUncoveredLines(w io.Writer, ull []int) {
 		} else {
 			fmt.Fprintf(w, "%v%v-%v", separator, a, b)
 		}
+
 		separator = " "
 	}
 
@@ -212,12 +215,7 @@ func compressUncoveredLines(w io.Writer, ull []int) {
 	for i := range ull {
 		if last == -1 {
 			last = ull[i]
-			continue
-		}
-
-		if ull[i-1]+1 == ull[i] {
-			continue
-		} else {
+		} else if ull[i-1]+1 != ull[i] {
 			printRange(last, ull[i-1])
 			last = ull[i]
 		}
