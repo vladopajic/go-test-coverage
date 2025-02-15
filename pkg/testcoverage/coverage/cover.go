@@ -10,9 +10,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
-
 	"golang.org/x/tools/cover"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 )
 
 const IgnoreText = "coverage-ignore"
@@ -21,6 +21,85 @@ type Config struct {
 	Profiles     []string
 	LocalPrefix  string
 	ExcludePaths []string
+}
+
+func GenerateCoverageStats(cfg Config) ([]Stats, error) {
+	profiles, err := parseProfiles(cfg.Profiles)
+	if err != nil {
+		return nil, fmt.Errorf("parsing profiles: %w", err)
+	}
+
+	files, err := findFiles(profiles, cfg.LocalPrefix)
+	if err != nil {
+		return nil, err
+	}
+
+	fileStats := make([]Stats, 0, len(profiles))
+	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
+
+	for _, profile := range profiles {
+		fi, ok := files[profile.FileName]
+		if !ok { // coverage-ignore
+			// should already be handled above, but let's check it again
+			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
+		}
+
+		if ok := matches(excludeRules, fi.noPrefixName); ok {
+			continue // this file is excluded
+		}
+
+		source, err := os.ReadFile(fi.path)
+		if err != nil { // coverage-ignore
+			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
+		}
+
+		funcs, blocks, err := findFuncsAndBlocks(source)
+		if err != nil { // coverage-ignore
+			return nil, err
+		}
+
+		annotations, err := findAnnotations(source)
+		if err != nil { // coverage-ignore
+			return nil, err
+		}
+
+		s := coverageForFile(profile, funcs, blocks, annotations)
+		if s.Total == 0 {
+			// do not include files that doesn't have statements
+			// this can happen when everything is excluded with comment annotations, or
+			// simply file doesn't have any statement
+			continue
+		}
+
+		s.Name = fi.noPrefixName
+		fileStats = append(fileStats, s)
+	}
+
+	return fileStats, nil
+}
+
+type fileInfo struct {
+	path         string
+	noPrefixName string
+}
+
+func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, error) {
+	result := make(map[string]fileInfo)
+	findFile := findFileCreator()
+
+	for _, profile := range profiles {
+		file, noPrefixName, err := findFile(profile.FileName, prefix)
+		if err != nil {
+			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
+		}
+
+		result[profile.FileName] = fileInfo{
+			path:         file,
+			noPrefixName: noPrefixName,
+		}
+	}
+
+	return result, nil
 }
 
 func findFileCreator() func(file, prefix string) (string, string, error) {
@@ -55,56 +134,6 @@ func findFileCreator() func(file, prefix string) (string, string, error) {
 
 		return "", "", fmt.Errorf("can't find file %q", profileFile)
 	}
-}
-
-func GenerateCoverageStats(cfg Config) ([]Stats, error) {
-	profiles, err := parseProfiles(cfg.Profiles)
-	if err != nil {
-		return nil, fmt.Errorf("parsing profiles: %w", err)
-	}
-
-	findFile := findFileCreator()
-	fileStats := make([]Stats, 0, len(profiles))
-	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
-
-	for _, profile := range profiles {
-		file, noPrefixName, err := findFile(profile.FileName, cfg.LocalPrefix)
-		if err != nil {
-			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
-		}
-
-		if ok := matches(excludeRules, noPrefixName); ok {
-			continue // this file is excluded
-		}
-
-		source, err := os.ReadFile(file)
-		if err != nil { // coverage-ignore
-			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
-		}
-
-		funcs, blocks, err := findFuncsAndBlocks(source)
-		if err != nil { // coverage-ignore
-			return nil, err
-		}
-
-		annotations, err := findAnnotations(source)
-		if err != nil { // coverage-ignore
-			return nil, err
-		}
-
-		s := coverageForFile(profile, funcs, blocks, annotations)
-		if s.Total == 0 {
-			// do not include files that doesn't have statements
-			// this can happen when everything is excluded with comment annotations, or
-			// simply file doesn't have any statement
-			continue
-		}
-
-		s.Name = noPrefixName
-		fileStats = append(fileStats, s)
-	}
-
-	return fileStats, nil
 }
 
 func findAnnotations(source []byte) ([]extent, error) {
