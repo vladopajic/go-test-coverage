@@ -86,7 +86,7 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
 			makePackageStats(current), thr.Package, overrideRules,
 		),
-		FilesWithUncoveredLines: filterOnlyUncoveredFiles(current),
+		FilesWithUncoveredLines: filterStatsWithUncoveredLines(current),
 		TotalStats:              coverage.CalcTotalStats(current),
 		HasBaseBreakdown:        len(base) > 0,
 		Diff:                    calculateStatsDiff(current, base),

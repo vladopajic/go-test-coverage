@@ -39,7 +39,7 @@ func packageForFile(filename string) string {
 	return filename[:i]
 }
 
-func filterOnlyUncoveredFiles(stats []coverage.Stats) []coverage.Stats {
+func filterStatsWithUncoveredLines(stats []coverage.Stats) []coverage.Stats {
 	var result []coverage.Stats
 
 	for _, s := range stats {
