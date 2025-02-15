@@ -19,6 +19,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 	defer out.Flush()
 
 	reportCoverage(out, result)
+	reportUncoveredLines(out, result)
 	reportDiff(out, result)
 }
 
@@ -39,14 +40,14 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	if thr.File > 0 || result.HasFileOverrides { // File threshold report
 		fmt.Fprintf(tabber, "File coverage threshold (%d%%) satisfied:\t", thr.File)
 		fmt.Fprint(tabber, statusStr(len(result.FilesBelowThreshold) == 0))
-		reportIssuesForHuman(tabber, result.FilesBelowThreshold, true)
+		reportIssuesForHuman(tabber, result.FilesBelowThreshold)
 		fmt.Fprint(tabber, "\n")
 	}
 
 	if thr.Package > 0 || result.HasPackageOverrides { // Package threshold report
 		fmt.Fprintf(tabber, "Package coverage threshold (%d%%) satisfied:\t", thr.Package)
 		fmt.Fprint(tabber, statusStr(len(result.PackagesBelowThreshold) == 0))
-		reportIssuesForHuman(tabber, result.PackagesBelowThreshold, false)
+		reportIssuesForHuman(tabber, result.PackagesBelowThreshold)
 		fmt.Fprint(tabber, "\n")
 	}
 
@@ -59,27 +60,39 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "Total test coverage: %s\n", result.TotalStats.Str())
 }
 
-func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats, withLiens bool) {
+func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 	if len(coverageStats) == 0 {
 		return
 	}
 
 	fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
 
-	if withLiens {
-		fmt.Fprintf(w, "\tuncovered lines:")
-	}
-
 	for _, stats := range coverageStats {
 		fmt.Fprintf(w, "\n  %s\t%s\t%d%%", stats.Name, stats.Str(), stats.Threshold)
-
-		if withLiens {
-			fmt.Fprintf(w, "\t")
-			compressUncoveredLines(w, stats.UncoveredLines)
-		}
 	}
 
 	fmt.Fprintf(w, "\n")
+}
+
+func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
+	if result.Pass() || len(result.FilesWithUncoveredLines) == 0 {
+		return
+	}
+
+	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
+	defer tabber.Flush()
+
+	fmt.Fprintf(tabber, "\nFiles with uncovered lines:")
+	fmt.Fprintf(tabber, "\n  file:\tuncovered lines:")
+
+	for _, stats := range result.FilesWithUncoveredLines {
+		if len(stats.UncoveredLines) > 0 {
+			fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
+			compressUncoveredLines(tabber, stats.UncoveredLines)
+		}
+	}
+
+	fmt.Fprintf(tabber, "\n")
 }
 
 func reportDiff(w io.Writer, result AnalyzeResult) {

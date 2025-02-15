@@ -9,14 +9,15 @@ import (
 )
 
 type AnalyzeResult struct {
-	Threshold              Threshold
-	FilesBelowThreshold    []coverage.Stats
-	PackagesBelowThreshold []coverage.Stats
-	TotalStats             coverage.Stats
-	HasBaseBreakdown       bool
-	Diff                   []FileCoverageDiff
-	HasFileOverrides       bool
-	HasPackageOverrides    bool
+	Threshold               Threshold
+	FilesBelowThreshold     []coverage.Stats
+	PackagesBelowThreshold  []coverage.Stats
+	FilesWithUncoveredLines []coverage.Stats
+	TotalStats              coverage.Stats
+	HasBaseBreakdown        bool
+	Diff                    []FileCoverageDiff
+	HasFileOverrides        bool
+	HasPackageOverrides     bool
 }
 
 func (r *AnalyzeResult) Pass() bool {
@@ -36,6 +37,18 @@ func packageForFile(filename string) string {
 	}
 
 	return filename[:i]
+}
+
+func filterOnlyUncoveredFiles(stats []coverage.Stats) []coverage.Stats {
+	var result []coverage.Stats
+
+	for _, s := range stats {
+		if len(s.UncoveredLines) > 0 {
+			result = append(result, s)
+		}
+	}
+
+	return result
 }
 
 func checkCoverageStatsBelowThreshold(
