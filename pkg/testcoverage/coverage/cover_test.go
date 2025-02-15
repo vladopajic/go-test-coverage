@@ -189,7 +189,7 @@ func Test_findFuncs(t *testing.T) {
 	}, blocks)
 }
 
-func Test_coverageForFile(t *testing.T) {
+func Test_sumCoverage(t *testing.T) {
 	t.Parallel()
 
 	funcs := []Extent{
@@ -205,17 +205,17 @@ func Test_coverageForFile(t *testing.T) {
 		{StartLine: 12, EndLine: 20, NumStmt: 5},
 	}}
 
-	s := CoverageForFile(profile, funcs, nil, nil)
+	s := SumCoverage(profile, funcs, nil, nil)
 	assert.Equal(t, Stats{Total: 10, Covered: 0}, s)
 
 	// Coverage should be empty when every function is excluded
-	s = CoverageForFile(profile, funcs, nil, funcs)
+	s = SumCoverage(profile, funcs, nil, funcs)
 	assert.Equal(t, Stats{Total: 0, Covered: 0}, s)
 
 	// Case when annotations is set on block (it should ignore whole block)
 	annotations := []Extent{{StartLine: 4, EndLine: 4}}
 	blocks := []Extent{{StartLine: 4, EndLine: 10}}
-	s = CoverageForFile(profile, funcs, blocks, annotations)
+	s = SumCoverage(profile, funcs, blocks, annotations)
 	assert.Equal(t, Stats{Total: 7, Covered: 0}, s)
 }
 
