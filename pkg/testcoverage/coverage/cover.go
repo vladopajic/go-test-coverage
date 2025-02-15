@@ -48,34 +48,52 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		source, err := os.ReadFile(fi.path)
-		if err != nil { // coverage-ignore
-			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
-		}
-
-		funcs, blocks, err := findFuncsAndBlocks(source)
-		if err != nil { // coverage-ignore
+		s, err := coverageForFile(profile, fi)
+		if err != nil {
 			return nil, err
 		}
 
-		annotations, err := findAnnotations(source)
-		if err != nil { // coverage-ignore
-			return nil, err
-		}
-
-		s := coverageForFile(profile, funcs, blocks, annotations)
 		if s.Total == 0 {
-			// do not include files that doesn't have statements
+			// do not include files that doesn't have statements.
 			// this can happen when everything is excluded with comment annotations, or
-			// simply file doesn't have any statement
+			// simply file doesn't have any statement.
+			//
+			// note: we are explicitly adding `continue` statement, instead of having code like this:
+			// if s.Total != 0 {
+			// 	fileStats = append(fileStats, s)
+			// }
+			// because with `continue` add additional statements in coverage profile which will require
+			// to have it covered with tests. since this is interesting case, to have it covered
+			// with tests, we have code written in this way
 			continue
 		}
 
-		s.Name = fi.noPrefixName
 		fileStats = append(fileStats, s)
 	}
 
 	return fileStats, nil
+}
+
+func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
+	source, err := os.ReadFile(fi.path)
+	if err != nil { // coverage-ignore
+		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
+	}
+
+	funcs, blocks, err := findFuncsAndBlocks(source)
+	if err != nil { // coverage-ignore
+		return Stats{}, err
+	}
+
+	annotations, err := findAnnotations(source)
+	if err != nil { // coverage-ignore
+		return Stats{}, err
+	}
+
+	s := sumCoverage(profile, funcs, blocks, annotations)
+	s.Name = fi.noPrefixName
+
+	return s, nil
 }
 
 type fileInfo struct {
@@ -236,7 +254,7 @@ func hasExtentWithStartLine(ee []extent, startLine int) bool {
 	return found
 }
 
-func coverageForFile(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
+func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
 	s := Stats{}
 
 	for _, f := range funcs {

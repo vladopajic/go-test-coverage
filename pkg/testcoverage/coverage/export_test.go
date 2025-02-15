@@ -5,7 +5,7 @@ var (
 	FindAnnotations    = findAnnotations
 	FindFuncsAndBlocks = findFuncsAndBlocks
 	ParseProfiles      = parseProfiles
-	CoverageForFile    = coverageForFile
+	SumCoverage        = sumCoverage
 )
 
 type Extent = extent
