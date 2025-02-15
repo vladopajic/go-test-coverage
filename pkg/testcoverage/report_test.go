@@ -241,6 +241,30 @@ func Test_SetGithubActionOutput(t *testing.T) {
 	})
 }
 
+func TestCompressUncoveredLines(t *testing.T) {
+	t.Parallel()
+
+	buf := &bytes.Buffer{}
+	CompressUncoveredLines(buf, []int{
+		27, 28, 29, 30, 31, 32,
+		59,
+		62, 63, 64, 65, 66,
+		68, 69, 70, 71, 72,
+		75, 76, 77, 78, 79,
+		81, 82, 83, 84, 85,
+		87, 88,
+	})
+	assert.Equal(t, "27-32 59 62-66 68-72 75-79 81-85 87-88", buf.String())
+
+	buf = &bytes.Buffer{}
+	CompressUncoveredLines(buf, []int{
+		79,
+		81, 82, 83, 84, 85,
+		87,
+	})
+	assert.Equal(t, "79 81-85 87", buf.String())
+}
+
 type errWriter struct{}
 
 func (errWriter) Write([]byte) (int, error) {

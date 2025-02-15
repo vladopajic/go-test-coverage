@@ -39,14 +39,14 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	if thr.File > 0 || result.HasFileOverrides { // File threshold report
 		fmt.Fprintf(tabber, "File coverage threshold (%d%%) satisfied:\t", thr.File)
 		fmt.Fprint(tabber, statusStr(len(result.FilesBelowThreshold) == 0))
-		reportIssuesForHuman(tabber, result.FilesBelowThreshold)
+		reportIssuesForHuman(tabber, result.FilesBelowThreshold, true)
 		fmt.Fprint(tabber, "\n")
 	}
 
 	if thr.Package > 0 || result.HasPackageOverrides { // Package threshold report
 		fmt.Fprintf(tabber, "Package coverage threshold (%d%%) satisfied:\t", thr.Package)
 		fmt.Fprint(tabber, statusStr(len(result.PackagesBelowThreshold) == 0))
-		reportIssuesForHuman(tabber, result.PackagesBelowThreshold)
+		reportIssuesForHuman(tabber, result.PackagesBelowThreshold, false)
 		fmt.Fprint(tabber, "\n")
 	}
 
@@ -59,15 +59,22 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "Total test coverage: %s\n", result.TotalStats.Str())
 }
 
-func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
+func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats, withLiens bool) {
 	if len(coverageStats) == 0 {
 		return
 	}
 
 	fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
+	if withLiens {
+		fmt.Fprintf(w, "\tuncovered lines:")
+	}
 
 	for _, stats := range coverageStats {
 		fmt.Fprintf(w, "\n  %s\t%s\t%d%%", stats.Name, stats.Str(), stats.Threshold)
+		if withLiens {
+			fmt.Fprintf(w, "\t")
+			compressUncoveredLines(w, stats.UncoveredLines)
+		}
 	}
 
 	fmt.Fprintf(w, "\n")
@@ -98,7 +105,7 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 			baseStr = d.Base.Str()
 		}
 
-		dp := d.Current.UncoveredLines()
+		dp := d.Current.UncoveredLinesCount()
 		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", d.Current.Name, dp, d.Current.Str(), baseStr)
 	}
 
@@ -188,4 +195,35 @@ func setOutputValue(w io.Writer, name, value string) error {
 func multiline(s string) string {
 	resp, _ := json.Marshal(s) //nolint:errcheck,errchkjson // relax
 	return string(resp)
+}
+
+func compressUncoveredLines(w io.Writer, ull []int) {
+	separator := ""
+	printRange := func(a, b int) {
+		if a == b {
+			fmt.Fprintf(w, "%v%v", separator, a)
+		} else {
+			fmt.Fprintf(w, "%v%v-%v", separator, a, b)
+		}
+		separator = " "
+	}
+
+	last := -1
+	for i := range ull {
+		if last == -1 {
+			last = ull[i]
+			continue
+		}
+
+		if ull[i-1]+1 == ull[i] {
+			continue
+		} else {
+			printRange(last, ull[i-1])
+			last = ull[i]
+		}
+	}
+
+	if last != -1 {
+		printRange(last, ull[len(ull)-1])
+	}
 }

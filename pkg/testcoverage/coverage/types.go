@@ -11,13 +11,14 @@ import (
 )
 
 type Stats struct {
-	Name      string
-	Total     int64
-	Covered   int64
-	Threshold int
+	Name           string
+	Total          int64
+	Covered        int64
+	Threshold      int
+	UncoveredLines []int
 }
 
-func (s Stats) UncoveredLines() int {
+func (s Stats) UncoveredLinesCount() int {
 	return int(s.Total - s.Covered)
 }
 

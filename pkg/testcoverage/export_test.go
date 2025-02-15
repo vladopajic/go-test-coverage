@@ -15,6 +15,7 @@ var (
 	GenerateAndSaveBadge      = generateAndSaveBadge
 	SetOutputValue            = setOutputValue
 	LoadBaseCoverageBreakdown = loadBaseCoverageBreakdown
+	CompressUncoveredLines    = compressUncoveredLines
 )
 
 type (

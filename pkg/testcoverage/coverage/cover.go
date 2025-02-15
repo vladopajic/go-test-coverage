@@ -6,8 +6,11 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"maps"
 	"os"
 	"path/filepath"
+	"slices"
+	"sort"
 	"strings"
 
 	"golang.org/x/tools/cover"
@@ -258,10 +261,13 @@ func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) St
 	s := Stats{}
 
 	for _, f := range funcs {
-		c, t := coverage(profile, f, blocks, annotations)
+		c, t, ul := coverage(profile, f, blocks, annotations)
 		s.Total += t
 		s.Covered += c
+		s.UncoveredLines = append(s.UncoveredLines, ul...)
 	}
+
+	s.UncoveredLines = dedup(s.UncoveredLines)
 
 	return s
 }
@@ -269,16 +275,21 @@ func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) St
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
 //
-//nolint:cyclop,gocognit // relax
-func coverage(profile *cover.Profile, f extent, blocks, annotations []extent) (int64, int64) {
+//nolint:cyclop,gocognit,maintidx // relax
+func coverage(
+	profile *cover.Profile,
+	f extent,
+	blocks, annotations []extent,
+) (int64, int64, []int) {
 	if hasExtentWithStartLine(annotations, f.StartLine) {
 		// case when entire function is ignored
-		return 0, 0
+		return 0, 0, nil
 	}
 
 	var (
 		covered, total int64
 		skip           extent
+		uncoveredLines []int
 	)
 
 	// the blocks are sorted, so we can stop counting as soon as
@@ -312,8 +323,29 @@ func coverage(profile *cover.Profile, f extent, blocks, annotations []extent) (i
 
 		if b.Count > 0 {
 			covered += int64(b.NumStmt)
+		} else {
+			for i := range (b.EndLine - b.StartLine) + 1 {
+				uncoveredLines = append(uncoveredLines, b.StartLine+i)
+			}
 		}
 	}
 
-	return covered, total
+	return covered, total, uncoveredLines
+}
+
+func dedup(ss []int) []int {
+	if len(ss) == 0 {
+		return nil
+	}
+
+	m := make(map[int]struct{})
+
+	for _, s := range ss {
+		m[s] = struct{}{}
+	}
+
+	result := slices.Collect(maps.Keys(m))
+	sort.Ints(result)
+
+	return result
 }
