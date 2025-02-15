@@ -1,5 +1,5 @@
 name: action-test
-on: [pull_request, push]
+on: [push]
 jobs:
   build-dev-image:
     name: build dev image
