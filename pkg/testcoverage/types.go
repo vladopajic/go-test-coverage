@@ -39,18 +39,6 @@ func packageForFile(filename string) string {
 	return filename[:i]
 }
 
-func filterStatsWithUncoveredLines(stats []coverage.Stats) []coverage.Stats {
-	var result []coverage.Stats
-
-	for _, s := range stats {
-		if len(s.UncoveredLines) > 0 {
-			result = append(result, s)
-		}
-	}
-
-	return result
-}
-
 func checkCoverageStatsBelowThreshold(
 	coverageStats []coverage.Stats,
 	threshold int,

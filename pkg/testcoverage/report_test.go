@@ -42,11 +42,16 @@ func Test_ReportForHuman(t *testing.T) {
 		cfg := Config{Threshold: Threshold{File: 10}}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
+		allStats := mergeStats(statsWithError, statsNoError)
+		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
-		assertHumanReport(t, buf.String(), 0, 1)
-		assertContainStats(t, buf.String(), statsWithError)
-		assertNotContainStats(t, buf.String(), statsNoError)
+		headReport, _ := splitReport(t, buf.String())
+		assertHumanReport(t, headReport, 0, 1)
+		assertContainStats(t, headReport, statsWithError)
+		assertNotContainStats(t, headReport, statsNoError)
+		assertUncoveredLinesInfo(t, buf.String(),
+			coverage.StatsPluckName(coverage.StatsFilterWithUncoveredLines(allStats)),
+		)
 	})
 
 	t.Run("package coverage - fail", func(t *testing.T) {
@@ -56,13 +61,18 @@ func Test_ReportForHuman(t *testing.T) {
 		cfg := Config{Threshold: Threshold{Package: 10}}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
-		result := Analyze(cfg, mergeStats(statsWithError, statsNoError), nil)
+		allStats := mergeStats(statsWithError, statsNoError)
+		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
-		assertHumanReport(t, buf.String(), 0, 1)
-		assertContainStats(t, buf.String(), MakePackageStats(statsWithError))
-		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
-		assertNotContainStats(t, buf.String(), statsWithError)
-		assertNotContainStats(t, buf.String(), statsNoError)
+		headReport, _ := splitReport(t, buf.String())
+		assertHumanReport(t, headReport, 0, 1)
+		assertContainStats(t, headReport, MakePackageStats(statsWithError))
+		assertNotContainStats(t, headReport, MakePackageStats(statsNoError))
+		assertNotContainStats(t, headReport, statsWithError)
+		assertNotContainStats(t, headReport, statsNoError)
+		assertUncoveredLinesInfo(t, buf.String(),
+			coverage.StatsPluckName(coverage.StatsFilterWithUncoveredLines(allStats)),
+		)
 	})
 
 	t.Run("diff - no change", func(t *testing.T) {

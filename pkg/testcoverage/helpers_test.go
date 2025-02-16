@@ -37,6 +37,8 @@ func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 				Name:    randFileName(pkg),
 				Covered: covered,
 				Total:   total,
+				// should have at least 1 uncovered line if has file has uncovered lines
+				UncoveredLines: make([]int, min(1, total-covered)),
 			}
 			result = append(result, stat)
 
@@ -134,14 +136,16 @@ func assertNotContainStats(t *testing.T, content string, stats []coverage.Stats)
 	}
 }
 
-func assertUncoveredLinesInfo(t *testing.T, content string, lines []string) {
+//nolint:nonamedreturns // relax
+func splitReport(t *testing.T, content string) (head, uncovered string) {
 	t.Helper()
 
 	index := strings.Index(content, "Files with uncovered lines")
 	if index == -1 {
-		assert.Fail(t, "must have uncovered lines info")
-		return
+		return content, ""
 	}
+
+	head = content[:index]
 
 	content = content[index:]
 
@@ -151,10 +155,19 @@ func assertUncoveredLinesInfo(t *testing.T, content string, lines []string) {
 		index = len(content)
 	}
 
-	content = content[:index]
+	uncovered = content[:index]
+
+	return
+}
+
+func assertUncoveredLinesInfo(t *testing.T, content string, lines []string) {
+	t.Helper()
+
+	_, uncoveredReport := splitReport(t, content)
+	assert.NotEmpty(t, uncoveredReport)
 
 	for _, l := range lines {
-		assert.Contains(t, content, l, "must contain file %v with uncovered lines", l)
+		assert.Contains(t, uncoveredReport, l, "must contain file %v with uncovered lines", l)
 	}
 }
 

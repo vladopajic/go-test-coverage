@@ -119,6 +119,28 @@ func CalcTotalStats(stats []Stats) Stats {
 	return total
 }
 
+func StatsPluckName(stats []Stats) []string {
+	result := make([]string, len(stats))
+
+	for i, s := range stats {
+		result[i] = s.Name
+	}
+
+	return result
+}
+
+func StatsFilterWithUncoveredLines(stats []Stats) []Stats {
+	var result []Stats
+
+	for _, s := range stats {
+		if len(s.UncoveredLines) > 0 {
+			result = append(result, s)
+		}
+	}
+
+	return result
+}
+
 func SerializeStats(stats []Stats) []byte {
 	b := bytes.Buffer{}
 	sep, nl := []byte(";"), []byte("\n")
