@@ -17,6 +17,7 @@ func Test_ReportForHuman(t *testing.T) {
 	t.Parallel()
 
 	const prefix = "organization.org"
+
 	thr := Threshold{100, 100, 100}
 
 	t.Run("all - pass", func(t *testing.T) {
