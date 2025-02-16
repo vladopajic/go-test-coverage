@@ -95,10 +95,10 @@ func TestCheck(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertHasUncoveredLinesInfo(t, buf.String(), []string{
-			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
-			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
-			"pkg/testcoverage/check.go\t\t\t36-39",
-			"pkg/testcoverage/coverage/cover.go\t\t35-37 49-51 54-56 77-79 84-86 122-124",
+			"pkg/testcoverage/badgestorer/cdn.go",
+			"pkg/testcoverage/badgestorer/github.go",
+			"pkg/testcoverage/check.go",
+			"pkg/testcoverage/coverage/cover.go",
 		})
 	})
 
@@ -147,10 +147,10 @@ func TestCheck(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 2)
 		assertHasUncoveredLinesInfo(t, buf.String(), []string{
-			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
-			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
-			"pkg/testcoverage/check.go\t\t\t36-39",
-			"pkg/testcoverage/coverage/cover.go\t\t35-37 49-51 54-56 77-79 84-86 122-124",
+			"pkg/testcoverage/badgestorer/cdn.go",
+			"pkg/testcoverage/badgestorer/github.go",
+			"pkg/testcoverage/check.go",
+			"pkg/testcoverage/coverage/cover.go",
 		})
 	})
 
@@ -186,10 +186,10 @@ func TestCheck(t *testing.T) {
 		assertHumanReport(t, buf.String(), 0, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
 		assertHasUncoveredLinesInfo(t, buf.String(), []string{
-			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
-			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
-			"pkg/testcoverage/check.go\t\t\t36-39",
-			"pkg/testcoverage/coverage/cover.go\t\t35-37 49-51 54-56 77-79 84-86 122-124",
+			"pkg/testcoverage/badgestorer/cdn.go",
+			"pkg/testcoverage/badgestorer/github.go",
+			"pkg/testcoverage/check.go",
+			"pkg/testcoverage/coverage/cover.go",
 		})
 	})
 

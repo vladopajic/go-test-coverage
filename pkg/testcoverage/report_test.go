@@ -16,7 +16,7 @@ import (
 func Test_ReportForHuman(t *testing.T) {
 	t.Parallel()
 
-	prefix := "organization.org"
+	const prefix = "organization.org"
 	thr := Threshold{100, 100, 100}
 
 	t.Run("all - pass", func(t *testing.T) {
@@ -257,6 +257,37 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
 		assert.Equal(t, 1, strings.Count(content, GaOutputReport))
 	})
+}
+
+func Test_ReportUncoveredLines(t *testing.T) {
+	t.Parallel()
+
+	// when result does not pass, there should be output
+	buf := &bytes.Buffer{}
+	ReportUncoveredLines(buf, AnalyzeResult{
+		TotalStats: coverage.Stats{Total: 1, Covered: 0},
+		Threshold:  Threshold{Total: 100},
+		FilesWithUncoveredLines: []coverage.Stats{
+			{Name: "a.go", UncoveredLines: []int{1, 2, 3}},
+			{Name: "b.go", UncoveredLines: []int{3, 5, 7}},
+		},
+	})
+	assertHasUncoveredLinesInfo(t, buf.String(), []string{
+		"a.go\t\t1-3\n",
+		"b.go\t\t3 5 7\n",
+	})
+
+	// when result passes, there should be no output
+	buf.Reset()
+	ReportUncoveredLines(buf, AnalyzeResult{
+		TotalStats: coverage.Stats{Total: 1, Covered: 1},
+		Threshold:  Threshold{Total: 100},
+		FilesWithUncoveredLines: []coverage.Stats{
+			{Name: "a.go", UncoveredLines: []int{1, 2, 3}},
+			{Name: "b.go", UncoveredLines: []int{3, 5, 7}},
+		},
+	})
+	assert.Empty(t, buf.String())
 }
 
 func TestCompressUncoveredLines(t *testing.T) {

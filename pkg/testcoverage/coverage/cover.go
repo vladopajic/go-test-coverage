@@ -6,10 +6,8 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
-	"maps"
 	"os"
 	"path/filepath"
-	"slices"
 	"sort"
 	"strings"
 
@@ -334,18 +332,18 @@ func coverage(
 }
 
 func dedup(ss []int) []int {
-	if len(ss) == 0 {
-		return nil
+	if len(ss) <= 1 {
+		return ss
 	}
 
-	m := make(map[int]struct{})
+	sort.Ints(ss)
+	result := []int{ss[0]}
 
-	for _, s := range ss {
-		m[s] = struct{}{}
+	for i := 1; i < len(ss); i++ {
+		if ss[i] != ss[i-1] {
+			result = append(result, ss[i])
+		}
 	}
-
-	result := slices.Collect(maps.Keys(m))
-	sort.Ints(result)
 
 	return result
 }
