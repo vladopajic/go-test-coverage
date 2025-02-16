@@ -160,7 +160,7 @@ func splitReport(t *testing.T, content string) (head, uncovered string) {
 	return
 }
 
-func assertUncoveredLinesInfo(t *testing.T, content string, lines []string) {
+func assertHasUncoveredLinesInfo(t *testing.T, content string, lines []string) {
 	t.Helper()
 
 	_, uncoveredReport := splitReport(t, content)
@@ -171,10 +171,22 @@ func assertUncoveredLinesInfo(t *testing.T, content string, lines []string) {
 	}
 }
 
+func assertHasUncoveredLinesInfoWithout(t *testing.T, content string, lines []string) {
+	t.Helper()
+
+	_, uncoveredReport := splitReport(t, content)
+	assert.NotEmpty(t, uncoveredReport)
+
+	for _, l := range lines {
+		assert.NotContains(t, uncoveredReport, l, "must not contain file %v with uncovered lines", l)
+	}
+}
+
 func assertNoUncoveredLinesInfo(t *testing.T, content string) {
 	t.Helper()
 
-	assert.NotContains(t, content, "Files with uncovered lines")
+	_, uncoveredReport := splitReport(t, content)
+	assert.Empty(t, uncoveredReport)
 }
 
 func assertGithubActionErrorsCount(t *testing.T, content string, count int) {

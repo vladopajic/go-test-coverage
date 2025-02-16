@@ -94,7 +94,7 @@ func TestCheck(t *testing.T) {
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
-		assertUncoveredLinesInfo(t, buf.String(), []string{
+		assertHasUncoveredLinesInfo(t, buf.String(), []string{
 			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
 			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
 			"pkg/testcoverage/check.go\t\t\t36-39",
@@ -146,7 +146,7 @@ func TestCheck(t *testing.T) {
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 2)
-		assertUncoveredLinesInfo(t, buf.String(), []string{
+		assertHasUncoveredLinesInfo(t, buf.String(), []string{
 			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
 			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
 			"pkg/testcoverage/check.go\t\t\t36-39",
@@ -185,7 +185,7 @@ func TestCheck(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
-		assertUncoveredLinesInfo(t, buf.String(), []string{
+		assertHasUncoveredLinesInfo(t, buf.String(), []string{
 			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
 			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
 			"pkg/testcoverage/check.go\t\t\t36-39",
@@ -297,7 +297,7 @@ func TestCheckNoParallel(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertGithubOutputValues(t, testFile)
-		assertUncoveredLinesInfo(t, buf.String(), []string{})
+		assertHasUncoveredLinesInfo(t, buf.String(), []string{})
 	})
 }
 

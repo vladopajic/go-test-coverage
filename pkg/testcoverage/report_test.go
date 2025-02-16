@@ -25,6 +25,7 @@ func Test_ReportForHuman(t *testing.T) {
 		buf := &bytes.Buffer{}
 		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{}})
 		assertHumanReport(t, buf.String(), 3, 0)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("total coverage - fail", func(t *testing.T) {
@@ -33,6 +34,7 @@ func Test_ReportForHuman(t *testing.T) {
 		buf := &bytes.Buffer{}
 		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{Total: 1}})
 		assertHumanReport(t, buf.String(), 2, 1)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("file coverage - fail", func(t *testing.T) {
@@ -45,12 +47,15 @@ func Test_ReportForHuman(t *testing.T) {
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
-		headReport, _ := splitReport(t, buf.String())
+		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
 		assertContainStats(t, headReport, statsWithError)
 		assertNotContainStats(t, headReport, statsNoError)
-		assertUncoveredLinesInfo(t, buf.String(),
+		assertHasUncoveredLinesInfo(t, uncoveredReport,
 			coverage.StatsPluckName(coverage.StatsFilterWithUncoveredLines(allStats)),
+		)
+		assertHasUncoveredLinesInfoWithout(t, uncoveredReport,
+			coverage.StatsPluckName(coverage.StatsFilterWithCoveredLines(allStats)),
 		)
 	})
 
@@ -64,14 +69,17 @@ func Test_ReportForHuman(t *testing.T) {
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
-		headReport, _ := splitReport(t, buf.String())
+		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
 		assertContainStats(t, headReport, MakePackageStats(statsWithError))
 		assertNotContainStats(t, headReport, MakePackageStats(statsNoError))
 		assertNotContainStats(t, headReport, statsWithError)
 		assertNotContainStats(t, headReport, statsNoError)
-		assertUncoveredLinesInfo(t, buf.String(),
+		assertHasUncoveredLinesInfo(t, uncoveredReport,
 			coverage.StatsPluckName(coverage.StatsFilterWithUncoveredLines(allStats)),
+		)
+		assertHasUncoveredLinesInfoWithout(t, uncoveredReport,
+			coverage.StatsPluckName(coverage.StatsFilterWithCoveredLines(allStats)),
 		)
 	})
 

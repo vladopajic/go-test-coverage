@@ -130,11 +130,23 @@ func StatsPluckName(stats []Stats) []string {
 }
 
 func StatsFilterWithUncoveredLines(stats []Stats) []Stats {
-	var result []Stats
+	return filter(stats, func(s Stats) bool {
+		return len(s.UncoveredLines) > 0
+	})
+}
 
-	for _, s := range stats {
-		if len(s.UncoveredLines) > 0 {
-			result = append(result, s)
+func StatsFilterWithCoveredLines(stats []Stats) []Stats {
+	return filter(stats, func(s Stats) bool {
+		return len(s.UncoveredLines) == 0
+	})
+}
+
+func filter[T any](slice []T, predicate func(T) bool) []T {
+	var result []T
+
+	for _, value := range slice {
+		if predicate(value) {
+			result = append(result, value)
 		}
 	}
 
