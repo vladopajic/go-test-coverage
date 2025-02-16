@@ -30,7 +30,7 @@ func TestCheck(t *testing.T) {
 		return
 	}
 
-	prefix := "github.com/vladopajic/go-test-coverage/v2"
+	const prefix = "github.com/vladopajic/go-test-coverage/v2"
 
 	t.Run("no profile", func(t *testing.T) {
 		t.Parallel()
@@ -40,6 +40,7 @@ func TestCheck(t *testing.T) {
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 0)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("invalid profile", func(t *testing.T) {
@@ -51,6 +52,7 @@ func TestCheck(t *testing.T) {
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 0)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("valid profile - pass", func(t *testing.T) {
@@ -62,6 +64,7 @@ func TestCheck(t *testing.T) {
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("valid profile with exclude - pass", func(t *testing.T) {
@@ -79,6 +82,7 @@ func TestCheck(t *testing.T) {
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("valid profile - fail", func(t *testing.T) {
@@ -90,10 +94,15 @@ func TestCheck(t *testing.T) {
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
-		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+		assertUncoveredLinesInfo(t, buf.String(), []string{
+			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
+			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
+			"pkg/testcoverage/check.go\t\t\t36-39",
+			"pkg/testcoverage/coverage/cover.go\t\t35-37 49-51 54-56 77-79 84-86 122-124",
+		})
 	})
 
-	t.Run("valid profile - fail with prefix", func(t *testing.T) {
+	t.Run("valid profile - pass with prefix", func(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
@@ -103,7 +112,8 @@ func TestCheck(t *testing.T) {
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
-		assert.Equal(t, 0, strings.Count(buf.String(), prefix))
+		assertNoFileNames(t, buf.String(), prefix)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("valid profile - pass after override", func(t *testing.T) {
@@ -119,7 +129,8 @@ func TestCheck(t *testing.T) {
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 2, 0)
-		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+		assertNoFileNames(t, buf.String(), prefix)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("valid profile - fail after override", func(t *testing.T) {
@@ -135,7 +146,12 @@ func TestCheck(t *testing.T) {
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 2)
-		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+		assertUncoveredLinesInfo(t, buf.String(), []string{
+			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
+			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
+			"pkg/testcoverage/check.go\t\t\t36-39",
+			"pkg/testcoverage/coverage/cover.go\t\t35-37 49-51 54-56 77-79 84-86 122-124",
+		})
 	})
 
 	t.Run("valid profile - pass after file override", func(t *testing.T) {
@@ -151,7 +167,8 @@ func TestCheck(t *testing.T) {
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
-		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+		assertNoFileNames(t, buf.String(), prefix)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("valid profile - fail after file override", func(t *testing.T) {
@@ -168,6 +185,12 @@ func TestCheck(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
+		assertUncoveredLinesInfo(t, buf.String(), []string{
+			"pkg/testcoverage/badgestorer/cdn.go\t\t36-38 79-81",
+			"pkg/testcoverage/badgestorer/github.go\t54 72-73 77-79 81",
+			"pkg/testcoverage/check.go\t\t\t36-39",
+			"pkg/testcoverage/coverage/cover.go\t\t35-37 49-51 54-56 77-79 84-86 122-124",
+		})
 	})
 
 	t.Run("valid profile - fail couldn't save badge", func(t *testing.T) {
@@ -260,6 +283,7 @@ func TestCheckNoParallel(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
 		assertGithubOutputValues(t, testFile)
+		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
 	t.Run("ok fail; with github output file", func(t *testing.T) {
@@ -273,6 +297,7 @@ func TestCheckNoParallel(t *testing.T) {
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertGithubOutputValues(t, testFile)
+		assertUncoveredLinesInfo(t, buf.String(), []string{})
 	})
 }
 

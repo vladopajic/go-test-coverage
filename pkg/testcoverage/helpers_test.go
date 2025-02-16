@@ -96,6 +96,12 @@ func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
 	assert.Equal(t, failCount, strings.Count(content, "FAIL"))
 }
 
+func assertNoFileNames(t *testing.T, content, prefix string) {
+	t.Helper()
+
+	assert.Equal(t, 0, strings.Count(content, prefix))
+}
+
 func assertContainStats(t *testing.T, content string, stats []coverage.Stats) {
 	t.Helper()
 
@@ -126,6 +132,36 @@ func assertNotContainStats(t *testing.T, content string, stats []coverage.Stats)
 	if contains != len(stats) {
 		t.Errorf("content should not contain stats: got %d", contains)
 	}
+}
+
+func assertUncoveredLinesInfo(t *testing.T, content string, lines []string) {
+	t.Helper()
+
+	index := strings.Index(content, "Files with uncovered lines")
+	if index == -1 {
+		assert.Fail(t, "must have uncovered lines info")
+		return
+	}
+
+	content = content[index:]
+
+	// section ends at the end of output or two \n
+	index = strings.Index(content, "\n\n")
+	if index == -1 {
+		index = len(content)
+	}
+
+	content = content[:index]
+
+	for _, l := range lines {
+		assert.Contains(t, content, l, "must contain file %v with uncovered lines", l)
+	}
+}
+
+func assertNoUncoveredLinesInfo(t *testing.T, content string) {
+	t.Helper()
+
+	assert.NotContains(t, content, "Files with uncovered lines")
 }
 
 func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
