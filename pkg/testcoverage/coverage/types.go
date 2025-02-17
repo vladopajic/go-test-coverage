@@ -11,13 +11,14 @@ import (
 )
 
 type Stats struct {
-	Name      string
-	Total     int64
-	Covered   int64
-	Threshold int
+	Name           string
+	Total          int64
+	Covered        int64
+	Threshold      int
+	UncoveredLines []int
 }
 
-func (s Stats) UncoveredLines() int {
+func (s Stats) UncoveredLinesCount() int {
 	return int(s.Total - s.Covered)
 }
 
@@ -116,6 +117,40 @@ func CalcTotalStats(stats []Stats) Stats {
 	}
 
 	return total
+}
+
+func StatsPluckName(stats []Stats) []string {
+	result := make([]string, len(stats))
+
+	for i, s := range stats {
+		result[i] = s.Name
+	}
+
+	return result
+}
+
+func StatsFilterWithUncoveredLines(stats []Stats) []Stats {
+	return filter(stats, func(s Stats) bool {
+		return len(s.UncoveredLines) > 0
+	})
+}
+
+func StatsFilterWithCoveredLines(stats []Stats) []Stats {
+	return filter(stats, func(s Stats) bool {
+		return len(s.UncoveredLines) == 0
+	})
+}
+
+func filter[T any](slice []T, predicate func(T) bool) []T {
+	var result []T
+
+	for _, value := range slice {
+		if predicate(value) {
+			result = append(result, value)
+		}
+	}
+
+	return result
 }
 
 func SerializeStats(stats []Stats) []byte {

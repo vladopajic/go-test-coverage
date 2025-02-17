@@ -19,6 +19,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 	defer out.Flush()
 
 	reportCoverage(out, result)
+	reportUncoveredLines(out, result)
 	reportDiff(out, result)
 }
 
@@ -73,6 +74,27 @@ func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 	fmt.Fprintf(w, "\n")
 }
 
+func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
+	if result.Pass() || len(result.FilesWithUncoveredLines) == 0 {
+		return
+	}
+
+	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
+	defer tabber.Flush()
+
+	fmt.Fprintf(tabber, "\nFiles with uncovered lines:")
+	fmt.Fprintf(tabber, "\n  file:\tuncovered lines:")
+
+	for _, stats := range result.FilesWithUncoveredLines {
+		if len(stats.UncoveredLines) > 0 {
+			fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
+			compressUncoveredLines(tabber, stats.UncoveredLines)
+		}
+	}
+
+	fmt.Fprintf(tabber, "\n")
+}
+
 func reportDiff(w io.Writer, result AnalyzeResult) {
 	if !result.HasBaseBreakdown {
 		return
@@ -98,7 +120,7 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 			baseStr = d.Base.Str()
 		}
 
-		dp := d.Current.UncoveredLines()
+		dp := d.Current.UncoveredLinesCount()
 		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", d.Current.Name, dp, d.Current.Str(), baseStr)
 	}
 
@@ -188,4 +210,31 @@ func setOutputValue(w io.Writer, name, value string) error {
 func multiline(s string) string {
 	resp, _ := json.Marshal(s) //nolint:errcheck,errchkjson // relax
 	return string(resp)
+}
+
+func compressUncoveredLines(w io.Writer, ull []int) {
+	separator := ""
+	printRange := func(a, b int) {
+		if a == b {
+			fmt.Fprintf(w, "%v%v", separator, a)
+		} else {
+			fmt.Fprintf(w, "%v%v-%v", separator, a, b)
+		}
+
+		separator = " "
+	}
+
+	last := -1
+	for i := range ull {
+		if last == -1 {
+			last = ull[i]
+		} else if ull[i-1]+1 != ull[i] {
+			printRange(last, ull[i-1])
+			last = ull[i]
+		}
+	}
+
+	if last != -1 {
+		printRange(last, ull[len(ull)-1])
+	}
 }

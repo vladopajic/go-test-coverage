@@ -206,7 +206,10 @@ func Test_sumCoverage(t *testing.T) {
 	}}
 
 	s := SumCoverage(profile, funcs, nil, nil)
-	assert.Equal(t, Stats{Total: 10, Covered: 0}, s)
+	expected := Stats{Total: 10, Covered: 0, UncoveredLines: []int{
+		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+	}}
+	assert.Equal(t, expected, s)
 
 	// Coverage should be empty when every function is excluded
 	s = SumCoverage(profile, funcs, nil, funcs)
@@ -216,7 +219,10 @@ func Test_sumCoverage(t *testing.T) {
 	annotations := []Extent{{StartLine: 4, EndLine: 4}}
 	blocks := []Extent{{StartLine: 4, EndLine: 10}}
 	s = SumCoverage(profile, funcs, blocks, annotations)
-	assert.Equal(t, Stats{Total: 7, Covered: 0}, s)
+	expected = Stats{Total: 7, Covered: 0, UncoveredLines: []int{
+		1, 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+	}}
+	assert.Equal(t, expected, s)
 }
 
 func pluckStartLine(extents []Extent) []int {
