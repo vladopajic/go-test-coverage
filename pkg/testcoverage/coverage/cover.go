@@ -107,9 +107,9 @@ func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, e
 	findFile := findFileCreator()
 
 	for _, profile := range profiles {
-		file, noPrefixName, err := findFile(profile.FileName, prefix)
-		if err != nil {
-			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
+		file, noPrefixName, found := findFile(profile.FileName, prefix)
+		if !found {
+			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
 		}
 
 		result[profile.FileName] = fileInfo{
@@ -121,17 +121,17 @@ func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, e
 	return result, nil
 }
 
-func findFileCreator() func(file, prefix string) (string, string, error) {
+func findFileCreator() func(file, prefix string) (string, string, bool) {
 	cache := make(map[string]*build.Package)
 
-	return func(file, prefix string) (string, string, error) {
-		profileFile := file
-
+	findRelative := func(file, prefix string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
-		if _, err := os.Stat(noPrefixName); err == nil { // coverage-ignore
-			return noPrefixName, noPrefixName, nil
-		}
+		_, err := os.Stat(noPrefixName)
 
+		return noPrefixName, noPrefixName, err == nil
+	}
+
+	findBuildImport := func(file string) (string, string, bool) {
 		dir, file := filepath.Split(file)
 		pkg, exists := cache[dir]
 
@@ -140,18 +140,29 @@ func findFileCreator() func(file, prefix string) (string, string, error) {
 
 			pkg, err = build.Import(dir, ".", build.FindOnly)
 			if err != nil {
-				return "", "", fmt.Errorf("can't find file %q: %w", profileFile, err)
+				return "", "", false
 			}
 
 			cache[dir] = pkg
 		}
 
 		file = filepath.Join(pkg.Dir, file)
-		if _, err := os.Stat(file); err == nil {
-			return file, stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root)), nil
+		_, err := os.Stat(file)
+		noPrefixName := stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root))
+
+		return file, noPrefixName, err == nil
+	}
+
+	return func(file, prefix string) (string, string, bool) {
+		if fPath, fNoPrefix, found := findRelative(file, prefix); found {
+			return fPath, fNoPrefix, found
 		}
 
-		return "", "", fmt.Errorf("can't find file %q", profileFile)
+		if fPath, fNoPrefix, found := findBuildImport(file); found {
+			return fPath, fNoPrefix, found
+		}
+
+		return "", "", false
 	}
 }
 

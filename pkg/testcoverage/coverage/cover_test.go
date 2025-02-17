@@ -95,24 +95,24 @@ func Test_findFile(t *testing.T) {
 
 	const filename = "pkg/testcoverage/coverage/cover.go"
 
-	file, noPrefixName, err := FindFile(prefix+"/"+filename, "")
-	assert.NoError(t, err)
+	file, noPrefixName, found := FindFile(prefix+"/"+filename, "")
+	assert.True(t, found)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, path.NormalizeForOS(filename)))
 
-	file, noPrefixName, err = FindFile(prefix+"/"+filename, prefix)
-	assert.NoError(t, err)
+	file, noPrefixName, found = FindFile(prefix+"/"+filename, prefix)
+	assert.True(t, found)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, path.NormalizeForOS(filename)))
 
-	_, _, err = FindFile(prefix+"/main1.go", "")
-	assert.Error(t, err)
+	_, _, found = FindFile(prefix+"/main1.go", "")
+	assert.False(t, found)
 
-	_, _, err = FindFile("", "")
-	assert.Error(t, err)
+	_, _, found = FindFile("", "")
+	assert.False(t, found)
 
-	_, _, err = FindFile(prefix, "")
-	assert.Error(t, err)
+	_, _, found = FindFile(prefix, "")
+	assert.False(t, found)
 }
 
 func Test_findAnnotations(t *testing.T) {
