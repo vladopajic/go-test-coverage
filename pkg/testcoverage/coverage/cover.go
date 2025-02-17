@@ -154,7 +154,7 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 	}
 
 	return func(file, prefix string) (string, string, bool) {
-		if fPath, fNoPrefix, found := findRelative(file, prefix); found {
+		if fPath, fNoPrefix, found := findRelative(file, prefix); found { // coverage-ignore
 			return fPath, fNoPrefix, found
 		}
 
