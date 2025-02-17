@@ -162,7 +162,7 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
 		f, found := hasFile(files, noPrefixName)
 
-		return f, noPrefixName, found
+		return path.NormalizeForOS(f), noPrefixName, found
 	}
 
 	return func(file, prefix string) (string, string, bool) {
@@ -211,7 +211,7 @@ func hasFile(files []string, search string) (string, bool) {
 	var result string
 
 	for _, f := range files {
-		if strings.Contains(f, search) {
+		if strings.HasSuffix(f, search) {
 			if result != "" {
 				return "", false
 			}
@@ -220,7 +220,7 @@ func hasFile(files []string, search string) (string, bool) {
 		}
 	}
 
-	return result, true
+	return result, result != ""
 }
 
 func findAnnotations(source []byte) ([]extent, error) {
