@@ -84,7 +84,7 @@ jobs:
         if: always()
         uses: thollander/actions-comment-pull-request@v3
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-tag: coverage-report
           message: |
             go-test-coverage report:
