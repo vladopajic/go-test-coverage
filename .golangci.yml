@@ -6,13 +6,13 @@ linters:
     - bodyclose
     - containedctx
     - contextcheck
-    - cyclop
     - copyloopvar
+    - cyclop
     - decorder
     - dogsled
     - dupl
-    - durationcheck
     - dupword
+    - durationcheck
     - err113
     - errcheck
     - errchkjson
@@ -20,6 +20,7 @@ linters:
     - errorlint
     - exhaustive
     - exptostd
+    - fatcontext
     - forbidigo
     - forcetypeassert
     - funlen
@@ -46,11 +47,13 @@ linters:
     - iface
     - importas
     - inamedparam
-    - interfacebloat
     - ineffassign
+    - interfacebloat
+    - intrange
     - lll
     - loggercheck
     - maintidx
+    - makezero
     - mirror
     - misspell
     - mnd
@@ -79,7 +82,6 @@ linters:
     - stylecheck
     - tagalign
     - tagliatelle
-    - tenv
     - testifylint
     - testpackage
     - thelper
@@ -88,8 +90,8 @@ linters:
     - unconvert
     - unparam
     - unused
-    - usetesting
     - usestdlibvars
+    - usetesting
     - wastedassign 
     - whitespace
     - wrapcheck
@@ -152,8 +154,6 @@ linters-settings:
     block-size: 5
   goimports:
     local-prefixes: github.com/vladopajic/go-test-coverage/v2
-  tenv:
-    all: true
   wsl:
     force-err-cuddling: true
 
