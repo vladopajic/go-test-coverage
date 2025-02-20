@@ -238,7 +238,7 @@ func TestCheck(t *testing.T) {
 
 		stats, err := GenerateCoverageStats(cfg)
 		assert.NoError(t, err)
-		assert.Equal(t, coverage.SerializeStats(stats), contentBytes)
+		assert.Equal(t, coverage.StatsSerialize(stats), contentBytes)
 	})
 
 	t.Run("valid profile - invalid base breakdown file", func(t *testing.T) {

@@ -56,7 +56,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
 	// stats2 should have less total statements because cover.go should have been excluded
-	assert.Greater(t, CalcTotalStats(stats1).Total, CalcTotalStats(stats2).Total)
+	assert.Greater(t, StatsCalcTotal(stats1).Total, StatsCalcTotal(stats2).Total)
 
 	// should remove prefix from stats
 	stats3, err := GenerateCoverageStats(Config{
@@ -65,9 +65,9 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats3)
-	assert.Equal(t, CalcTotalStats(stats1), CalcTotalStats(stats3))
+	assert.Equal(t, StatsCalcTotal(stats1), StatsCalcTotal(stats3))
 	assert.NotContains(t, stats3[0].Name, prefix)
-	assert.NotEqual(t, 100, CalcTotalStats(stats3).CoveredPercentage())
+	assert.NotEqual(t, 100, StatsCalcTotal(stats3).CoveredPercentage())
 
 	// should have total coverage because of second profile
 	stats4, err := GenerateCoverageStats(Config{
@@ -75,7 +75,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats4)
-	assert.Equal(t, 100, CalcTotalStats(stats4).CoveredPercentage())
+	assert.Equal(t, 100, StatsCalcTotal(stats4).CoveredPercentage())
 
 	// should not have `badge/generate.go` in statistics because it has no statements
 	stats5, err := GenerateCoverageStats(Config{

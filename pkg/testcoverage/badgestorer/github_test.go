@@ -1,7 +1,6 @@
 package badgestorer_test
 
 import (
-	"context"
 	crand "crypto/rand"
 	"encoding/hex"
 	"fmt"
@@ -89,7 +88,7 @@ func deleteFile(t *testing.T, cfg Git) {
 	client := github.NewClient(nil).WithAuthToken(cfg.Token)
 
 	fc, _, _, err := client.Repositories.GetContents(
-		context.Background(),
+		t.Context(),
 		cfg.Owner,
 		cfg.Repository,
 		cfg.FileName,
@@ -98,7 +97,7 @@ func deleteFile(t *testing.T, cfg Git) {
 	assert.NoError(t, err)
 
 	_, _, err = client.Repositories.DeleteFile(
-		context.Background(),
+		t.Context(),
 		cfg.Owner,
 		cfg.Repository,
 		cfg.FileName,

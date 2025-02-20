@@ -48,25 +48,25 @@ func TestStatsSerialization(t *testing.T) {
 		{Name: "bar", Total: 9, Covered: 2},
 	}
 
-	b := SerializeStats(stats)
+	b := StatsSerialize(stats)
 	assert.Equal(t, "foo;11;1\nbar;9;2\n", string(b))
 
-	ds, err := DeserializeStats(b)
+	ds, err := StatsDeserialize(b)
 	assert.NoError(t, err)
 	assert.Equal(t, stats, ds)
 
 	// ignore empty lines
-	ds, err = DeserializeStats([]byte("\n\n\n\n"))
+	ds, err = StatsDeserialize([]byte("\n\n\n\n"))
 	assert.NoError(t, err)
 	assert.Empty(t, ds)
 
 	// invalid formats
-	_, err = DeserializeStats([]byte("foo;11;"))
+	_, err = StatsDeserialize([]byte("foo;11;"))
 	assert.Error(t, err)
 
-	_, err = DeserializeStats([]byte("foo;;11"))
+	_, err = StatsDeserialize([]byte("foo;;11"))
 	assert.Error(t, err)
 
-	_, err = DeserializeStats([]byte("foo;"))
+	_, err = StatsDeserialize([]byte("foo;"))
 	assert.Error(t, err)
 }

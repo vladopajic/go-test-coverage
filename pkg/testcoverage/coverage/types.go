@@ -108,7 +108,7 @@ func compileExcludePathRules(excludePaths []string) []*regexp.Regexp {
 	return compiled
 }
 
-func CalcTotalStats(stats []Stats) Stats {
+func StatsCalcTotal(stats []Stats) Stats {
 	total := Stats{}
 
 	for _, s := range stats {
@@ -153,7 +153,7 @@ func filter[T any](slice []T, predicate func(T) bool) []T {
 	return result
 }
 
-func SerializeStats(stats []Stats) []byte {
+func StatsSerialize(stats []Stats) []byte {
 	b := bytes.Buffer{}
 	sep, nl := []byte(";"), []byte("\n")
 
@@ -172,7 +172,7 @@ func SerializeStats(stats []Stats) []byte {
 
 var ErrInvalidFormat = errors.New("invalid format")
 
-func DeserializeStats(b []byte) ([]Stats, error) {
+func StatsDeserialize(b []byte) ([]Stats, error) {
 	deserializeLine := func(bl []byte) (Stats, error) {
 		fields := bytes.Split(bl, []byte(";"))
 		if len(fields) != 3 { //nolint:mnd // relax
