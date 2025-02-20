@@ -9,14 +9,15 @@ import (
 )
 
 type AnalyzeResult struct {
-	Threshold              Threshold
-	FilesBelowThreshold    []coverage.Stats
-	PackagesBelowThreshold []coverage.Stats
-	TotalStats             coverage.Stats
-	HasBaseBreakdown       bool
-	Diff                   []FileCoverageDiff
-	HasFileOverrides       bool
-	HasPackageOverrides    bool
+	Threshold               Threshold
+	FilesBelowThreshold     []coverage.Stats
+	PackagesBelowThreshold  []coverage.Stats
+	FilesWithUncoveredLines []coverage.Stats
+	TotalStats              coverage.Stats
+	HasBaseBreakdown        bool
+	Diff                    []FileCoverageDiff
+	HasFileOverrides        bool
+	HasPackageOverrides     bool
 }
 
 func (r *AnalyzeResult) Pass() bool {
@@ -91,13 +92,13 @@ func calculateStatsDiff(current, base []coverage.Stats) []FileCoverageDiff {
 	baseSearchMap := coverage.StatsSearchMap(base)
 
 	for _, s := range current {
-		sul := s.UncoveredLines()
+		sul := s.UncoveredLinesCount()
 		if sul == 0 {
 			continue
 		}
 
 		if b, found := baseSearchMap[s.Name]; found {
-			if sul != b.UncoveredLines() {
+			if sul != b.UncoveredLinesCount() {
 				res = append(res, FileCoverageDiff{Current: s, Base: &b})
 			}
 		} else {
@@ -111,7 +112,7 @@ func calculateStatsDiff(current, base []coverage.Stats) []FileCoverageDiff {
 func TotalLinesDiff(diff []FileCoverageDiff) int {
 	r := 0
 	for _, d := range diff {
-		r += d.Current.UncoveredLines()
+		r += d.Current.UncoveredLinesCount()
 	}
 
 	return r

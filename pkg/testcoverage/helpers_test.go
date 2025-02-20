@@ -37,6 +37,8 @@ func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 				Name:    randFileName(pkg),
 				Covered: covered,
 				Total:   total,
+				// should have at least 1 uncovered line if has file has uncovered lines
+				UncoveredLines: make([]int, min(1, total-covered)),
 			}
 			result = append(result, stat)
 
@@ -96,6 +98,12 @@ func assertHumanReport(t *testing.T, content string, passCount, failCount int) {
 	assert.Equal(t, failCount, strings.Count(content, "FAIL"))
 }
 
+func assertNoFileNames(t *testing.T, content, prefix string) {
+	t.Helper()
+
+	assert.Equal(t, 0, strings.Count(content, prefix))
+}
+
 func assertContainStats(t *testing.T, content string, stats []coverage.Stats) {
 	t.Helper()
 
@@ -126,6 +134,59 @@ func assertNotContainStats(t *testing.T, content string, stats []coverage.Stats)
 	if contains != len(stats) {
 		t.Errorf("content should not contain stats: got %d", contains)
 	}
+}
+
+//nolint:nonamedreturns // relax
+func splitReport(t *testing.T, content string) (head, uncovered string) {
+	t.Helper()
+
+	index := strings.Index(content, "Files with uncovered lines")
+	if index == -1 {
+		return content, ""
+	}
+
+	head = content[:index]
+
+	content = content[index:]
+
+	// section ends at the end of output or two \n
+	index = strings.Index(content, "\n\n")
+	if index == -1 {
+		index = len(content)
+	}
+
+	uncovered = content[:index]
+
+	return
+}
+
+func assertHasUncoveredLinesInfo(t *testing.T, content string, lines []string) {
+	t.Helper()
+
+	_, uncoveredReport := splitReport(t, content)
+	assert.NotEmpty(t, uncoveredReport)
+
+	for _, l := range lines {
+		assert.Contains(t, uncoveredReport, l, "must contain file %v with uncovered lines", l)
+	}
+}
+
+func assertHasUncoveredLinesInfoWithout(t *testing.T, content string, lines []string) {
+	t.Helper()
+
+	_, uncoveredReport := splitReport(t, content)
+	assert.NotEmpty(t, uncoveredReport)
+
+	for _, l := range lines {
+		assert.NotContains(t, uncoveredReport, l, "must not contain file %v with uncovered lines", l)
+	}
+}
+
+func assertNoUncoveredLinesInfo(t *testing.T, content string) {
+	t.Helper()
+
+	_, uncoveredReport := splitReport(t, content)
+	assert.Empty(t, uncoveredReport)
 }
 
 func assertGithubActionErrorsCount(t *testing.T, content string, count int) {

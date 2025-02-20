@@ -86,9 +86,10 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
 			makePackageStats(current), thr.Package, overrideRules,
 		),
-		TotalStats:       coverage.CalcTotalStats(current),
-		HasBaseBreakdown: len(base) > 0,
-		Diff:             calculateStatsDiff(current, base),
+		FilesWithUncoveredLines: coverage.StatsFilterWithUncoveredLines(current),
+		TotalStats:              coverage.StatsCalcTotal(current),
+		HasBaseBreakdown:        len(base) > 0,
+		Diff:                    calculateStatsDiff(current, base),
 	}
 }
 
@@ -113,7 +114,7 @@ func saveCoverageBreakdown(cfg Config, stats []coverage.Stats) error {
 	}
 
 	//nolint:mnd,wrapcheck,gosec // relax
-	return os.WriteFile(cfg.BreakdownFileName, coverage.SerializeStats(stats), 0o644)
+	return os.WriteFile(cfg.BreakdownFileName, coverage.StatsSerialize(stats), 0o644)
 }
 
 func loadBaseCoverageBreakdown(cfg Config) ([]coverage.Stats, error) {
@@ -126,7 +127,7 @@ func loadBaseCoverageBreakdown(cfg Config) ([]coverage.Stats, error) {
 		return nil, fmt.Errorf("reading file content failed: %w", err)
 	}
 
-	stats, err := coverage.DeserializeStats(data)
+	stats, err := coverage.StatsDeserialize(data)
 	if err != nil {
 		return nil, fmt.Errorf("parsing file failed: %w", err)
 	}

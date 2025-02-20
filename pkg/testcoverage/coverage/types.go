@@ -11,13 +11,14 @@ import (
 )
 
 type Stats struct {
-	Name      string
-	Total     int64
-	Covered   int64
-	Threshold int
+	Name           string
+	Total          int64
+	Covered        int64
+	Threshold      int
+	UncoveredLines []int
 }
 
-func (s Stats) UncoveredLines() int {
+func (s Stats) UncoveredLinesCount() int {
 	return int(s.Total - s.Covered)
 }
 
@@ -107,7 +108,7 @@ func compileExcludePathRules(excludePaths []string) []*regexp.Regexp {
 	return compiled
 }
 
-func CalcTotalStats(stats []Stats) Stats {
+func StatsCalcTotal(stats []Stats) Stats {
 	total := Stats{}
 
 	for _, s := range stats {
@@ -118,7 +119,41 @@ func CalcTotalStats(stats []Stats) Stats {
 	return total
 }
 
-func SerializeStats(stats []Stats) []byte {
+func StatsPluckName(stats []Stats) []string {
+	result := make([]string, len(stats))
+
+	for i, s := range stats {
+		result[i] = s.Name
+	}
+
+	return result
+}
+
+func StatsFilterWithUncoveredLines(stats []Stats) []Stats {
+	return filter(stats, func(s Stats) bool {
+		return len(s.UncoveredLines) > 0
+	})
+}
+
+func StatsFilterWithCoveredLines(stats []Stats) []Stats {
+	return filter(stats, func(s Stats) bool {
+		return len(s.UncoveredLines) == 0
+	})
+}
+
+func filter[T any](slice []T, predicate func(T) bool) []T {
+	var result []T
+
+	for _, value := range slice {
+		if predicate(value) {
+			result = append(result, value)
+		}
+	}
+
+	return result
+}
+
+func StatsSerialize(stats []Stats) []byte {
 	b := bytes.Buffer{}
 	sep, nl := []byte(";"), []byte("\n")
 
@@ -137,7 +172,7 @@ func SerializeStats(stats []Stats) []byte {
 
 var ErrInvalidFormat = errors.New("invalid format")
 
-func DeserializeStats(b []byte) ([]Stats, error) {
+func StatsDeserialize(b []byte) ([]Stats, error) {
 	deserializeLine := func(bl []byte) (Stats, error) {
 		fields := bytes.Split(bl, []byte(";"))
 		if len(fields) != 3 { //nolint:mnd // relax
