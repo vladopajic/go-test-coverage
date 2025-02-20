@@ -67,7 +67,7 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 		return nil, fmt.Errorf("inconsistent profiles length [%q, %q]", ap.FileName, bp.FileName)
 	}
 
-	for i := 0; i < len(ap.Blocks); i++ {
+	for i := range ap.Blocks {
 		a, b := ap.Blocks[i], bp.Blocks[i]
 
 		if b.StartLine == a.StartLine &&
