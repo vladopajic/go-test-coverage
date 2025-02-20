@@ -1,5 +1,5 @@
 # GO_VERSION: go version should match version in go.mod file
-FROM golang:1.23 as builder
+FROM golang:1.24 as builder
 WORKDIR /workspace
 
 COPY go.mod go.mod

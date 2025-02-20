@@ -1,9 +1,9 @@
 module github.com/vladopajic/go-test-coverage/v2
 
 // GO_VERSION: when changing go version update version in other places
-go 1.23
+go 1.24
 
-toolchain go1.23.4
+toolchain go1.24.0
 
 require (
 	github.com/alexflint/go-arg v1.4.3
