@@ -24,6 +24,7 @@ Here are the key features and benefits:
 - **Versatility**: Can be used both locally and in CI pipelines.
 - **Customizable**: Extensive configuration options to fit any project's needs.
 - **Stylish Badges**: Generate beautiful coverage badges for your repository.
+- **Coverage Diff**: Detailed comparison of code coverage changes relative to the base branch.
 - **Open Source**: Free to use and contribute to!
 
 ## Usage
