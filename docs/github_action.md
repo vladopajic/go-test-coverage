@@ -5,6 +5,7 @@ The `go-test-coverage` GitHub Action provides the following capabilities:
 - Generate a coverage badge to display the total test coverage.
 - Post a detailed coverage report as a comment on pull requests, including:
   - current test coverage
+  - uncovered lines (reported when any threshold is not satisfied)
   - the difference compared to the base branch
 
 ## Action Inputs and Outputs
