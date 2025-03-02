@@ -121,8 +121,10 @@ func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, e
 	return result, nil
 }
 
-func findFileCreator() func(file, prefix string) (string, string, bool) {
+//nolint:maintidx // relax
+func findFileCreator() func(file, prefix string) (string, string, bool) { // coverage-ignore
 	cache := make(map[string]*build.Package)
+	files := []string(nil)
 
 	findRelative := func(file, prefix string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
@@ -153,8 +155,23 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 		return file, noPrefixName, err == nil
 	}
 
+	findWalk := func(file, prefix string) (string, string, bool) {
+		if files == nil {
+			files = listAllFiles("./")
+		}
+
+		noPrefixName := stripPrefix(file, prefix)
+		f, found := hasFile(files, noPrefixName)
+
+		return path.NormalizeForOS(f), noPrefixName, found
+	}
+
 	return func(file, prefix string) (string, string, bool) {
-		if fPath, fNoPrefix, found := findRelative(file, prefix); found { // coverage-ignore
+		if fPath, fNoPrefix, found := findRelative(file, prefix); found {
+			return fPath, fNoPrefix, found
+		}
+
+		if fPath, fNoPrefix, found := findWalk(file, prefix); found {
 			return fPath, fNoPrefix, found
 		}
 
@@ -164,6 +181,43 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 
 		return "", "", false
 	}
+}
+
+func listAllFiles(rootDir string) []string {
+	var files []string
+
+	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
+	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
+		if err != nil { // coverage-ignore
+			return err
+		}
+
+		if !info.IsDir() &&
+			strings.HasSuffix(file, ".go") &&
+			!strings.HasSuffix(file, "_test.go") {
+			files = append(files, path.NormalizeForTool(file))
+		}
+
+		return nil
+	})
+
+	return files
+}
+
+func hasFile(files []string, search string) (string, bool) {
+	var result string
+
+	for _, f := range files {
+		if strings.HasSuffix(f, search) {
+			if result != "" {
+				return "", false
+			}
+
+			result = f
+		}
+	}
+
+	return result, result != ""
 }
 
 func findAnnotations(source []byte) ([]extent, error) {
