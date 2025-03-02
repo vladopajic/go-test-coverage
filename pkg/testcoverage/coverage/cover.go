@@ -121,17 +121,9 @@ func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, e
 	return result, nil
 }
 
-//nolint:maintidx // relax
-func findFileCreator() func(file, prefix string) (string, string, bool) { // coverage-ignore
+func findFileCreator() func(file, prefix string) (string, string, bool) {
 	cache := make(map[string]*build.Package)
-	files := []string(nil)
-
-	findRelative := func(file, prefix string) (string, string, bool) {
-		noPrefixName := stripPrefix(file, prefix)
-		_, err := os.Stat(noPrefixName)
-
-		return noPrefixName, noPrefixName, err == nil
-	}
+	files := listAllFiles(".")
 
 	findBuildImport := func(file string) (string, string, bool) {
 		dir, file := filepath.Split(file)
@@ -156,10 +148,6 @@ func findFileCreator() func(file, prefix string) (string, string, bool) { // cov
 	}
 
 	findWalk := func(file, prefix string) (string, string, bool) {
-		if files == nil {
-			files = listAllFiles("./")
-		}
-
 		noPrefixName := stripPrefix(file, prefix)
 		f, found := hasFile(files, noPrefixName)
 
@@ -167,11 +155,7 @@ func findFileCreator() func(file, prefix string) (string, string, bool) { // cov
 	}
 
 	return func(file, prefix string) (string, string, bool) {
-		if fPath, fNoPrefix, found := findRelative(file, prefix); found {
-			return fPath, fNoPrefix, found
-		}
-
-		if fPath, fNoPrefix, found := findWalk(file, prefix); found {
+		if fPath, fNoPrefix, found := findWalk(file, prefix); found { // coverage-ignore
 			return fPath, fNoPrefix, found
 		}
 
@@ -184,7 +168,7 @@ func findFileCreator() func(file, prefix string) (string, string, bool) { // cov
 }
 
 func listAllFiles(rootDir string) []string {
-	var files []string
+	files := make([]string, 0)
 
 	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
 	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
