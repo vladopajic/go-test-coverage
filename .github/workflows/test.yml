@@ -53,7 +53,7 @@ jobs:
   
       - name: download artifact (main.breakdown)
         id: download-main-breakdown
-        uses: dawidd6/action-download-artifact@v8
+        uses: dawidd6/action-download-artifact@v9
         with:
           branch: main
           workflow_conclusion: success
