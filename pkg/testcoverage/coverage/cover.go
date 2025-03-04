@@ -3,17 +3,14 @@ package coverage
 import (
 	"fmt"
 	"go/ast"
-	"go/build"
 	"go/parser"
 	"go/token"
+	"io"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"golang.org/x/tools/cover"
-
-	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 )
 
 const IgnoreText = "coverage-ignore"
@@ -24,146 +21,73 @@ type Config struct {
 	ExcludePaths []string
 }
 
-func GenerateCoverageStats(cfg Config) ([]Stats, error) {
+func findFileCreator() func(file, prefix string) (string, string, error) {
+	// source root is assumed to be current working directory
+	sourceRoot, err := filepath.Abs(".")
+	if err != nil {
+		panic(err)
+	}
+
+	return func(file, modulePrefix string) (string, string, error) {
+		pathRelativeToSourceRoot := stripPrefix(file, modulePrefix)
+		pathAbs := filepath.Join(sourceRoot, pathRelativeToSourceRoot)
+
+		if _, err := os.Stat(pathAbs); err == nil { // coverage-ignore
+			return pathAbs, pathAbs, nil
+		}
+
+		return "", "", fmt.Errorf("can't find file %q", pathRelativeToSourceRoot)
+	}
+}
+
+func GenerateCoverageStats(w io.Writer, reportUncovered bool, cfg Config) ([]Stats, error) {
 	profiles, err := parseProfiles(cfg.Profiles)
 	if err != nil {
 		return nil, fmt.Errorf("parsing profiles: %w", err)
 	}
 
-	files, err := findFiles(profiles, cfg.LocalPrefix)
-	if err != nil {
-		return nil, err
-	}
-
+	findFile := findFileCreator()
 	fileStats := make([]Stats, 0, len(profiles))
 	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
 
 	for _, profile := range profiles {
-		fi, ok := files[profile.FileName]
-		if !ok { // coverage-ignore
-			// should already be handled above, but let's check it again
-			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
+		file, noPrefixName, err := findFile(profile.FileName, cfg.LocalPrefix)
+		if err != nil {
+			return nil, fmt.Errorf("could not find file [%s]: %w", profile.FileName, err)
 		}
 
-		if ok := matches(excludeRules, fi.noPrefixName); ok {
+		if ok := matches(excludeRules, noPrefixName); ok {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi)
-		if err != nil {
+		source, err := os.ReadFile(file)
+		if err != nil { // coverage-ignore
+			return nil, fmt.Errorf("failed reading file source [%s]: %w", profile.FileName, err)
+		}
+
+		funcs, blocks, err := findFuncsAndBlocks(source)
+		if err != nil { // coverage-ignore
 			return nil, err
 		}
 
+		annotations, err := findAnnotations(source)
+		if err != nil { // coverage-ignore
+			return nil, err
+		}
+
+		s := coverageForFile(w, reportUncovered, profile, funcs, blocks, annotations)
 		if s.Total == 0 {
-			// do not include files that doesn't have statements.
+			// do not include files that doesn't have statements
 			// this can happen when everything is excluded with comment annotations, or
-			// simply file doesn't have any statement.
-			//
-			// note: we are explicitly adding `continue` statement, instead of having code like this:
-			// if s.Total != 0 {
-			// 	fileStats = append(fileStats, s)
-			// }
-			// because with `continue` add additional statements in coverage profile which will require
-			// to have it covered with tests. since this is interesting case, to have it covered
-			// with tests, we have code written in this way
+			// simply file doesn't have any statement
 			continue
 		}
 
+		s.Name = noPrefixName
 		fileStats = append(fileStats, s)
 	}
 
 	return fileStats, nil
-}
-
-func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
-	source, err := os.ReadFile(fi.path)
-	if err != nil { // coverage-ignore
-		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
-	}
-
-	funcs, blocks, err := findFuncsAndBlocks(source)
-	if err != nil { // coverage-ignore
-		return Stats{}, err
-	}
-
-	annotations, err := findAnnotations(source)
-	if err != nil { // coverage-ignore
-		return Stats{}, err
-	}
-
-	s := sumCoverage(profile, funcs, blocks, annotations)
-	s.Name = fi.noPrefixName
-
-	return s, nil
-}
-
-type fileInfo struct {
-	path         string
-	noPrefixName string
-}
-
-func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, error) {
-	result := make(map[string]fileInfo)
-	findFile := findFileCreator()
-
-	for _, profile := range profiles {
-		file, noPrefixName, found := findFile(profile.FileName, prefix)
-		if !found {
-			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
-		}
-
-		result[profile.FileName] = fileInfo{
-			path:         file,
-			noPrefixName: noPrefixName,
-		}
-	}
-
-	return result, nil
-}
-
-func findFileCreator() func(file, prefix string) (string, string, bool) {
-	cache := make(map[string]*build.Package)
-
-	findRelative := func(file, prefix string) (string, string, bool) {
-		noPrefixName := stripPrefix(file, prefix)
-		_, err := os.Stat(noPrefixName)
-
-		return noPrefixName, noPrefixName, err == nil
-	}
-
-	findBuildImport := func(file string) (string, string, bool) {
-		dir, file := filepath.Split(file)
-		pkg, exists := cache[dir]
-
-		if !exists {
-			var err error
-
-			pkg, err = build.Import(dir, ".", build.FindOnly)
-			if err != nil {
-				return "", "", false
-			}
-
-			cache[dir] = pkg
-		}
-
-		file = filepath.Join(pkg.Dir, file)
-		_, err := os.Stat(file)
-		noPrefixName := stripPrefix(path.NormalizeForTool(file), path.NormalizeForTool(pkg.Root))
-
-		return file, noPrefixName, err == nil
-	}
-
-	return func(file, prefix string) (string, string, bool) {
-		if fPath, fNoPrefix, found := findRelative(file, prefix); found { // coverage-ignore
-			return fPath, fNoPrefix, found
-		}
-
-		if fPath, fNoPrefix, found := findBuildImport(file); found {
-			return fPath, fNoPrefix, found
-		}
-
-		return "", "", false
-	}
 }
 
 func findAnnotations(source []byte) ([]extent, error) {
@@ -266,17 +190,14 @@ func hasExtentWithStartLine(ee []extent, startLine int) bool {
 	return found
 }
 
-func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
+func coverageForFile(w io.Writer, reportUncovered bool, profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
 	s := Stats{}
 
 	for _, f := range funcs {
-		c, t, ul := coverage(profile, f, blocks, annotations)
+		c, t := coverage(w, reportUncovered, profile, f, blocks, annotations)
 		s.Total += t
 		s.Covered += c
-		s.UncoveredLines = append(s.UncoveredLines, ul...)
 	}
-
-	s.UncoveredLines = dedup(s.UncoveredLines)
 
 	return s
 }
@@ -284,21 +205,16 @@ func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) St
 // coverage returns the fraction of the statements in the
 // function that were covered, as a numerator and denominator.
 //
-//nolint:cyclop,gocognit,maintidx // relax
-func coverage(
-	profile *cover.Profile,
-	f extent,
-	blocks, annotations []extent,
-) (int64, int64, []int) {
+//nolint:cyclop,gocognit // relax
+func coverage(w io.Writer, reportUncovered bool, profile *cover.Profile, f extent, blocks, annotations []extent) (int64, int64) {
 	if hasExtentWithStartLine(annotations, f.StartLine) {
 		// case when entire function is ignored
-		return 0, 0, nil
+		return 0, 0
 	}
 
 	var (
 		covered, total int64
 		skip           extent
-		uncoveredLines []int
 	)
 
 	// the blocks are sorted, so we can stop counting as soon as
@@ -333,28 +249,12 @@ func coverage(
 		if b.Count > 0 {
 			covered += int64(b.NumStmt)
 		} else {
-			for i := range (b.EndLine - b.StartLine) + 1 {
-				uncoveredLines = append(uncoveredLines, b.StartLine+i)
+			if reportUncovered {
+				notCovered := fmt.Sprintf("%40s:%d.%d-%d.%d", profile.FileName, b.StartLine, b.StartCol, b.EndLine, b.EndCol)
+				fmt.Fprintf(w, "not covered: %s\n", notCovered)
 			}
 		}
 	}
 
-	return covered, total, uncoveredLines
-}
-
-func dedup(ss []int) []int {
-	if len(ss) <= 1 {
-		return ss
-	}
-
-	sort.Ints(ss)
-	result := []int{ss[0]}
-
-	for i := 1; i < len(ss); i++ {
-		if ss[i] != ss[i-1] {
-			result = append(result, ss[i])
-		}
-	}
-
-	return result
+	return covered, total
 }

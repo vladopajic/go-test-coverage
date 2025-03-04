@@ -1,0 +1,14 @@
+pkg/testcoverage/badge.go;33;33
+pkg/testcoverage/badge/generate.go;8;8
+pkg/testcoverage/badgestorer/cdn.go;14;14
+pkg/testcoverage/badgestorer/file.go;5;5
+pkg/testcoverage/badgestorer/github.go;17;11
+pkg/testcoverage/check.go;47;38
+pkg/testcoverage/config.go;51;51
+pkg/testcoverage/coverage/cover.go;81;81
+pkg/testcoverage/coverage/profile.go;34;34
+pkg/testcoverage/coverage/types.go;70;69
+pkg/testcoverage/path/path.go;6;4
+pkg/testcoverage/report.go;81;65
+pkg/testcoverage/types.go;39;33
+pkg/testcoverage/utils.go;10;10

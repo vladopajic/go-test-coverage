@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Version = "v2.12.0" // VERSION: when changing version update version in other places
+	Version = "v2.12.1"
 	Name    = "go-test-coverage"
 )
 
@@ -31,6 +31,7 @@ type args struct {
 	ThresholdFile      int    `arg:"-f,--threshold-file"`
 	ThresholdPackage   int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     int    `arg:"-t,--threshold-total"`
+	ReportUncovered    bool   `arg:"-u,--report-uncovered"       help:"report sections of code that do not have coverage and that have not been suppressed"`
 
 	BreakdownFileName         string `arg:"--breakdown-file-name"`
 	DiffBaseBreakdownFileName string `arg:"--diff-base-breakdown-file-name"`
@@ -124,6 +125,10 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 
 	if !isCIDefaultString(a.BadgeFileName) {
 		cfg.Badge.FileName = a.BadgeFileName
+	}
+
+	if a.ReportUncovered {
+		cfg.ReportUncovered = true
 	}
 
 	if !isCIDefaultString(a.CDNSecret) {

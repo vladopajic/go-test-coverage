@@ -1,0 +1,8 @@
+# This file is used for integration tests
+
+profile: cover.out
+local-prefix: "github.com/vladopajic/go-test-coverage/v2"
+threshold:
+  file: 0
+  package: 0
+  total: 0
