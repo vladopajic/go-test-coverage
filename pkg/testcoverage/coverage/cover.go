@@ -104,9 +104,6 @@ type fileInfo struct {
 
 func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, error) {
 	result := make(map[string]fileInfo)
-	if rootDir == "" {
-		rootDir = "."
-	}
 	findFile := findFileCreator(rootDir)
 
 	for _, profile := range profiles {
@@ -124,7 +121,17 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	return result, nil
 }
 
+func defaultRootDir(rootDir string) string {
+	if rootDir == "" {
+		rootDir = "."
+	}
+
+	return rootDir
+}
+
 func findFileCreator(rootDir string) func(file string) (string, string, bool) {
+	rootDir = defaultRootDir(rootDir)
+
 	cache := make(map[string]*build.Package)
 	findBuildImport := func(file string) (string, string, bool) {
 		dir, file := filepath.Split(file)
@@ -187,9 +194,8 @@ func listAllFiles(rootDir string) []localFileInfo {
 		if !info.IsDir() &&
 			strings.HasSuffix(file, ".go") &&
 			!strings.HasSuffix(file, "_test.go") {
-
 			name, _ := strings.CutPrefix(file, rootDir)
-			name = path.NormalizeForTool(file)
+			name = path.NormalizeForTool(name)
 
 			files = append(files, localFileInfo{
 				path: file,
