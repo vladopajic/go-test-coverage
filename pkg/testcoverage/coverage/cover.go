@@ -21,7 +21,7 @@ const IgnoreText = "coverage-ignore"
 type Config struct {
 	Profiles     []string
 	ExcludePaths []string
-	RootDir      string
+	SourceDir    string
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -30,7 +30,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 		return nil, fmt.Errorf("parsing profiles: %w", err)
 	}
 
-	files, err := findFiles(profiles, cfg.RootDir)
+	files, err := findFiles(profiles, cfg.SourceDir)
 	if err != nil {
 		return nil, err
 	}
@@ -121,17 +121,7 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	return result, nil
 }
 
-func defaultRootDir(rootDir string) string {
-	if rootDir == "" {
-		rootDir = "."
-	}
-
-	return rootDir
-}
-
 func findFileCreator(rootDir string) func(file string) (string, string, bool) {
-	rootDir = defaultRootDir(rootDir)
-
 	cache := make(map[string]*build.Package)
 	findBuildImport := func(file string) (string, string, bool) {
 		dir, file := filepath.Split(file)
@@ -180,6 +170,13 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 func listAllFiles(rootDir string) []fileInfo {
 	files := make([]fileInfo, 0)
 
+	makeName := func(file string) string {
+		name, _ := strings.CutPrefix(file, rootDir)
+		name = path.NormalizeForTool(name)
+
+		return name
+	}
+
 	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
 	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
 		if err != nil { // coverage-ignore
@@ -189,12 +186,9 @@ func listAllFiles(rootDir string) []fileInfo {
 		if !info.IsDir() &&
 			strings.HasSuffix(file, ".go") &&
 			!strings.HasSuffix(file, "_test.go") {
-			name, _ := strings.CutPrefix(file, rootDir)
-			name = path.NormalizeForTool(name)
-
 			files = append(files, fileInfo{
 				path: file,
-				name: name,
+				name: makeName(file),
 			})
 		}
 

@@ -74,7 +74,7 @@ func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
 		Profiles:     strings.Split(cfg.Profile, ","),
 		ExcludePaths: cfg.Exclude.Paths,
-		RootDir:      cfg.RootDir,
+		SourceDir:    cfg.SourceDir,
 	})
 }
 

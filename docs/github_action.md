@@ -38,6 +38,19 @@ Alternatively, if you don't need advanced configuration options from a config fi
 
 Note: When using a config file alongside action properties, specifying these parameters will override the corresponding values in the config file.
 
+## Source Directory
+
+Some projects, such as monorepos with multiple projects under the root directory, may require specifying the path to a project's source.
+In such cases, the `source-dir` property can be used to specify the source files location relative to the root directory.
+
+```yml
+  - name: check test coverage
+    uses: vladopajic/go-test-coverage@v2
+    with:
+      config: ./.testcoverage.yml
+      source-dir: ./some_project
+```
+
 ## Liberal Coverage Check
 
 The `go-test-coverage` GitHub Action can be configured to report the current test coverage without enforcing specific thresholds. To enable this functionality in your GitHub workflow, include the `continue-on-error: true` property in the job step configuration. This ensures that the workflow proceeds even if the coverage check fails.

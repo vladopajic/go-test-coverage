@@ -25,7 +25,7 @@ const (
 	prefix        = "github.com/vladopajic/go-test-coverage/v2"
 	coverFilename = "pkg/testcoverage/coverage/cover.go"
 
-	rootDir = "../../../"
+	sourceDir = "../../../"
 )
 
 func Test_GenerateCoverageStats(t *testing.T) {
@@ -42,16 +42,16 @@ func Test_GenerateCoverageStats(t *testing.T) {
 
 	// should get error parsing invalid profile file
 	stats, err = GenerateCoverageStats(Config{
-		Profiles: []string{profileNOK},
-		RootDir:  rootDir,
+		Profiles:  []string{profileNOK},
+		SourceDir: sourceDir,
 	})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
 
 	// should be okay to read valid profile
 	stats1, err := GenerateCoverageStats(Config{
-		Profiles: []string{profileOK},
-		RootDir:  rootDir,
+		Profiles:  []string{profileOK},
+		SourceDir: sourceDir,
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats1)
@@ -60,7 +60,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats2, err := GenerateCoverageStats(Config{
 		Profiles:     []string{profileOK},
 		ExcludePaths: []string{`cover\.go$`},
-		RootDir:      rootDir,
+		SourceDir:    sourceDir,
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
@@ -69,8 +69,8 @@ func Test_GenerateCoverageStats(t *testing.T) {
 
 	// should have total coverage because of second profile
 	stats3, err := GenerateCoverageStats(Config{
-		Profiles: []string{profileOK, profileOKFull},
-		RootDir:  rootDir,
+		Profiles:  []string{profileOK, profileOKFull},
+		SourceDir: sourceDir,
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats3)
@@ -78,8 +78,8 @@ func Test_GenerateCoverageStats(t *testing.T) {
 
 	// should not have `badge/generate.go` in statistics because it has no statements
 	stats4, err := GenerateCoverageStats(Config{
-		Profiles: []string{profileOKNoStatements},
-		RootDir:  rootDir,
+		Profiles:  []string{profileOKNoStatements},
+		SourceDir: sourceDir,
 	})
 	assert.NoError(t, err)
 	assert.Len(t, stats4, 1)

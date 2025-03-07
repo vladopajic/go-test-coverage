@@ -8,7 +8,12 @@ inputs:
     required: false
     default: ""
     type: string
-  
+  source-dir:
+    description: Sets relative path to source files.
+    required: false
+    default: ""
+    type: string
+
   # Individual properties
   profile:
     description: Path to the coverage profile file. Overrides value from configuration.
@@ -132,6 +137,7 @@ runs:
   args:
     - --config=${{ inputs.config || '''''' }}
     - --profile=${{ inputs.profile || '''''' }}
+    - --source-dir=${{ inputs.source-dir || '''''' }}
     - --github-action-output=true
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}
