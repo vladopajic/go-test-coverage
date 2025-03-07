@@ -21,6 +21,9 @@ const (
 	profileNOK   = testdataDir + testdata.ProfileNOK
 	breakdownOK  = testdataDir + testdata.BreakdownOK
 	breakdownNOK = testdataDir + testdata.BreakdownNOK
+
+	prefix  = "github.com/vladopajic/go-test-coverage/v2"
+	rootDir = "../../"
 )
 
 func TestCheck(t *testing.T) {
@@ -29,8 +32,6 @@ func TestCheck(t *testing.T) {
 	if testing.Short() {
 		return
 	}
-
-	const prefix = "github.com/vladopajic/go-test-coverage/v2"
 
 	t.Run("no profile", func(t *testing.T) {
 		t.Parallel()
@@ -59,11 +60,12 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}}
+		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, RootDir: rootDir}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
+		assertNoFileNames(t, buf.String(), prefix)
 		assertNoUncoveredLinesInfo(t, buf.String())
 	})
 
@@ -77,6 +79,7 @@ func TestCheck(t *testing.T) {
 			Exclude: Exclude{
 				Paths: []string{`cdn\.go$`, `github\.go$`, `cover\.go$`, `check\.go$`, `path\.go$`},
 			},
+			RootDir: rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -89,7 +92,7 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}}
+		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}, RootDir: rootDir}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
@@ -102,20 +105,6 @@ func TestCheck(t *testing.T) {
 		})
 	})
 
-	t.Run("valid profile - pass with prefix", func(t *testing.T) {
-		t.Parallel()
-
-		buf := &bytes.Buffer{}
-
-		cfg := Config{Profile: profileOK, LocalPrefix: prefix, Threshold: Threshold{Total: 65}}
-		pass := Check(buf, cfg)
-		assert.True(t, pass)
-		assertGithubActionErrorsCount(t, buf.String(), 0)
-		assertHumanReport(t, buf.String(), 1, 0)
-		assertNoFileNames(t, buf.String(), prefix)
-		assertNoUncoveredLinesInfo(t, buf.String())
-	})
-
 	t.Run("valid profile - pass after override", func(t *testing.T) {
 		t.Parallel()
 
@@ -124,6 +113,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 100},
 			Override:  []Override{{Threshold: 10, Path: "^pkg"}},
+			RootDir:   rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -141,6 +131,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 10},
 			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
+			RootDir:   rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -162,6 +153,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 70},
 			Override:  []Override{{Threshold: 60, Path: "pkg/testcoverage/badgestorer/github.go"}},
+			RootDir:   rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -179,6 +171,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 70},
 			Override:  []Override{{Threshold: 80, Path: "pkg/testcoverage/badgestorer/github.go"}},
+			RootDir:   rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -202,6 +195,7 @@ func TestCheck(t *testing.T) {
 			Badge: Badge{
 				FileName: t.TempDir(), // should failed because this is dir
 			},
+			RootDir: rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -215,6 +209,7 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:           profileOK,
 			BreakdownFileName: t.TempDir(), // should failed because this is dir
+			RootDir:           rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -228,6 +223,7 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:           profileOK,
 			BreakdownFileName: t.TempDir() + "/breakdown.testcoverage",
+			RootDir:           rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -250,6 +246,7 @@ func TestCheck(t *testing.T) {
 			Diff: Diff{
 				BaseBreakdownFileName: t.TempDir(), // should failed because this is dir
 			},
+			RootDir: rootDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -267,7 +264,12 @@ func TestCheckNoParallel(t *testing.T) {
 		t.Setenv(GaOutputFileEnv, "")
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 100}}
+		cfg := Config{
+			Profile:            profileOK,
+			GithubActionOutput: true,
+			Threshold:          Threshold{Total: 100},
+			RootDir:            rootDir,
+		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 	})
@@ -277,7 +279,12 @@ func TestCheckNoParallel(t *testing.T) {
 		t.Setenv(GaOutputFileEnv, testFile)
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 10}}
+		cfg := Config{
+			Profile:            profileOK,
+			GithubActionOutput: true,
+			Threshold:          Threshold{Total: 10},
+			RootDir:            rootDir,
+		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
@@ -291,7 +298,12 @@ func TestCheckNoParallel(t *testing.T) {
 		t.Setenv(GaOutputFileEnv, testFile)
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, GithubActionOutput: true, Threshold: Threshold{Total: 100}}
+		cfg := Config{
+			Profile:            profileOK,
+			GithubActionOutput: true,
+			Threshold:          Threshold{Total: 100},
+			RootDir:            rootDir,
+		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 1)
@@ -319,7 +331,7 @@ func Test_Analyze(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: prefix, Threshold: Threshold{Total: 10}},
+			Config{Threshold: Threshold{Total: 10}},
 			randStats(prefix, 10, 100),
 			nil,
 		)
@@ -350,7 +362,7 @@ func Test_Analyze(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: prefix, Threshold: Threshold{File: 10}},
+			Config{Threshold: Threshold{File: 10}},
 			randStats(prefix, 10, 100),
 			nil,
 		)
@@ -379,7 +391,7 @@ func Test_Analyze(t *testing.T) {
 		t.Parallel()
 
 		result := Analyze(
-			Config{LocalPrefix: prefix, Threshold: Threshold{Package: 10}},
+			Config{Threshold: Threshold{Package: 10}},
 			randStats(prefix, 10, 100),
 			nil,
 		)

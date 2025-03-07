@@ -42,6 +42,11 @@ func Check(w io.Writer, cfg Config) bool {
 			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
 			return false
 		}
+
+		if cfg.LocalPrefixDeprecated != "" { // coverage-ignore
+			reportGHWarning(w, "Deprecated option",
+				"local-prefix option is deprecated since v2.13.0, you can safely remove setting this option")
+		}
 	}
 
 	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
@@ -68,8 +73,8 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
 		Profiles:     strings.Split(cfg.Profile, ","),
-		LocalPrefix:  cfg.LocalPrefix,
 		ExcludePaths: cfg.Exclude.Paths,
+		RootDir:      cfg.RootDir,
 	})
 }
 

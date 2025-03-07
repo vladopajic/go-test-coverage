@@ -24,6 +24,8 @@ const (
 
 	prefix        = "github.com/vladopajic/go-test-coverage/v2"
 	coverFilename = "pkg/testcoverage/coverage/cover.go"
+
+	rootDir = "../../../"
 )
 
 func Test_GenerateCoverageStats(t *testing.T) {
@@ -39,12 +41,18 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	assert.Empty(t, stats)
 
 	// should get error parsing invalid profile file
-	stats, err = GenerateCoverageStats(Config{Profiles: []string{profileNOK}})
+	stats, err = GenerateCoverageStats(Config{
+		Profiles: []string{profileNOK},
+		RootDir:  rootDir,
+	})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
 
 	// should be okay to read valid profile
-	stats1, err := GenerateCoverageStats(Config{Profiles: []string{profileOK}})
+	stats1, err := GenerateCoverageStats(Config{
+		Profiles: []string{profileOK},
+		RootDir:  rootDir,
+	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats1)
 
@@ -52,38 +60,30 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats2, err := GenerateCoverageStats(Config{
 		Profiles:     []string{profileOK},
 		ExcludePaths: []string{`cover\.go$`},
+		RootDir:      rootDir,
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
 	// stats2 should have less total statements because cover.go should have been excluded
 	assert.Greater(t, StatsCalcTotal(stats1).Total, StatsCalcTotal(stats2).Total)
 
-	// should remove prefix from stats
+	// should have total coverage because of second profile
 	stats3, err := GenerateCoverageStats(Config{
-		Profiles:    []string{profileOK},
-		LocalPrefix: prefix,
+		Profiles: []string{profileOK, profileOKFull},
+		RootDir:  rootDir,
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats3)
-	assert.Equal(t, StatsCalcTotal(stats1), StatsCalcTotal(stats3))
-	assert.NotContains(t, stats3[0].Name, prefix)
-	assert.NotEqual(t, 100, StatsCalcTotal(stats3).CoveredPercentage())
-
-	// should have total coverage because of second profile
-	stats4, err := GenerateCoverageStats(Config{
-		Profiles: []string{profileOK, profileOKFull},
-	})
-	assert.NoError(t, err)
-	assert.NotEmpty(t, stats4)
-	assert.Equal(t, 100, StatsCalcTotal(stats4).CoveredPercentage())
+	assert.Equal(t, 100, StatsCalcTotal(stats3).CoveredPercentage())
 
 	// should not have `badge/generate.go` in statistics because it has no statements
-	stats5, err := GenerateCoverageStats(Config{
+	stats4, err := GenerateCoverageStats(Config{
 		Profiles: []string{profileOKNoStatements},
+		RootDir:  rootDir,
 	})
 	assert.NoError(t, err)
-	assert.Len(t, stats5, 1)
-	assert.NotContains(t, `badge/generate.go`, stats5[0].Name)
+	assert.Len(t, stats4, 1)
+	assert.NotContains(t, `badge/generate.go`, stats4[0].Name)
 }
 
 func Test_findFile(t *testing.T) {
@@ -95,23 +95,26 @@ func Test_findFile(t *testing.T) {
 
 	const filename = "pkg/testcoverage/coverage/cover.go"
 
-	file, noPrefixName, found := FindFile(prefix+"/"+filename, "")
+	findFile := FindFileCreator("../../../")
+	findFileFallbackToImport := FindFileCreator("")
+
+	file, noPrefixName, found := findFile(prefix + "/" + filename)
 	assert.True(t, found)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, path.NormalizeForOS(filename)))
 
-	file, noPrefixName, found = FindFile(prefix+"/"+filename, prefix)
+	file, noPrefixName, found = findFileFallbackToImport(prefix + "/" + filename)
 	assert.True(t, found)
 	assert.Equal(t, filename, noPrefixName)
 	assert.True(t, strings.HasSuffix(file, path.NormalizeForOS(filename)))
 
-	_, _, found = FindFile(prefix+"/main1.go", "")
+	_, _, found = findFile(prefix + "/main1.go")
 	assert.False(t, found)
 
-	_, _, found = FindFile("", "")
+	_, _, found = findFile("")
 	assert.False(t, found)
 
-	_, _, found = FindFile(prefix, "")
+	_, _, found = findFile(prefix)
 	assert.False(t, found)
 }
 
