@@ -145,6 +145,7 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 		return file, noPrefixName, err == nil
 	}
 
+	rootDir = defaultRootDir(rootDir)
 	prefix := findModuleDirective(rootDir)
 	files := listAllFiles(rootDir)
 	findWalk := func(file, prefix string) (string, string, bool) {
@@ -165,6 +166,14 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 
 		return "", "", false
 	}
+}
+
+func defaultRootDir(rootDir string) string {
+	if rootDir == "" {
+		rootDir = "."
+	}
+
+	return rootDir
 }
 
 func listAllFiles(rootDir string) []fileInfo {
