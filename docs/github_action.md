@@ -31,7 +31,6 @@ Alternatively, if you don't need advanced configuration options from a config fi
     uses: vladopajic/go-test-coverage@v2
     with:
       profile: cover.out
-      local-prefix: github.com/org/project
       threshold-file: 80
       threshold-package: 80
       threshold-total: 95

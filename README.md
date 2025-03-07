@@ -90,10 +90,6 @@ Here’s an example [.testcoverage.yml](./.testcoverage.example.yml) configurati
 # of profile files, e.g., 'cover_unit.out,cover_integration.out'.
 profile: cover.out
 
-# (optional; but recommended to set) 
-# When specified reported file paths will not contain local prefix in the output.
-local-prefix: "github.com/org/project"
-
 # Holds coverage thresholds percentages, values should be in range [0-100].
 threshold:
   # (optional; default 0) 

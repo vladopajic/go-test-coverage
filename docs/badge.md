@@ -21,7 +21,6 @@ Example:
   uses: vladopajic/go-test-coverage@v2
   with:
     profile: cover.out
-    local-prefix: github.com/org/project
     threshold-total: 95
 
     ## when token is not specified (value '') this feature is turned off
@@ -67,7 +66,6 @@ Example:
   uses: vladopajic/go-test-coverage@v2
   with:
     profile: cover.out
-    local-prefix: github.com/org/project
     threshold-total: 95
 
     ## when secret is not specified (value '') this feature is turned off.
@@ -94,7 +92,6 @@ Example:
   uses: vladopajic/go-test-coverage@v2
   with:
     profile: cover.out
-    local-prefix: github.com/org/project
     threshold-total: 95
 
     # badge will be generated and store on file system with `coverage.svg` name
@@ -113,7 +110,6 @@ Example:
   uses: vladopajic/go-test-coverage@v2
   with:
     profile: cover.out
-    local-prefix: github.com/org/project
     threshold-total: 95
 
     ## in this case token should be from other repository that will host badges.

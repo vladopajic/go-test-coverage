@@ -22,15 +22,16 @@ var (
 )
 
 type Config struct {
-	Profile            string     `yaml:"profile"`
-	LocalPrefix        string     `yaml:"local-prefix"`
-	Threshold          Threshold  `yaml:"threshold"`
-	Override           []Override `yaml:"override,omitempty"`
-	Exclude            Exclude    `yaml:"exclude"`
-	BreakdownFileName  string     `yaml:"breakdown-file-name"`
-	GithubActionOutput bool       `yaml:"github-action-output"`
-	Diff               Diff       `yaml:"diff"`
-	Badge              Badge      `yaml:"-"`
+	Profile               string     `yaml:"profile"`
+	LocalPrefixDeprecated string     `yaml:"-"`
+	Threshold             Threshold  `yaml:"threshold"`
+	Override              []Override `yaml:"override,omitempty"`
+	Exclude               Exclude    `yaml:"exclude"`
+	BreakdownFileName     string     `yaml:"breakdown-file-name"`
+	GithubActionOutput    bool       `yaml:"github-action-output"`
+	Diff                  Diff       `yaml:"diff"`
+	Badge                 Badge      `yaml:"-"`
+	RootDir               string     `yaml:"-"`
 }
 
 type Threshold struct {

@@ -15,8 +15,8 @@ inputs:
     required: false
     default: ""
     type: string
-  local-prefix:
-    description: When specified reported file paths will not contain local prefix in the output. Overrides value from configuration.
+  local-prefix: # DEPRECATED
+    description: DEPRECATED: not used anymore.
     required: false
     default: ""
     type: string
@@ -132,7 +132,6 @@ runs:
     - --config=${{ inputs.config || '''''' }}
     - --profile=${{ inputs.profile || '''''' }}
     - --github-action-output=true
-    - --local-prefix=${{ inputs.local-prefix || '''''' }}
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}
     - --threshold-total=${{ inputs.threshold-total }}

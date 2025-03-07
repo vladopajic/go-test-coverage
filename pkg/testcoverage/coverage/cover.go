@@ -20,8 +20,8 @@ const IgnoreText = "coverage-ignore"
 
 type Config struct {
 	Profiles     []string
-	LocalPrefix  string
 	ExcludePaths []string
+	RootDir      string
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -30,7 +30,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 		return nil, fmt.Errorf("parsing profiles: %w", err)
 	}
 
-	files, err := findFiles(profiles, cfg.LocalPrefix)
+	files, err := findFiles(profiles, cfg.RootDir)
 	if err != nil {
 		return nil, err
 	}
@@ -102,12 +102,15 @@ type fileInfo struct {
 	noPrefixName string
 }
 
-func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, error) {
+func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, error) {
 	result := make(map[string]fileInfo)
-	findFile := findFileCreator()
+	if rootDir == "" {
+		rootDir = "."
+	}
+	findFile := findFileCreator(rootDir)
 
 	for _, profile := range profiles {
-		file, noPrefixName, found := findFile(profile.FileName, prefix)
+		file, noPrefixName, found := findFile(profile.FileName)
 		if !found {
 			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
 		}
@@ -121,10 +124,8 @@ func findFiles(profiles []*cover.Profile, prefix string) (map[string]fileInfo, e
 	return result, nil
 }
 
-func findFileCreator() func(file, prefix string) (string, string, bool) {
+func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 	cache := make(map[string]*build.Package)
-	files := listAllFiles(".")
-
 	findBuildImport := func(file string) (string, string, bool) {
 		dir, file := filepath.Split(file)
 		pkg, exists := cache[dir]
@@ -147,6 +148,8 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 		return file, noPrefixName, err == nil
 	}
 
+	prefix := findModuleDirective(rootDir)
+	files := listAllFiles(rootDir)
 	findWalk := func(file, prefix string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
 		f, found := hasFile(files, noPrefixName)
@@ -154,8 +157,8 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 		return path.NormalizeForOS(f), noPrefixName, found
 	}
 
-	return func(file, prefix string) (string, string, bool) {
-		if fPath, fNoPrefix, found := findWalk(file, prefix); found { // coverage-ignore
+	return func(file string) (string, string, bool) {
+		if fPath, fNoPrefix, found := findWalk(file, prefix); found {
 			return fPath, fNoPrefix, found
 		}
 
@@ -167,8 +170,13 @@ func findFileCreator() func(file, prefix string) (string, string, bool) {
 	}
 }
 
-func listAllFiles(rootDir string) []string {
-	files := make([]string, 0)
+type localFileInfo struct {
+	path string
+	name string
+}
+
+func listAllFiles(rootDir string) []localFileInfo {
+	files := make([]localFileInfo, 0)
 
 	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
 	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
@@ -179,7 +187,14 @@ func listAllFiles(rootDir string) []string {
 		if !info.IsDir() &&
 			strings.HasSuffix(file, ".go") &&
 			!strings.HasSuffix(file, "_test.go") {
-			files = append(files, path.NormalizeForTool(file))
+
+			name, _ := strings.CutPrefix(file, rootDir)
+			name = path.NormalizeForTool(file)
+
+			files = append(files, localFileInfo{
+				path: file,
+				name: name,
+			})
 		}
 
 		return nil
@@ -188,16 +203,16 @@ func listAllFiles(rootDir string) []string {
 	return files
 }
 
-func hasFile(files []string, search string) (string, bool) {
+func hasFile(files []localFileInfo, search string) (string, bool) {
 	var result string
 
 	for _, f := range files {
-		if strings.HasSuffix(f, search) {
+		if strings.HasSuffix(f.name, search) {
 			if result != "" {
 				return "", false
 			}
 
-			result = f
+			result = f.path
 		}
 	}
 

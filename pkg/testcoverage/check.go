@@ -68,8 +68,8 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
 		Profiles:     strings.Split(cfg.Profile, ","),
-		LocalPrefix:  cfg.LocalPrefix,
 		ExcludePaths: cfg.Exclude.Paths,
+		RootDir:      cfg.RootDir,
 	})
 }
 

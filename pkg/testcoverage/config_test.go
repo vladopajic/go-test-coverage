@@ -201,10 +201,9 @@ func TestConfigYamlParse(t *testing.T) {
 
 func nonZeroConfig() Config {
 	return Config{
-		Profile:     "cover.out",
-		LocalPrefix: "prefix",
-		Threshold:   Threshold{100, 100, 100},
-		Override:    []Override{{Path: "pathToFile", Threshold: 99}},
+		Profile:   "cover.out",
+		Threshold: Threshold{100, 100, 100},
+		Override:  []Override{{Path: "pathToFile", Threshold: 99}},
 		Exclude: Exclude{
 			Paths: []string{"path1", "path2"},
 		},
@@ -219,7 +218,6 @@ func nonZeroConfig() Config {
 func nonZeroYaml() string {
 	return `
 profile: cover.out
-local-prefix: prefix
 threshold:
     file: 100
     package: 100
