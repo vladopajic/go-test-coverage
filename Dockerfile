@@ -1,5 +1,5 @@
-# GO_VERSION: go version should match version in go.mod file
-FROM golang:1.24 as builder
+# GO_VERSION: automatically update to most recent via dependabot
+FROM golang:1.24.1 as builder
 WORKDIR /workspace
 
 COPY go.mod go.mod
