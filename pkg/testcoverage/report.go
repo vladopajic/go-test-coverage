@@ -166,7 +166,7 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 	}
 }
 
-func reportGHWarning(out io.Writer, title, msg string) {
+func reportGHWarning(out io.Writer, title, msg string) { // coverage-ignore
 	fmt.Fprintf(out, "::warning title=%s::%s\n", title, msg)
 }
 

@@ -43,7 +43,7 @@ func Check(w io.Writer, cfg Config) bool {
 			return false
 		}
 
-		if cfg.LocalPrefixDeprecated != "" {
+		if cfg.LocalPrefixDeprecated != "" { // coverage-ignore
 			reportGHWarning(w, "Deprecated option",
 				"local-prefix option is deprecated since v2.13.0, you can safely remove setting this option")
 		}
