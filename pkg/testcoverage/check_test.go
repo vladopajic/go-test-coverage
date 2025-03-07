@@ -22,8 +22,8 @@ const (
 	breakdownOK  = testdataDir + testdata.BreakdownOK
 	breakdownNOK = testdataDir + testdata.BreakdownNOK
 
-	prefix  = "github.com/vladopajic/go-test-coverage/v2"
-	rootDir = "../../"
+	prefix    = "github.com/vladopajic/go-test-coverage/v2"
+	sourceDir = "../../"
 )
 
 func TestCheck(t *testing.T) {
@@ -60,7 +60,7 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, RootDir: rootDir}
+		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, SourceDir: sourceDir}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
@@ -79,7 +79,7 @@ func TestCheck(t *testing.T) {
 			Exclude: Exclude{
 				Paths: []string{`cdn\.go$`, `github\.go$`, `cover\.go$`, `check\.go$`, `path\.go$`},
 			},
-			RootDir: rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -92,7 +92,7 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}, RootDir: rootDir}
+		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}, SourceDir: sourceDir}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
@@ -113,7 +113,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 100},
 			Override:  []Override{{Threshold: 10, Path: "^pkg"}},
-			RootDir:   rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -131,7 +131,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 10},
 			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
-			RootDir:   rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -153,7 +153,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 70},
 			Override:  []Override{{Threshold: 60, Path: "pkg/testcoverage/badgestorer/github.go"}},
-			RootDir:   rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -171,7 +171,7 @@ func TestCheck(t *testing.T) {
 			Profile:   profileOK,
 			Threshold: Threshold{File: 70},
 			Override:  []Override{{Threshold: 80, Path: "pkg/testcoverage/badgestorer/github.go"}},
-			RootDir:   rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -195,7 +195,7 @@ func TestCheck(t *testing.T) {
 			Badge: Badge{
 				FileName: t.TempDir(), // should failed because this is dir
 			},
-			RootDir: rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -209,7 +209,7 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:           profileOK,
 			BreakdownFileName: t.TempDir(), // should failed because this is dir
-			RootDir:           rootDir,
+			SourceDir:         sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -223,7 +223,7 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:           profileOK,
 			BreakdownFileName: t.TempDir() + "/breakdown.testcoverage",
-			RootDir:           rootDir,
+			SourceDir:         sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -246,7 +246,7 @@ func TestCheck(t *testing.T) {
 			Diff: Diff{
 				BaseBreakdownFileName: t.TempDir(), // should failed because this is dir
 			},
-			RootDir: rootDir,
+			SourceDir: sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -268,7 +268,7 @@ func TestCheckNoParallel(t *testing.T) {
 			Profile:            profileOK,
 			GithubActionOutput: true,
 			Threshold:          Threshold{Total: 100},
-			RootDir:            rootDir,
+			SourceDir:          sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)
@@ -283,7 +283,7 @@ func TestCheckNoParallel(t *testing.T) {
 			Profile:            profileOK,
 			GithubActionOutput: true,
 			Threshold:          Threshold{Total: 10},
-			RootDir:            rootDir,
+			SourceDir:          sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
@@ -302,7 +302,7 @@ func TestCheckNoParallel(t *testing.T) {
 			Profile:            profileOK,
 			GithubActionOutput: true,
 			Threshold:          Threshold{Total: 100},
-			RootDir:            rootDir,
+			SourceDir:          sourceDir,
 		}
 		pass := Check(buf, cfg)
 		assert.False(t, pass)

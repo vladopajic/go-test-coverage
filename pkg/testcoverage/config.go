@@ -24,6 +24,7 @@ var (
 type Config struct {
 	Profile               string     `yaml:"profile"`
 	LocalPrefixDeprecated string     `yaml:"-"`
+	SourceDir             string     `yaml:"-"`
 	Threshold             Threshold  `yaml:"threshold"`
 	Override              []Override `yaml:"override,omitempty"`
 	Exclude               Exclude    `yaml:"exclude"`
@@ -31,7 +32,6 @@ type Config struct {
 	GithubActionOutput    bool       `yaml:"github-action-output"`
 	Diff                  Diff       `yaml:"diff"`
 	Badge                 Badge      `yaml:"-"`
-	RootDir               string     `yaml:"-"`
 }
 
 type Threshold struct {
