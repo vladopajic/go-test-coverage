@@ -15,8 +15,9 @@ inputs:
     required: false
     default: ""
     type: string
-  local-prefix: # DEPRECATED
-    description: DEPRECATED: not used anymore.
+  # DEPRECATED
+  local-prefix: 
+    description: DEPRECATED! not used anymore.
     required: false
     default: ""
     type: string
