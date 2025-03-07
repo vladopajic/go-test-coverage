@@ -45,7 +45,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
 		}
 
-		if ok := matches(excludeRules, fi.noPrefixName); ok {
+		if ok := matches(excludeRules, fi.name); ok {
 			continue // this file is excluded
 		}
 
@@ -92,14 +92,14 @@ func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
 	}
 
 	s := sumCoverage(profile, funcs, blocks, annotations)
-	s.Name = fi.noPrefixName
+	s.Name = fi.name
 
 	return s, nil
 }
 
 type fileInfo struct {
-	path         string
-	noPrefixName string
+	path string
+	name string
 }
 
 func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, error) {
@@ -113,8 +113,8 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 		}
 
 		result[profile.FileName] = fileInfo{
-			path:         file,
-			noPrefixName: noPrefixName,
+			path: file,
+			name: noPrefixName,
 		}
 	}
 
@@ -177,13 +177,8 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 	}
 }
 
-type localFileInfo struct {
-	path string
-	name string
-}
-
-func listAllFiles(rootDir string) []localFileInfo {
-	files := make([]localFileInfo, 0)
+func listAllFiles(rootDir string) []fileInfo {
+	files := make([]fileInfo, 0)
 
 	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
 	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
@@ -197,7 +192,7 @@ func listAllFiles(rootDir string) []localFileInfo {
 			name, _ := strings.CutPrefix(file, rootDir)
 			name = path.NormalizeForTool(name)
 
-			files = append(files, localFileInfo{
+			files = append(files, fileInfo{
 				path: file,
 				name: name,
 			})
@@ -209,7 +204,7 @@ func listAllFiles(rootDir string) []localFileInfo {
 	return files
 }
 
-func hasFile(files []localFileInfo, search string) (string, bool) {
+func hasFile(files []fileInfo, search string) (string, bool) {
 	var result string
 
 	for _, f := range files {
