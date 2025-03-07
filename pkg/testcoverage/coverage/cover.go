@@ -107,13 +107,13 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	findFile := findFileCreator(rootDir)
 
 	for _, profile := range profiles {
-		file, noPrefixName, found := findFile(profile.FileName)
+		path, noPrefixName, found := findFile(profile.FileName)
 		if !found {
 			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
 		}
 
 		result[profile.FileName] = fileInfo{
-			path: file,
+			path: path,
 			name: noPrefixName,
 		}
 	}
@@ -164,13 +164,13 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 		return path.NormalizeForOS(f), noPrefixName, found
 	}
 
-	return func(file string) (string, string, bool) {
-		if fPath, fNoPrefix, found := findWalk(file, prefix); found {
-			return fPath, fNoPrefix, found
+	return func(fileName string) (string, string, bool) {
+		if path, name, found := findWalk(fileName, prefix); found {
+			return path, name, found
 		}
 
-		if fPath, fNoPrefix, found := findBuildImport(file); found {
-			return fPath, fNoPrefix, found
+		if path, name, found := findBuildImport(fileName); found {
+			return path, name, found
 		}
 
 		return "", "", false
