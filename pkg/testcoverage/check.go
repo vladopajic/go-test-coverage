@@ -42,6 +42,11 @@ func Check(w io.Writer, cfg Config) bool {
 			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
 			return false
 		}
+
+		if cfg.LocalPrefixDeprecated != "" {
+			reportGHWarning(w, "Deprecated option",
+				"local-prefix option is deprecated since v2.13.0, you can safely remove setting this option")
+		}
 	}
 
 	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
