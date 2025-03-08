@@ -173,28 +173,28 @@ func StatsSerialize(stats []Stats) []byte {
 var ErrInvalidFormat = errors.New("invalid format")
 
 func StatsDeserialize(b []byte) ([]Stats, error) {
-	deserializeLine := func(bl []byte) (Stats, error) {
-		fields := bytes.Split(bl, []byte(";"))
+	deserializeLine := func(line string) (Stats, error) {
+		fields := strings.Split(line, ";")
 		fmt.Printf("\n===== SPLIT %+v", fields)
 
 		if len(fields) != 3 { //nolint:mnd // relax
 			return Stats{}, fmt.Errorf("not 3 fields: %w", ErrInvalidFormat)
 		}
 
-		t, err := strconv.ParseInt(string(fields[1]), 10, 64)
+		t, err := strconv.ParseInt(fields[1], 10, 64)
 		if err != nil {
 			return Stats{}, fmt.Errorf("2nd not int: %w", ErrInvalidFormat)
 		}
 
-		c, err := strconv.ParseInt(string(fields[2]), 10, 64)
+		c, err := strconv.ParseInt(fields[2], 10, 64)
 		if err != nil {
 			return Stats{}, fmt.Errorf("3rd not int: %w", ErrInvalidFormat)
 		}
 
-		return Stats{Name: string(fields[0]), Total: t, Covered: c}, nil
+		return Stats{Name: fields[0], Total: t, Covered: c}, nil
 	}
 
-	lines := bytes.Split(b, []byte("\n"))
+	lines := strings.Split(string(b), "\n")
 	result := make([]Stats, 0, len(lines))
 
 	for _, l := range lines {
