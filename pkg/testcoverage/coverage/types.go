@@ -175,6 +175,8 @@ var ErrInvalidFormat = errors.New("invalid format")
 func StatsDeserialize(b []byte) ([]Stats, error) {
 	deserializeLine := func(bl []byte) (Stats, error) {
 		fields := bytes.Split(bl, []byte(";"))
+		fmt.Printf("\n===== SPLIT %+v", fields)
+
 		if len(fields) != 3 { //nolint:mnd // relax
 			return Stats{}, fmt.Errorf("not 3 fields: %w", ErrInvalidFormat)
 		}
