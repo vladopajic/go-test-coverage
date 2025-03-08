@@ -34,3 +34,15 @@ check-coverage: test
 view-coverage:
 	go tool cover -html=cover.profile -o=cover.html
 	xdg-open cover.html
+
+# Recreates badges-integration-test branch
+.PHONY: new-branch-badges-integration-test
+new-branch-badges-integration-test:
+	git branch -D badges-integration-test
+	git push origin --delete badges-integration-test
+	git checkout --orphan badges-integration-test
+	git rm -rf .
+	echo "# Badges from Integration Tests" > README.md
+	git add README.md
+	git commit -m "initial commit"
+	git push origin badges-integration-test
