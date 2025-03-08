@@ -132,8 +132,6 @@ func loadBaseCoverageBreakdown(cfg Config) ([]coverage.Stats, error) {
 		return nil, fmt.Errorf("reading file content failed: %w", err)
 	}
 
-	fmt.Printf("\n========= DATA: %v", string(data))
-
 	stats, err := coverage.StatsDeserialize(data)
 	if err != nil {
 		return nil, fmt.Errorf("parsing file failed: %w", err)
