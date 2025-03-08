@@ -179,17 +179,21 @@ func StatsDeserialize(b []byte) ([]Stats, error) {
 			return Stats{}, ErrInvalidFormat
 		}
 
-		t, err := strconv.ParseInt(string(fields[1]), 10, 64)
+		t, err := strconv.ParseInt(strings.TrimSpace(string(fields[1])), 10, 64)
 		if err != nil {
 			return Stats{}, ErrInvalidFormat
 		}
 
-		c, err := strconv.ParseInt(string(fields[2]), 10, 64)
+		c, err := strconv.ParseInt(strings.TrimSpace(string(fields[2])), 10, 64)
 		if err != nil {
 			return Stats{}, ErrInvalidFormat
 		}
 
-		return Stats{Name: string(fields[0]), Total: t, Covered: c}, nil
+		return Stats{
+			Name:    strings.TrimSpace(string(fields[0])),
+			Total:   t,
+			Covered: c,
+		}, nil
 	}
 
 	lines := bytes.Split(b, []byte("\n"))

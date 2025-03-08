@@ -3,7 +3,6 @@ package testcoverage_test
 import (
 	"bytes"
 	"os"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -422,10 +421,6 @@ func TestLoadBaseCoverageBreakdown(t *testing.T) {
 
 	if testing.Short() {
 		return
-	}
-
-	if runtime.GOOS == "windows" {
-		t.Skip("tests fails windows in ci, but works locally")
 	}
 
 	stats, err := LoadBaseCoverageBreakdown(Config{Diff: Diff{}})
