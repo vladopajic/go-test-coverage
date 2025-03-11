@@ -148,23 +148,21 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 	rootDir = defaultRootDir(rootDir)
 	prefix := findModuleDirective(rootDir)
 	files := listAllFiles(rootDir)
-	findWalk := func(file, prefix string) (string, string, bool) {
+	findFsSearch := func(file string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
-		f, found := hasFile(files, noPrefixName)
+		fPath := hasFile(files, noPrefixName)
 
-		return path.NormalizeForOS(f), noPrefixName, found
+		return path.NormalizeForOS(fPath), noPrefixName, fPath != ""
 	}
 
 	return func(fileName string) (string, string, bool) {
-		if path, name, found := findWalk(fileName, prefix); found {
+		if path, name, found := findFsSearch(fileName); found {
 			return path, name, found
 		}
 
-		if path, name, found := findBuildImport(fileName); found {
-			return path, name, found
-		}
-
-		return "", "", false
+		// when file is not find searching file system, search will fallback to
+		// searching using build.Import, which can be slower on some systems (windows)
+		return findBuildImport(fileName)
 	}
 }
 
@@ -207,20 +205,22 @@ func listAllFiles(rootDir string) []fileInfo {
 	return files
 }
 
-func hasFile(files []fileInfo, search string) (string, bool) {
+func hasFile(files []fileInfo, search string) string {
 	var result string
 
 	for _, f := range files {
 		if strings.HasSuffix(f.name, search) {
 			if result != "" {
-				return "", false
+				// when multiple files are found with same suffix
+				// assume file is not found (fallback mechanism will be used)
+				return ""
 			}
 
 			result = f.path
 		}
 	}
 
-	return result, result != ""
+	return result
 }
 
 func findAnnotations(source []byte) ([]extent, error) {
