@@ -6,6 +6,7 @@ import (
 	"go/build"
 	"go/parser"
 	"go/token"
+	"math"
 	"os"
 	"path/filepath"
 	"sort"
@@ -150,12 +151,16 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 	files := listAllFiles(rootDir)
 	findFsSearch := func(file string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
-		fPath := hasFile(files, noPrefixName)
+		fPath := findFilePathMatchingSearch(&files, noPrefixName)
 
 		return path.NormalizeForOS(fPath), noPrefixName, fPath != ""
 	}
 
 	return func(fileName string) (string, string, bool) {
+		if fileName == "" {
+			return "", "", false
+		}
+
 		if path, name, found := findFsSearch(fileName); found {
 			return path, name, found
 		}
@@ -205,22 +210,41 @@ func listAllFiles(rootDir string) []fileInfo {
 	return files
 }
 
-func hasFile(files []fileInfo, search string) string {
-	var result string
+func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
+	// Finds file that best matches search. For example search file "foo.go"
+	// matches files "bar/foo.go", "bar/baz/foo.go" and "foo.go", but it's the
+	// best match with "foo.go".
+	bestMatch := func() int {
+		fIndex, searchPos := -1, math.MaxInt64
 
-	for _, f := range files {
-		if strings.HasSuffix(f.name, search) {
-			if result != "" {
-				// when multiple files are found with same suffix
-				// assume file is not found (fallback mechanism will be used)
-				return ""
+		for i, f := range *files {
+			pos := strings.LastIndex(f.name, search)
+			if pos == -1 {
+				continue
 			}
 
-			result = f.path
+			if searchPos > pos {
+				searchPos = pos
+				fIndex = i
+
+				if searchPos == 0 { // 100% match
+					return fIndex
+				}
+			}
 		}
+
+		return fIndex
 	}
 
-	return result
+	i := bestMatch()
+	if i == -1 {
+		return ""
+	}
+
+	path := (*files)[i].path
+	*files = append((*files)[:i], (*files)[i+1:]...)
+
+	return path
 }
 
 func findAnnotations(source []byte) ([]extent, error) {
