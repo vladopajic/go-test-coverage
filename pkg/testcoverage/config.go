@@ -32,6 +32,7 @@ type Config struct {
 	GithubActionOutput    bool       `yaml:"github-action-output"`
 	Diff                  Diff       `yaml:"diff"`
 	Badge                 Badge      `yaml:"-"`
+	PostCoverageComment   bool       `yaml:"post-coverage-comment"`
 }
 
 type Threshold struct {
