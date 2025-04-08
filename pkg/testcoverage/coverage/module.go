@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+//nolint:forbidigo // relax
 func findModuleDirective(rootDir string) string {
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
