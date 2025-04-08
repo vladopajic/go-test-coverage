@@ -2,6 +2,7 @@ package coverage
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,10 +11,16 @@ import (
 func findModuleDirective(rootDir string) string {
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
+		fmt.Printf("could not find go.mod file in root dir: %s\n", rootDir)
 		return ""
 	}
 
-	return readModuleDirective(goModFile)
+	module := readModuleDirective(goModFile)
+	if module == "" {
+		fmt.Println("`module` directive not found")
+	}
+
+	return module
 }
 
 func findGoModFile(rootDir string) string {
@@ -45,7 +52,7 @@ func readModuleDirective(filename string) string {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		line := scanner.Text()
+		line := strings.TrimSpace(scanner.Text())
 		if strings.HasPrefix(line, "module ") {
 			return strings.TrimSpace(strings.TrimPrefix(line, "module "))
 		}
