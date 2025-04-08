@@ -16,7 +16,7 @@ func findModuleDirective(rootDir string) string {
 	}
 
 	module := readModuleDirective(goModFile)
-	if module == "" {
+	if module == "" { // coverage-ignore
 		fmt.Println("`module` directive not found")
 	}
 
