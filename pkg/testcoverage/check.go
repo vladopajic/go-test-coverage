@@ -12,8 +12,8 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-//nolint:maintidx, nonamedreturns // relax
-func Check(wout io.Writer, cfg Config) (passed bool, haderr bool) {
+//nolint:maintidx // relax
+func Check(wout io.Writer, cfg Config) (bool, error) {
 	buffer := &bytes.Buffer{}
 	w := bufio.NewWriter(buffer)
 	//nolint:errcheck // relax
@@ -27,25 +27,27 @@ func Check(wout io.Writer, cfg Config) (passed bool, haderr bool) {
 		wout.Write(buffer.Bytes())
 	}()
 
+	handleErr := func(err error, msg string) (bool, error) {
+		logger.L.Error().Err(err).Msg(msg)
+		return false, fmt.Errorf("%s: %w", msg, err)
+	}
+
 	logger.L.Debug().Msg("running check...")
 	logger.L.Debug().Any("config", cfg).Msg("using configuration")
 
 	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {
-		logger.L.Error().Err(err).Msg("failed to generate coverage statistics")
-		return false, true
+		return handleErr(err, "failed to generate coverage statistics")
 	}
 
 	err = saveCoverageBreakdown(cfg, currentStats)
 	if err != nil {
-		logger.L.Error().Err(err).Msg("failed to save coverage breakdown")
-		return false, true
+		return handleErr(err, "failed to save coverage breakdown")
 	}
 
 	baseStats, err := loadBaseCoverageBreakdown(cfg)
 	if err != nil {
-		logger.L.Error().Err(err).Msg("failed to load base coverage breakdown")
-		return false, true
+		return handleErr(err, "failed to load base coverage breakdown")
 	}
 
 	result := Analyze(cfg, currentStats, baseStats)
@@ -57,8 +59,7 @@ func Check(wout io.Writer, cfg Config) (passed bool, haderr bool) {
 
 		err = SetGithubActionOutput(result, report)
 		if err != nil {
-			logger.L.Error().Err(err).Msg("failed setting github action output")
-			return false, true
+			return handleErr(err, "failed setting github action output")
 		}
 
 		if cfg.LocalPrefixDeprecated != "" { // coverage-ignore
@@ -69,11 +70,10 @@ func Check(wout io.Writer, cfg Config) (passed bool, haderr bool) {
 
 	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
 	if err != nil {
-		logger.L.Error().Err(err).Msg("failed to generate and save badge")
-		return false, true
+		return handleErr(err, "failed to generate and save badge")
 	}
 
-	return result.Pass(), false
+	return result.Pass(), nil
 }
 
 func reportForHuman(w io.Writer, result AnalyzeResult) string {

@@ -23,8 +23,8 @@ func main() {
 
 	logger.Init()
 
-	pass, haderr := testcoverage.Check(os.Stdout, cfg)
-	if haderr {
+	pass, err := testcoverage.Check(os.Stdout, cfg)
+	if err != nil {
 		fmt.Println("Running coverage check failed.")
 		if cfg.GithubActionOutput {
 			fmt.Printf("Please set `debug: true` input to see detailed output.")
@@ -32,7 +32,7 @@ func main() {
 			fmt.Println("Please use `--debug=true` flag to see detailed output.")
 		}
 	}
-	if !pass || haderr {
+	if !pass || err != nil {
 		os.Exit(1)
 	}
 }
