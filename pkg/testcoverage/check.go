@@ -9,9 +9,27 @@ import (
 	"strings"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-func Check(w io.Writer, cfg Config) bool {
+//nolint:maintidx // relax
+func Check(wout io.Writer, cfg Config) bool {
+	buffer := &bytes.Buffer{}
+	w := bufio.NewWriter(buffer)
+	//nolint:errcheck // relax
+	defer func() {
+		if cfg.Debug {
+			wout.Write(logger.Buffer.Bytes())
+			wout.Write([]byte("-------------------------\n\n"))
+		}
+
+		w.Flush()
+		wout.Write(buffer.Bytes())
+	}()
+
+	logger.L.Debug().Msg("running check...")
+	logger.L.Debug().Any("config", cfg).Msg("using configuration")
+
 	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {
 		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)

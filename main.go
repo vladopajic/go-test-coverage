@@ -26,6 +26,7 @@ const (
 type args struct {
 	ConfigPath         string `arg:"-c,--config"`
 	Profile            string `arg:"-p,--profile"              help:"path to coverage profile"`
+	Debug              bool   `arg:"-d,--debug"`
 	LocalPrefix        string `arg:"-l,--local-prefix"` // deprecated
 	SourceDir          string `arg:"-s,--source-dir"`
 	GithubActionOutput bool   `arg:"-o,--github-action-output"`
@@ -56,6 +57,7 @@ func newArgs() args {
 	return args{
 		ConfigPath:         ciDefaultString,
 		Profile:            ciDefaultString,
+		Debug:              false,
 		LocalPrefix:        ciDefaultString,
 		SourceDir:          ciDefaultString,
 		GithubActionOutput: false,
@@ -94,6 +96,10 @@ func (*args) Version() string {
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	if !isCIDefaultString(a.Profile) {
 		cfg.Profile = a.Profile
+	}
+
+	if a.Debug {
+		cfg.Debug = true
 	}
 
 	if a.GithubActionOutput {

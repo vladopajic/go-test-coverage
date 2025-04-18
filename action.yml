@@ -13,6 +13,11 @@ inputs:
     required: false
     default: ""
     type: string
+  debug:
+    description: Prints additional debugging output when running action.
+    required: false
+    default: false
+    type: boolean
 
   # Individual properties
   profile:
@@ -138,6 +143,7 @@ runs:
     - --config=${{ inputs.config || '''''' }}
     - --profile=${{ inputs.profile || '''''' }}
     - --source-dir=${{ inputs.source-dir || '''''' }}
+    - --debug=${{ inputs.debug }}
     - --github-action-output=true
     - --threshold-file=${{ inputs.threshold-file }}
     - --threshold-package=${{ inputs.threshold-package }}

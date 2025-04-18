@@ -23,6 +23,7 @@ var (
 
 type Config struct {
 	Profile               string     `yaml:"profile"`
+	Debug                 bool       `yaml:"-"`
 	LocalPrefixDeprecated string     `yaml:"-"`
 	SourceDir             string     `yaml:"-"`
 	Threshold             Threshold  `yaml:"threshold"`
