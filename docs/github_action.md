@@ -123,19 +123,8 @@ Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage
       config: ./.github/.testcoverage.yml
 
   # Post coverage report as comment (in 2 steps)
-  - name: find pull request ID
-    run: |
-        PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
-        PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
-        
-        if [ "$PR_ID" != "null" ]; then
-          echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
-        else
-          echo "No open pull request found for this branch."
-        fi
   - name: post coverage report
-    if: env.pull_request_id
+    if: ${{ github.event_name == 'pull_request' }}
     uses: thollander/actions-comment-pull-request@v3
     with:
       github-token: ${{ secrets.GITHUB_TOKEN }}
@@ -144,7 +133,8 @@ Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage
       message: |
         go-test-coverage report:
         ```
-        ${{ fromJSON(steps.coverage.outputs.report) }}```
+        ${{ fromJSON(steps.coverage.outputs.report) }}
+        ```
 
   - name: "finally check coverage"
     if: steps.coverage.outcome == 'failure'
