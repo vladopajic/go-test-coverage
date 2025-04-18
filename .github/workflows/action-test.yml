@@ -66,7 +66,6 @@ jobs:
       
       - name: "check: test output values"
         if: ${{ steps.test-1.outputs.total-coverage == '' ||  steps.test-1.outputs.badge-text == '' || steps.test-1.outputs.badge-color == '' }}
-        shell: bash
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 2
@@ -80,12 +79,10 @@ jobs:
       
       - name: "check: test should have failed"
         if: steps.test-2.outcome != 'failure'
-        shell: bash
         run: echo "Previous step should have failed" && exit 1
 
       - name: "check: test output values"
         if: ${{ steps.test-2.outputs.total-coverage == '' ||  steps.test-2.outputs.badge-text == '' || steps.test-2.outputs.badge-color == '' }}
-        shell: bash
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 3
@@ -113,7 +110,6 @@ jobs:
       
       - name: "check: test should have failed"
         if: steps.test-4.outcome != 'failure'
-        shell: bash
         run: echo "Previous step should have failed" && exit 1
 
       ## Test 5
@@ -141,6 +137,5 @@ jobs:
           threshold-total: 100
       
       - name: "check: test should have failed"
-        if: steps.test-4.outcome != 'failure'
-        shell: bash
+        if: steps.test-6.outcome != 'failure'
         run: echo "Previous step should have failed" && exit 1
