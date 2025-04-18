@@ -32,8 +32,8 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 		return false, fmt.Errorf("%s: %w", msg, err)
 	}
 
-	logger.L.Debug().Msg("running check...")
-	logger.L.Debug().Any("config", cfg).Msg("using configuration")
+	logger.L.Info().Msg("running check...")
+	logger.L.Info().Any("config", cfg).Msg("using configuration")
 
 	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {

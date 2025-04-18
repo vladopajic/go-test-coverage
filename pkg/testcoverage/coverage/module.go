@@ -12,13 +12,13 @@ import (
 func findModuleDirective(rootDir string) string {
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
-		logger.L.Debug().Str("dir", rootDir).Msg("could not find go.mod file in root dir")
+		logger.L.Warn().Str("dir", rootDir).Msg("could not find go.mod file in root dir")
 		return ""
 	}
 
 	module := readModuleDirective(goModFile)
 	if module == "" { // coverage-ignore
-		logger.L.Debug().Msg("`module` directive not found")
+		logger.L.Warn().Msg("`module` directive not found")
 	}
 
 	return module
