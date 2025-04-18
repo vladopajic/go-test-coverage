@@ -12,13 +12,13 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-//nolint:maintidx,nonamedreturns // relax
-func Check(wout io.Writer, cfg Config) (pass bool, err error) {
+//nolint:maintidx // relax
+func Check(wout io.Writer, cfg Config) (bool, error) {
 	buffer := &bytes.Buffer{}
 	w := bufio.NewWriter(buffer)
 	//nolint:errcheck // relax
 	defer func() {
-		if cfg.Debug || err != nil {
+		if cfg.Debug {
 			wout.Write(logger.Bytes())
 			wout.Write([]byte("-------------------------\n\n"))
 		}
