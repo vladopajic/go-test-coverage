@@ -13,7 +13,7 @@ const (
 	Name    = "go-test-coverage"
 )
 
-//nolint:forbidigo // relax
+//nolint:forbidigo,wsl // relax
 func main() {
 	cfg, err := readConfig()
 	if err != nil {
@@ -23,8 +23,11 @@ func main() {
 
 	logger.Init()
 
-	pass := testcoverage.Check(os.Stdout, cfg)
-	if !pass {
+	pass, haderr := testcoverage.Check(os.Stdout, cfg)
+	if haderr {
+		fmt.Println("\nRunning coverage check failed. Please use --debug=true flag to see detailed output.")
+	}
+	if !pass || haderr {
 		os.Exit(1)
 	}
 }

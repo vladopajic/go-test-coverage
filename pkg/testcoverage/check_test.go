@@ -37,8 +37,9 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		pass := Check(buf, Config{})
+		pass, haderr := Check(buf, Config{})
 		assert.False(t, pass)
+		assert.True(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 0)
 		assertNoUncoveredLinesInfo(t, buf.String())
@@ -49,8 +50,9 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
+		assert.True(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 0)
 		assertNoUncoveredLinesInfo(t, buf.String())
@@ -61,8 +63,9 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, SourceDir: sourceDir}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
 		assertNoFileNames(t, buf.String(), prefix)
@@ -81,8 +84,9 @@ func TestCheck(t *testing.T) {
 			},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
 		assertNoUncoveredLinesInfo(t, buf.String())
@@ -93,8 +97,9 @@ func TestCheck(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}, SourceDir: sourceDir}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertHasUncoveredLinesInfo(t, buf.String(), []string{
@@ -115,8 +120,9 @@ func TestCheck(t *testing.T) {
 			Override:  []Override{{Threshold: 10, Path: "^pkg"}},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 2, 0)
 		assertNoFileNames(t, buf.String(), prefix)
@@ -133,8 +139,9 @@ func TestCheck(t *testing.T) {
 			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 2)
 		assertHasUncoveredLinesInfo(t, buf.String(), []string{
@@ -155,8 +162,9 @@ func TestCheck(t *testing.T) {
 			Override:  []Override{{Threshold: 60, Path: "pkg/testcoverage/badgestorer/github.go"}},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
 		assertNoFileNames(t, buf.String(), prefix)
@@ -173,8 +181,9 @@ func TestCheck(t *testing.T) {
 			Override:  []Override{{Threshold: 80, Path: "pkg/testcoverage/badgestorer/github.go"}},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assert.GreaterOrEqual(t, strings.Count(buf.String(), prefix), 0)
@@ -197,9 +206,9 @@ func TestCheck(t *testing.T) {
 			},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
-		assertFailedToSaveBadge(t, buf.String())
+		assert.True(t, haderr)
 	})
 
 	t.Run("valid profile - fail invalid breakdown file", func(t *testing.T) {
@@ -211,9 +220,9 @@ func TestCheck(t *testing.T) {
 			BreakdownFileName: t.TempDir(), // should failed because this is dir
 			SourceDir:         sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
-		assert.Contains(t, buf.String(), "failed to save coverage breakdown")
+		assert.True(t, haderr)
 	})
 
 	t.Run("valid profile - valid breakdown file", func(t *testing.T) {
@@ -225,8 +234,9 @@ func TestCheck(t *testing.T) {
 			BreakdownFileName: t.TempDir() + "/breakdown.testcoverage",
 			SourceDir:         sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 
 		contentBytes, err := os.ReadFile(cfg.BreakdownFileName)
 		assert.NoError(t, err)
@@ -248,9 +258,9 @@ func TestCheck(t *testing.T) {
 			},
 			SourceDir: sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
-		assert.Contains(t, buf.String(), "failed to load base coverage breakdown")
+		assert.True(t, haderr)
 	})
 }
 
@@ -270,8 +280,9 @@ func TestCheckNoParallel(t *testing.T) {
 			Threshold:          Threshold{Total: 100},
 			SourceDir:          sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
+		assert.True(t, haderr)
 	})
 
 	t.Run("ok pass; with github output file", func(t *testing.T) {
@@ -285,8 +296,9 @@ func TestCheckNoParallel(t *testing.T) {
 			Threshold:          Threshold{Total: 10},
 			SourceDir:          sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
 		assertHumanReport(t, buf.String(), 1, 0)
 		assertGithubOutputValues(t, testFile)
@@ -304,8 +316,9 @@ func TestCheckNoParallel(t *testing.T) {
 			Threshold:          Threshold{Total: 100},
 			SourceDir:          sourceDir,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.False(t, pass)
+		assert.False(t, haderr)
 		assertGithubActionErrorsCount(t, buf.String(), 1)
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertGithubOutputValues(t, testFile)
@@ -323,8 +336,9 @@ func TestCheckNoParallel(t *testing.T) {
 			SourceDir: sourceDir,
 			Debug:     true,
 		}
-		pass := Check(buf, cfg)
+		pass, haderr := Check(buf, cfg)
 		assert.True(t, pass)
+		assert.False(t, haderr)
 
 		assert.NotEmpty(t, logger.Bytes())
 		assert.Contains(t, buf.String(), string(logger.Bytes()))

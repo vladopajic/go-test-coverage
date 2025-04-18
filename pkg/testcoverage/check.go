@@ -12,8 +12,8 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-//nolint:maintidx // relax
-func Check(wout io.Writer, cfg Config) bool {
+//nolint:maintidx, nonamedreturns // relax
+func Check(wout io.Writer, cfg Config) (passed bool, haderr bool) {
 	buffer := &bytes.Buffer{}
 	w := bufio.NewWriter(buffer)
 	//nolint:errcheck // relax
@@ -32,20 +32,20 @@ func Check(wout io.Writer, cfg Config) bool {
 
 	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {
-		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
-		return false
+		logger.L.Error().Err(err).Msg("failed to generate coverage statistics")
+		return false, true
 	}
 
 	err = saveCoverageBreakdown(cfg, currentStats)
 	if err != nil {
-		fmt.Fprintf(w, "failed to save coverage breakdown: %v\n", err)
-		return false
+		logger.L.Error().Err(err).Msg("failed to save coverage breakdown")
+		return false, true
 	}
 
 	baseStats, err := loadBaseCoverageBreakdown(cfg)
 	if err != nil {
-		fmt.Fprintf(w, "failed to load base coverage breakdown: %v\n", err)
-		return false
+		logger.L.Error().Err(err).Msg("failed to load base coverage breakdown")
+		return false, true
 	}
 
 	result := Analyze(cfg, currentStats, baseStats)
@@ -57,8 +57,8 @@ func Check(wout io.Writer, cfg Config) bool {
 
 		err = SetGithubActionOutput(result, report)
 		if err != nil {
-			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
-			return false
+			logger.L.Error().Err(err).Msg("failed setting github action output")
+			return false, true
 		}
 
 		if cfg.LocalPrefixDeprecated != "" { // coverage-ignore
@@ -69,11 +69,11 @@ func Check(wout io.Writer, cfg Config) bool {
 
 	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
 	if err != nil {
-		fmt.Fprintf(w, "failed to generate and save badge: %v\n", err)
-		return false
+		logger.L.Error().Err(err).Msg("failed to generate and save badge")
+		return false, true
 	}
 
-	return result.Pass()
+	return result.Pass(), false
 }
 
 func reportForHuman(w io.Writer, result AnalyzeResult) string {
