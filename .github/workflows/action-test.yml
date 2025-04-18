@@ -126,3 +126,21 @@ jobs:
           threshold-file: 0
           threshold-package: 0
           threshold-total: 0
+
+      ## Test 6
+
+      - name: "test: debug output"
+        uses: ./
+        id: test-6
+        continue-on-error: true
+        with:
+          profile: unexistant-profile.out
+          debug: true
+          threshold-file: 0
+          threshold-package: 0
+          threshold-total: 100
+      
+      - name: "check: test should have failed"
+        if: steps.test-4.outcome != 'failure'
+        shell: bash
+        run: echo "Previous step should have failed" && exit 1
