@@ -10,6 +10,7 @@ require (
 	github.com/google/go-github/v56 v56.0.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
+	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/tools v0.26.0
 	gopkg.in/yaml.v3 v3.0.1
@@ -26,7 +27,6 @@ require (
 	github.com/mattn/go-isatty v0.0.19 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
-	github.com/rs/zerolog v1.34.0 // indirect
 	github.com/ryszard/goskiplist v0.0.0-20150312221310-2dfbae5fcf46 // indirect
 	github.com/shabbyrobe/gocovmerge v0.0.0-20190829150210-3e036491d500 // indirect
 	golang.org/x/image v0.18.0 // indirect
