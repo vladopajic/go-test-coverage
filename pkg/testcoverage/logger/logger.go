@@ -2,7 +2,6 @@ package logger
 
 import (
 	"bytes"
-	"sync"
 
 	"github.com/rs/zerolog"
 )
@@ -10,7 +9,6 @@ import (
 //nolint:gochecknoglobals // relax
 var (
 	buffer bytes.Buffer
-	lock   sync.Mutex
 	L      zerolog.Logger
 )
 
@@ -24,8 +22,5 @@ func Destruct() {
 }
 
 func Bytes() []byte {
-	lock.Lock()
-	defer lock.Unlock()
-
 	return buffer.Bytes()
 }
