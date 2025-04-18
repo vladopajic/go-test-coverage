@@ -12,13 +12,13 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-//nolint:maintidx // relax
-func Check(wout io.Writer, cfg Config) (bool, error) {
+//nolint:maintidx,nonamedreturns // relax
+func Check(wout io.Writer, cfg Config) (pass bool, err error) {
 	buffer := &bytes.Buffer{}
 	w := bufio.NewWriter(buffer)
 	//nolint:errcheck // relax
 	defer func() {
-		if cfg.Debug {
+		if cfg.Debug || err != nil {
 			wout.Write(logger.Bytes())
 			wout.Write([]byte("-------------------------\n\n"))
 		}
@@ -33,7 +33,7 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 	}
 
 	logger.L.Info().Msg("running check...")
-	logger.L.Info().Any("config", cfg).Msg("using configuration")
+	logger.L.Info().Any("config", cfg.Redacted()).Msg("using configuration")
 
 	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {

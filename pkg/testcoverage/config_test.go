@@ -12,6 +12,36 @@ import (
 
 const nonEmptyStr = "any"
 
+func Test_Config_Redacted(t *testing.T) {
+	t.Parallel()
+
+	cfg := newValidCfg()
+	cfg.Badge.Git.Token = nonEmptyStr
+	cfg.Badge.CDN.Secret = nonEmptyStr
+	cfg.Badge.CDN.Key = nonEmptyStr
+
+	r := cfg.Redacted()
+
+	// redacted should not be equal to original
+	assert.NotEqual(t, cfg, r)
+
+	// original should not change
+	assert.Equal(t, nonEmptyStr, cfg.Badge.Git.Token)
+	assert.Equal(t, nonEmptyStr, cfg.Badge.CDN.Secret)
+	assert.Equal(t, nonEmptyStr, cfg.Badge.CDN.Key)
+
+	// redacted should have hidden values
+	assert.Equal(t, HiddenValue, r.Badge.Git.Token)
+	assert.Equal(t, HiddenValue, r.Badge.CDN.Secret)
+	assert.Equal(t, nonEmptyStr+HiddenValue, r.Badge.CDN.Key)
+
+	// redacted config of empty field should not do anything
+	r = Config{}.Redacted()
+	assert.Empty(t, r.Badge.Git.Token)
+	assert.Empty(t, r.Badge.CDN.Secret)
+	assert.Empty(t, r.Badge.CDN.Key)
+}
+
 func Test_Config_Validate(t *testing.T) {
 	t.Parallel()
 
