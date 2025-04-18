@@ -10,6 +10,7 @@ import (
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/testdata"
 )
@@ -309,6 +310,19 @@ func TestCheckNoParallel(t *testing.T) {
 		assertHumanReport(t, buf.String(), 0, 1)
 		assertGithubOutputValues(t, testFile)
 		assertHasUncoveredLinesInfo(t, buf.String(), []string{})
+	})
+
+	t.Run("logger has output", func(t *testing.T) {
+		logger.Init()
+		defer logger.Destruct()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, SourceDir: sourceDir, Debug: true}
+		pass := Check(buf, cfg)
+		assert.True(t, pass)
+
+		assert.NotEmpty(t, logger.Bytes())
+		assert.Contains(t, buf.String(), string(logger.Bytes()))
 	})
 }
 

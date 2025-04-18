@@ -19,7 +19,7 @@ func Check(wout io.Writer, cfg Config) bool {
 	//nolint:errcheck // relax
 	defer func() {
 		if cfg.Debug {
-			wout.Write(logger.Buffer.Bytes())
+			wout.Write(logger.Bytes())
 			wout.Write([]byte("-------------------------\n\n"))
 		}
 
