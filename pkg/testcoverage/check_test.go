@@ -254,7 +254,7 @@ func TestCheck(t *testing.T) {
 	})
 }
 
-// must not be parallel because it uses env
+//nolint:paralleltest // must not be parallel because it uses env
 func TestCheckNoParallel(t *testing.T) {
 	if testing.Short() {
 		return
@@ -317,7 +317,12 @@ func TestCheckNoParallel(t *testing.T) {
 		defer logger.Destruct()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, SourceDir: sourceDir, Debug: true}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{Total: 65},
+			SourceDir: sourceDir,
+			Debug:     true,
+		}
 		pass := Check(buf, cfg)
 		assert.True(t, pass)
 

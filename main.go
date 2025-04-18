@@ -22,6 +22,7 @@ func main() {
 	}
 
 	logger.Init()
+
 	pass := testcoverage.Check(os.Stdout, cfg)
 	if !pass {
 		os.Exit(1)

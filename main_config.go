@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/alexflint/go-arg"
+
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage"
 )
 
