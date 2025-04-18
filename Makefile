@@ -27,7 +27,7 @@ test:
 # Runs test coverage check
 .PHONY: check-coverage
 check-coverage: test
-	go run ./main.go --config=./.github/.testcoverage-local.yml
+	go run ./ --config=./.github/.testcoverage-local.yml
 
 # View coverage profile
 .PHONY: view-coverage

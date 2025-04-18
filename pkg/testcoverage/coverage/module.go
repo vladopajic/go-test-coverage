@@ -2,23 +2,23 @@ package coverage
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-//nolint:forbidigo // relax
 func findModuleDirective(rootDir string) string {
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
-		fmt.Printf("could not find go.mod file in root dir: %s\n", rootDir)
+		logger.L.Warn().Str("dir", rootDir).Msg("could not find go.mod file in root dir")
 		return ""
 	}
 
 	module := readModuleDirective(goModFile)
 	if module == "" { // coverage-ignore
-		fmt.Println("`module` directive not found")
+		logger.L.Warn().Msg("`module` directive not found")
 	}
 
 	return module

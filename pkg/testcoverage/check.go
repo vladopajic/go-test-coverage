@@ -9,25 +9,45 @@ import (
 	"strings"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-func Check(w io.Writer, cfg Config) bool {
+//nolint:maintidx // relax
+func Check(wout io.Writer, cfg Config) (bool, error) {
+	buffer := &bytes.Buffer{}
+	w := bufio.NewWriter(buffer)
+	//nolint:errcheck // relax
+	defer func() {
+		if cfg.Debug {
+			wout.Write(logger.Bytes())
+			wout.Write([]byte("-------------------------\n\n"))
+		}
+
+		w.Flush()
+		wout.Write(buffer.Bytes())
+	}()
+
+	handleErr := func(err error, msg string) (bool, error) {
+		logger.L.Error().Err(err).Msg(msg)
+		return false, fmt.Errorf("%s: %w", msg, err)
+	}
+
+	logger.L.Info().Msg("running check...")
+	logger.L.Info().Any("config", cfg).Msg("using configuration")
+
 	currentStats, err := GenerateCoverageStats(cfg)
 	if err != nil {
-		fmt.Fprintf(w, "failed to generate coverage statistics: %v\n", err)
-		return false
+		return handleErr(err, "failed to generate coverage statistics")
 	}
 
 	err = saveCoverageBreakdown(cfg, currentStats)
 	if err != nil {
-		fmt.Fprintf(w, "failed to save coverage breakdown: %v\n", err)
-		return false
+		return handleErr(err, "failed to save coverage breakdown")
 	}
 
 	baseStats, err := loadBaseCoverageBreakdown(cfg)
 	if err != nil {
-		fmt.Fprintf(w, "failed to load base coverage breakdown: %v\n", err)
-		return false
+		return handleErr(err, "failed to load base coverage breakdown")
 	}
 
 	result := Analyze(cfg, currentStats, baseStats)
@@ -39,8 +59,7 @@ func Check(w io.Writer, cfg Config) bool {
 
 		err = SetGithubActionOutput(result, report)
 		if err != nil {
-			fmt.Fprintf(w, "failed setting github action output: %v\n", err)
-			return false
+			return handleErr(err, "failed setting github action output")
 		}
 
 		if cfg.LocalPrefixDeprecated != "" { // coverage-ignore
@@ -51,11 +70,10 @@ func Check(w io.Writer, cfg Config) bool {
 
 	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
 	if err != nil {
-		fmt.Fprintf(w, "failed to generate and save badge: %v\n", err)
-		return false
+		return handleErr(err, "failed to generate and save badge")
 	}
 
-	return result.Pass()
+	return result.Pass(), nil
 }
 
 func reportForHuman(w io.Writer, result AnalyzeResult) string {
