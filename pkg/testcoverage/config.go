@@ -13,6 +13,8 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
 )
 
+const HiddenValue = "***"
+
 var (
 	ErrThresholdNotInRange         = errors.New("threshold must be in range [0 - 100]")
 	ErrCoverageProfileNotSpecified = errors.New("coverage profile file not specified")
@@ -58,6 +60,23 @@ type Badge struct {
 	FileName string
 	CDN      badgestorer.CDN
 	Git      badgestorer.Git
+}
+
+//nolint:wsl,mnd // relax
+func (c Config) Redacted() Config {
+	r := c
+
+	if r.Badge.CDN.Key != "" {
+		r.Badge.CDN.Key = r.Badge.CDN.Key[0:min(len(r.Badge.CDN.Key), 5)] + HiddenValue
+	}
+	if r.Badge.CDN.Secret != "" {
+		r.Badge.CDN.Secret = HiddenValue
+	}
+	if r.Badge.Git.Token != "" {
+		r.Badge.Git.Token = HiddenValue
+	}
+
+	return r
 }
 
 func (c Config) Validate() error {
