@@ -26,6 +26,7 @@ func main() {
 	pass, err := testcoverage.Check(os.Stdout, cfg)
 	if err != nil {
 		fmt.Println("Running coverage check failed.")
+		fmt.Printf("Error: %v\n", err)
 		if cfg.GithubActionOutput {
 			fmt.Printf("Please set `debug: true` input to see detailed output.")
 		} else {
