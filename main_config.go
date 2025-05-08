@@ -12,7 +12,7 @@ import (
 
 const (
 	// default value of string variables passed by CI
-	ciDefaultString = `''`
+	ciDefaultString = `***`
 	// default value of int variables passed by CI
 	ciDefaultInt = -1
 )
