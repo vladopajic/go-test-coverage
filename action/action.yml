@@ -1,4 +1,4 @@
-name: go-test-coverage
+name: go-test-coverage (as source)
 author: vladopajic
 description: go-test-coverage is a tool designed to report issues when test coverage falls below a specified threshold.
 branding:
@@ -129,40 +129,65 @@ inputs:
     default: .badges/${{ github.ref_name }}/coverage.svg
     type: string
 
+  version:
+    # VERSION: when changing version update version in other places
+    description: Version of go-test-coverage source to run
+    required: false
+    default: v2.14.3
+    type: string
+
 outputs:
-  total-coverage:
-    description: Integer value in the range [0-100], representing the overall project test coverage percentage.
-  badge-color:
-    description: Color hex code for the badge  (e.g., `#44cc11`), representing the coverage status. 
   report:
     description: JSON-encoded string containing the detailed test coverage report.
+    value: ${{steps.coverage.outputs.report}}
+  total-coverage:
+    description: Integer value in the range [0-100], representing the overall project test coverage percentage.
+    value: ${{steps.coverage.outputs.total-coverage}}
+  badge-color:
+    description: Color hex code for the badge  (e.g., `#44cc11`), representing the coverage status. 
+    value: ${{steps.coverage.outputs.badge-color}}
   badge-text:
     description: Deprecated! Text label for the badge.
+    value: ${{steps.coverage.outputs.badge-text}}
 
 runs:
-  using: docker
-  # VERSION: when changing version update version in other places
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.14.3
-  args:
-    - --config=${{ inputs.config || '***' }}
-    - --profile=${{ inputs.profile || '***' }}
-    - --source-dir=${{ inputs.source-dir || '***' }}
-    - --debug=${{ inputs.debug }}
-    - --github-action-output=true
-    - --threshold-file=${{ inputs.threshold-file }}
-    - --threshold-package=${{ inputs.threshold-package }}
-    - --threshold-total=${{ inputs.threshold-total }}
-    - --breakdown-file-name=${{ inputs.breakdown-file-name || '***' }}
-    - --diff-base-breakdown-file-name=${{ inputs.diff-base-breakdown-file-name || '***' }}
-    - --badge-file-name=${{ inputs.badge-file-name || '***' }}
-    - --cdn-key=${{ inputs.cdn-key || '***' }}
-    - --cdn-secret=${{ inputs.cdn-secret || '***' }}
-    - --cdn-region=${{ inputs.cdn-region || '***' }}
-    - --cdn-endpoint=${{ inputs.cdn-endpoint || '***' }}
-    - --cdn-file-name=${{ inputs.cdn-file-name || '***' }}
-    - --cdn-bucket-name=${{ inputs.cdn-bucket-name || '***' }}
-    - --cdn-force-path-style=${{ inputs.cdn-force-path-style }}
-    - --git-token=${{ inputs.git-token || '***' }}
-    - --git-branch=${{ inputs.git-branch || '***' }}
-    - --git-repository=${{ inputs.git-repository || '***'}}
-    - --git-file-name=${{ inputs.git-file-name || '***' }}
+  using: composite
+  steps: 
+  - name: check if go is installed
+    shell: bash
+    run: |
+      if command -v go >/dev/null 2>&1; then
+        echo "Go is installed"
+        go version
+      else
+        echo "Go is NOT installed. Please install Go before running this action."
+        exit 1
+      fi
+
+  - name: run go-test-coverage
+    id: coverage
+    shell: bash
+    run: |
+      go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} \
+        --config=${{ inputs.config || '***' }} \
+        --profile=${{ inputs.profile || '***' }} \
+        --source-dir=${{ inputs.source-dir || '***' }} \
+        --debug=${{ inputs.debug }} \
+        --github-action-output=true \
+        --threshold-file=${{ inputs.threshold-file }} \
+        --threshold-package=${{ inputs.threshold-package }} \
+        --threshold-total=${{ inputs.threshold-total }} \
+        --breakdown-file-name=${{ inputs.breakdown-file-name || '***' }} \
+        --diff-base-breakdown-file-name=${{ inputs.diff-base-breakdown-file-name || '***' }} \
+        --badge-file-name=${{ inputs.badge-file-name || '***' }} \
+        --cdn-key=${{ inputs.cdn-key || '***' }} \
+        --cdn-secret=${{ inputs.cdn-secret || '***' }} \
+        --cdn-region=${{ inputs.cdn-region || '***' }} \
+        --cdn-endpoint=${{ inputs.cdn-endpoint || '***' }} \
+        --cdn-file-name=${{ inputs.cdn-file-name || '***' }} \
+        --cdn-bucket-name=${{ inputs.cdn-bucket-name || '***' }} \
+        --cdn-force-path-style=${{ inputs.cdn-force-path-style }} \
+        --git-token=${{ inputs.git-token || '***' }} \
+        --git-branch=${{ inputs.git-branch || '***' }} \
+        --git-repository=${{ inputs.git-repository || '***'}} \
+        --git-file-name=${{ inputs.git-file-name || '***' }}

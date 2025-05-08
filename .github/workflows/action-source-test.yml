@@ -1,42 +1,9 @@
-name: action-test
+name: action-test (source version)
 on: [push]
 jobs:
-  build-dev-image:
-    name: build dev image
-    permissions:
-      packages: write
-    runs-on: ubuntu-latest 
-    steps:
-    - name: checkout
-      uses: actions/checkout@v4
-
-    - name: login to GitHub container registry
-      uses: docker/login-action@v3
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: build and push
-      uses: docker/build-push-action@v6
-      with:
-        push: true
-        build-args: |
-          VERSION=dev
-        tags: |
-          ghcr.io/vladopajic/go-test-coverage:dev
-
-    - uses: actions/delete-package-versions@v5
-      with: 
-        owner: vladopajic
-        package-name: go-test-coverage
-        package-type: container
-        min-versions-to-keep: 5
-        delete-only-untagged-versions: true
   test:
     name: test
     runs-on: ubuntu-latest
-    needs: build-dev-image
 
     steps:
       - name: checkout
@@ -50,31 +17,27 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
 
-      - name: set action image version to dev
-        run: |
-          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
-          image=$(yq '.runs.image' action.yml)
-          echo "Image: $image"
-
       ## Test 1
 
       - name: "test: total coverage 0% (config)"
-        uses: ./
+        uses: ./action/.
         id: test-1
         with:
+          version: ${{ github.sha }}
           config: ./.github/workflows/testdata/zero.yml
       
       - name: "check: test output values"
-        if: ${{ steps.test-1.outputs.total-coverage == '' ||  steps.test-1.outputs.badge-text == '' || steps.test-1.outputs.badge-color == '' }}
+        if: ${{ steps.test-1.outputs.total-coverage == '' ||  steps.test-1.outputs.badge-text == '' || steps.test-1.outputs.badge-color == '' || steps.test-1.outputs.report == '' }}
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 2
 
       - name: "test: total coverage 100% (config)"
-        uses: ./
+        uses: ./action/.
         id: test-2
         continue-on-error: true
         with:
+          version: ${{ github.sha }}
           config: ./.github/workflows/testdata/total100.yml
       
       - name: "check: test should have failed"
@@ -88,9 +51,10 @@ jobs:
       ## Test 3
 
       - name: "test: total coverage 0% (inputs)"
-        uses: ./
+        uses: ./action/.
         id: test-3
         with:
+          version: ${{ github.sha }}
           profile: cover.out
           threshold-file: 0
           threshold-package: 0
@@ -99,10 +63,11 @@ jobs:
       ## Test 4
 
       - name: "test: total coverage 100% (inputs)"
-        uses: ./
+        uses: ./action/.
         id: test-4
         continue-on-error: true
         with:
+          version: ${{ github.sha }}
           profile: cover.out
           threshold-file: 0
           threshold-package: 0
@@ -115,9 +80,10 @@ jobs:
       ## Test 5
 
       - name: "test: override config"
-        uses: ./
+        uses: ./action/.
         id: test-5
         with:
+          version: ${{ github.sha }}
           config: ./.github/workflows/testdata/total100.yml
           threshold-file: 0
           threshold-package: 0
@@ -126,10 +92,11 @@ jobs:
       ## Test 6
 
       - name: "test: debug output"
-        uses: ./
+        uses: ./action/.
         id: test-6
         continue-on-error: true
         with:
+          version: ${{ github.sha }}
           profile: unexistant-profile.out
           debug: true
           threshold-file: 0
