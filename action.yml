@@ -20,7 +20,7 @@ inputs:
   debug:
     description: Prints additional debugging output when running action.
     required: false
-    default: true
+    default: false
     type: boolean
 
   # Individual properties
