@@ -21,6 +21,8 @@ func findModuleDirective(rootDir string) string {
 		logger.L.Warn().Msg("`module` directive not found")
 	}
 
+	logger.L.Debug().Str("module", module).Msg("using module directive")
+
 	return module
 }
 
