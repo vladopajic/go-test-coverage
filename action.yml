@@ -138,7 +138,7 @@ outputs:
 runs:
   using: docker
   # VERSION: when changing version update version in other places
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.14.1
+  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.14.2
   args:
     - --config=${{ inputs.config || '''''' }}
     - --profile=${{ inputs.profile || '''''' }}
