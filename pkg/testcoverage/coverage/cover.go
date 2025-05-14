@@ -14,6 +14,7 @@ import (
 
 	"golang.org/x/tools/cover"
 
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 )
 
@@ -47,6 +48,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 		}
 
 		if ok := matches(excludeRules, fi.name); ok {
+			logger.L.Debug().Str("file", fi.name).Msg("file excluded")
 			continue // this file is excluded
 		}
 
@@ -189,8 +191,7 @@ func listAllFiles(rootDir string) []fileInfo {
 		return name
 	}
 
-	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
-	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
+	err := filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
 		if err != nil { // coverage-ignore
 			return err
 		}
@@ -206,6 +207,9 @@ func listAllFiles(rootDir string) []fileInfo {
 
 		return nil
 	})
+	if err != nil { // coverage-ignore
+		logger.L.Error().Err(err).Msg("listing go files")
+	}
 
 	return files
 }
