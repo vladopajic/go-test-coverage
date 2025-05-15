@@ -17,7 +17,7 @@ func findModuleDirective(rootDir string) string {
 		return ""
 	}
 
-	logger.L.Debug().Str("file", goModFile).Msg("found go.mod file")
+	logger.L.Debug().Str("file", goModFile).Msg("go.mod file found")
 
 	module := readModuleDirective(goModFile)
 	if module == "" { // coverage-ignore
