@@ -13,5 +13,5 @@ func Test_FindGoModFile(t *testing.T) {
 	t.Parallel()
 
 	assert.Empty(t, FindGoModFile(""))
-	assert.Equal(t, path.NormalizeForTool("../../../go.mod"), FindGoModFile("../../../"))
+	assert.Equal(t, "../../../go.mod", path.NormalizeForTool(FindGoModFile("../../../")))
 }
