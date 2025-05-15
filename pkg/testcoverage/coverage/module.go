@@ -12,7 +12,8 @@ import (
 func findModuleDirective(rootDir string) string {
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
-		logger.L.Warn().Str("dir", rootDir).Msg("go.mod file not found in root directory (consider setting up source dir)")
+		logger.L.Warn().Str("dir", rootDir).
+			Msg("go.mod file not found in root directory (consider setting up source dir)")
 		return ""
 	}
 
@@ -61,6 +62,7 @@ func findGoModWithWalk(rootDir string) string { // coverage-ignore
 		logger.L.Warn().Msg("go.mod file not found via walk method")
 		return ""
 	}
+
 	if len(goModFiles) > 1 {
 		logger.L.Warn().Msg("found multiple go.mod files via walk method")
 		return ""
