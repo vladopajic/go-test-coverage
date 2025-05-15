@@ -208,7 +208,7 @@ func listAllFiles(rootDir string) []fileInfo {
 		return nil
 	})
 	if err != nil { // coverage-ignore
-		logger.L.Error().Err(err).Msg("listing go files")
+		logger.L.Error().Err(err).Msg("listing files (.go files search)")
 	}
 
 	return files
