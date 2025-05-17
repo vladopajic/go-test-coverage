@@ -19,7 +19,7 @@ func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 	buffer := &bytes.Buffer{}
 	out := bufio.NewWriter(buffer)
 
-	// `out` writer is used as temporally buffer, which will be finally
+	// `out` writer is used as temporary buffer, which will be finally
 	// written to `w` in this defer call
 	defer func() {
 		out.Flush()
