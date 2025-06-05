@@ -130,9 +130,9 @@ inputs:
     type: string
 
   version:
-    # VERSION: when changing version update version in other places
     description: Version of go-test-coverage source to run
     required: false
+    # TOOL_VERSION: when changing version update version in other places
     default: v2.14.3
     type: string
 
