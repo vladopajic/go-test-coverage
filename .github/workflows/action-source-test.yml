@@ -20,7 +20,7 @@ jobs:
       ## Test 1
 
       - name: "test: total coverage 0% (config)"
-        uses: ./action/.
+        uses: ./action/source/.
         id: test-1
         with:
           version: ${{ github.sha }}
@@ -33,7 +33,7 @@ jobs:
       ## Test 2
 
       - name: "test: total coverage 100% (config)"
-        uses: ./action/.
+        uses: ./action/source/.
         id: test-2
         continue-on-error: true
         with:
@@ -51,7 +51,7 @@ jobs:
       ## Test 3
 
       - name: "test: total coverage 0% (inputs)"
-        uses: ./action/.
+        uses: ./action/source/.
         id: test-3
         with:
           version: ${{ github.sha }}
@@ -63,7 +63,7 @@ jobs:
       ## Test 4
 
       - name: "test: total coverage 100% (inputs)"
-        uses: ./action/.
+        uses: ./action/source/.
         id: test-4
         continue-on-error: true
         with:
@@ -80,7 +80,7 @@ jobs:
       ## Test 5
 
       - name: "test: override config"
-        uses: ./action/.
+        uses: ./action/source/.
         id: test-5
         with:
           version: ${{ github.sha }}
@@ -92,7 +92,7 @@ jobs:
       ## Test 6
 
       - name: "test: debug output"
-        uses: ./action/.
+        uses: ./action/source/.
         id: test-6
         continue-on-error: true
         with:
