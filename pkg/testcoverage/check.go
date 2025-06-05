@@ -63,8 +63,10 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 		}
 
 		if cfg.LocalPrefixDeprecated != "" { // coverage-ignore
-			reportGHWarning(w, "Deprecated option",
-				"local-prefix option is deprecated since v2.13.0, you can safely remove setting this option")
+			//nolint:lll // relax
+			msg := "`local-prefix` option is deprecated since v2.13.0, you can safely remove setting this option"
+			logger.L.Warn().Msg(msg)
+			reportGHWarning(w, "Deprecated option", msg)
 		}
 	}
 
@@ -152,7 +154,7 @@ func loadBaseCoverageBreakdown(cfg Config) ([]coverage.Stats, error) {
 
 	stats, err := coverage.StatsDeserialize(data)
 	if err != nil {
-		return nil, fmt.Errorf("parsing file failed: %w", err)
+		return nil, fmt.Errorf("deserializing stats file failed: %w", err)
 	}
 
 	return stats, nil

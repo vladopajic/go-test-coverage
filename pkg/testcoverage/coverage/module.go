@@ -12,36 +12,79 @@ import (
 func findModuleDirective(rootDir string) string {
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
-		logger.L.Warn().Str("dir", rootDir).Msg("could not find go.mod file in root dir")
+		logger.L.Warn().Str("dir", rootDir).
+			Msg("go.mod file not found in root directory (consider setting up source dir)")
 		return ""
 	}
+
+	logger.L.Debug().Str("file", goModFile).Msg("go.mod file found")
 
 	module := readModuleDirective(goModFile)
 	if module == "" { // coverage-ignore
 		logger.L.Warn().Msg("`module` directive not found")
 	}
 
+	logger.L.Debug().Str("module", module).Msg("using module directive")
+
 	return module
 }
 
 func findGoModFile(rootDir string) string {
-	var goModFile string
+	goModFile := findGoModFromRoot(rootDir)
+	if goModFile != "" {
+		return goModFile
+	}
 
-	//nolint:errcheck // error ignored because there is fallback mechanism for finding files
-	filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
+	// fallback to find first go mod file wherever it may be
+	// not really sure if we really need this ???
+	return findGoModWithWalk(rootDir)
+}
+
+func findGoModWithWalk(rootDir string) string { // coverage-ignore
+	var goModFiles []string
+
+	err := filepath.Walk(rootDir, func(file string, info os.FileInfo, err error) error {
 		if err != nil { // coverage-ignore
 			return err
 		}
 
 		if info.Name() == "go.mod" {
-			goModFile = file
-			return filepath.SkipAll
+			goModFiles = append(goModFiles, file)
 		}
 
 		return nil
 	})
+	if err != nil {
+		logger.L.Error().Err(err).Msg("listing files (go.mod search)")
+	}
 
-	return goModFile
+	if len(goModFiles) == 0 {
+		logger.L.Warn().Msg("go.mod file not found via walk method")
+		return ""
+	}
+
+	if len(goModFiles) > 1 {
+		logger.L.Warn().Msg("found multiple go.mod files via walk method")
+		return ""
+	}
+
+	return goModFiles[0]
+}
+
+func findGoModFromRoot(rootDir string) string {
+	files, err := os.ReadDir(rootDir)
+	if err != nil { // coverage-ignore
+		logger.L.Error().Err(err).Msg("reading directory")
+		return ""
+	}
+
+	for _, info := range files {
+		if info.Name() == "go.mod" {
+			return filepath.Join(rootDir, info.Name())
+		}
+	}
+
+	return ""
 }
 
 func readModuleDirective(filename string) string {

@@ -6,6 +6,7 @@ var (
 	FindFuncsAndBlocks = findFuncsAndBlocks
 	ParseProfiles      = parseProfiles
 	SumCoverage        = sumCoverage
+	FindGoModFile      = findGoModFile
 )
 
 type Extent = extent
