@@ -1,7 +1,8 @@
 # go-test-coverage
 
 [![test](https://github.com/vladopajic/go-test-coverage/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/test.yml)
-[![action-test](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-test.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-test.yml)
+[![action-test-docker](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-docker-test.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-docker-test.yml)
+[![action-test-source](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-source-test.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-source-test.yml)
 [![lint](https://github.com/vladopajic/go-test-coverage/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/lint.yml)
 [![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)](/.github/.testcoverage.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/vladopajic/go-test-coverage?cache=v1)](https://goreportcard.com/report/github.com/vladopajic/go-test-coverage)
