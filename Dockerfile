@@ -10,8 +10,8 @@ RUN go mod download all
 COPY ./ ./
 
 ARG VERSION
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o go-test-coverage .
+RUN CGO_ENABLED=0 \
+go build -o go-test-coverage .
 
 FROM gcr.io/distroless/base:latest
 WORKDIR /
