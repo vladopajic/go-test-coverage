@@ -50,18 +50,13 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
 
-      - name: set action image version to dev
-        run: |
-          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
-          image=$(yq '.runs.image' action.yml)
-          echo "Image: $image"
-
       ## Test 1
 
       - name: "test: total coverage 0% (config)"
         uses: ./
         id: test-1
         with:
+          version: dev
           config: ./.github/workflows/testdata/zero.yml
       
       - name: "check: test output values"
@@ -75,6 +70,7 @@ jobs:
         id: test-2
         continue-on-error: true
         with:
+          version: dev
           config: ./.github/workflows/testdata/total100.yml
       
       - name: "check: test should have failed"
@@ -91,6 +87,7 @@ jobs:
         uses: ./
         id: test-3
         with:
+          version: dev
           profile: cover.out
           threshold-file: 0
           threshold-package: 0
@@ -103,6 +100,7 @@ jobs:
         id: test-4
         continue-on-error: true
         with:
+          version: dev
           profile: cover.out
           threshold-file: 0
           threshold-package: 0
@@ -118,6 +116,7 @@ jobs:
         uses: ./
         id: test-5
         with:
+          version: dev
           config: ./.github/workflows/testdata/total100.yml
           threshold-file: 0
           threshold-package: 0
@@ -130,6 +129,7 @@ jobs:
         id: test-6
         continue-on-error: true
         with:
+          version: dev
           profile: unexistant-profile.out
           debug: true
           threshold-file: 0

@@ -1,0 +1,174 @@
+name: go-test-coverage
+author: vladopajic
+description: go-test-coverage is a tool designed to report issues when test coverage falls below a specified threshold.
+branding:
+  icon: 'code'
+  color: 'blue'
+  
+inputs:
+  # Config
+  config:
+    description: Path to the configuration file (.testcoverage.yml), which defines test coverage settings and thresholds.
+    required: false
+    default: ""
+    type: string
+  source-dir:
+    description: Sets relative path to source files.
+    required: false
+    default: ""
+    type: string
+  debug:
+    description: Prints additional debugging output when running action.
+    required: false
+    default: false
+    type: boolean
+
+  # Individual properties
+  profile:
+    description: Path to the coverage profile file. Overrides value from configuration.
+    required: false
+    default: ""
+    type: string
+  # DEPRECATED
+  local-prefix: 
+    description: DEPRECATED! not used anymore.
+    required: false
+    default: ""
+    type: string
+  threshold-file:
+    description: Minimum coverage percentage required for individual files. Overrides value from configuration.
+    required: false
+    default: -1
+    type: number
+  threshold-package:
+    description: Minimum coverage percentage required for each package. Overrides value from configuration.
+    required: false
+    default: -1
+    type: number
+  threshold-total:
+    description: Minimum overall project coverage percentage required. Overrides value from configuration.
+    required: false
+    default: -1
+    type: number
+
+  breakdown-file-name:
+    description: File name of go-test-coverage breakdown file, which can be used to analyze coverage difference. Overrides value from configuration.
+    required: false
+    default: ""
+    type: string
+
+  diff-base-breakdown-file-name:
+    description: File name of go-test-coverage breakdown file used to calculate coverage difference from current (head).
+    required: false
+    default: ""
+    type: string
+
+  # Badge (as file)
+  badge-file-name:
+    description: If specified, a coverage badge will be generated and saved to the given file path.
+    required: false
+    default: ""
+    type: string
+  
+  # Badge (on CDN)
+  cdn-secret:
+    description: API secret key for CDN. If specified, the badge will be uploaded to the CDN.
+    required: false
+    default: ""
+    type: string
+  cdn-key:
+    description: API key for CDN access.
+    required: false
+    default: ""
+    type: string
+  cdn-region:
+    description: Specifies the CDN region for the badge upload.
+    required: false
+    default: ""
+    type: string
+  cdn-endpoint:
+    description: URL endpoint for CDN where the badge will be uploaded.
+    required: false
+    default: ""
+    type: string
+  cdn-file-name:
+    description: Filename (including path) for storing the badge on the CDN.
+    required: false
+    default: ""
+    type: string
+  cdn-bucket-name:
+    description: Name of the CDN bucket where the badge will be saved.
+    required: false
+    default: ""
+    type: string
+  cdn-force-path-style:
+    description: Forces path-style URL access in the CDN.
+    required: false
+    default: false
+    type: boolean
+  
+  # Badge (on Git)
+  git-token:
+    description: GitHub token for authorization. If provided, the badge will be uploaded to the specified GitHub repository.
+    required: false
+    default: ""
+    type: string
+  git-repository:
+    description: Target GitHub repository in {owner}/{repository} format where the badge will be stored.
+    required: false
+    default: ${{ github.repository }}
+    type: string
+  git-branch:
+    description: Repository branch where the badge file will be saved.
+    required: false
+    default: ""
+    type: string
+  git-file-name:
+    description: File name (including path) for storing the badge in the specified repository.
+    required: false
+    default: .badges/${{ github.ref_name }}/coverage.svg
+    type: string
+
+  version:
+    description: Version of go-test-coverage source to run
+    required: false
+    # TOOL_VERSION: when changing version update version in other places
+    default: v2.15.0
+    type: string
+
+outputs:
+  total-coverage:
+    description: Integer value in the range [0-100], representing the overall project test coverage percentage.
+  badge-color:
+    description: Color hex code for the badge  (e.g., `#44cc11`), representing the coverage status. 
+  report:
+    description: JSON-encoded string containing the detailed test coverage report.
+  badge-text:
+    description: Deprecated! Text label for the badge.
+
+runs:
+  using: docker
+  image: docker://ghcr.io/vladopajic/go-test-coverage:${{ inputs.version }}
+  args:
+    - --config=${{ inputs.config || '***' }}
+    - --profile=${{ inputs.profile || '***' }}
+    - --source-dir=${{ inputs.source-dir || '***' }}
+    - --debug=${{ inputs.debug }}
+    - --github-action-output=true
+    - --threshold-file=${{ inputs.threshold-file }}
+    - --threshold-package=${{ inputs.threshold-package }}
+    - --threshold-total=${{ inputs.threshold-total }}
+    - --breakdown-file-name=${{ inputs.breakdown-file-name || '***' }}
+    - --diff-base-breakdown-file-name=${{ inputs.diff-base-breakdown-file-name || '***' }}
+    - --badge-file-name=${{ inputs.badge-file-name || '***' }}
+    - --cdn-key=${{ inputs.cdn-key || '***' }}
+    - --cdn-secret=${{ inputs.cdn-secret || '***' }}
+    - --cdn-region=${{ inputs.cdn-region || '***' }}
+    - --cdn-endpoint=${{ inputs.cdn-endpoint || '***' }}
+    - --cdn-file-name=${{ inputs.cdn-file-name || '***' }}
+    - --cdn-bucket-name=${{ inputs.cdn-bucket-name || '***' }}
+    - --cdn-force-path-style=${{ inputs.cdn-force-path-style }}
+    - --git-token=${{ inputs.git-token || '***' }}
+    - --git-branch=${{ inputs.git-branch || '***' }}
+    - --git-repository=${{ inputs.git-repository || '***'}}
+    - --git-file-name=${{ inputs.git-file-name || '***' }}
