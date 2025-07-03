@@ -18,25 +18,29 @@ Action inputs and outputs are documented in [action.yml](/action.yml) file.
 Here’s an example of how to integrate `go-test-coverage` in a GitHub workflow that uses a config file. This is the preferred way because the same config file can be used for running coverage checks locally.
 
 ```yml
-  - name: check test coverage
-    uses: vladopajic/go-test-coverage@v2
-    with:
-      config: ./.testcoverage.yml
+- name: check test coverage
+  uses: vladopajic/go-test-coverage@v2
+  with:
+    config: ./.testcoverage.yml
 ```
 
 Alternatively, if you don't need advanced configuration options from a config file, you can specify thresholds directly in the action properties.
 
 ```yml
-  - name: check test coverage
-    uses: vladopajic/go-test-coverage@v2
-    with:
-      profile: cover.out
-      threshold-file: 80
-      threshold-package: 80
-      threshold-total: 95
+- name: check test coverage
+  uses: vladopajic/go-test-coverage@v2
+  with:
+    profile: cover.out
+    threshold-file: 80
+    threshold-package: 80
+    threshold-total: 95
 ```
 
 Note: When using a config file alongside action properties, specifying these parameters will override the corresponding values in the config file.
+
+## Generate Coverage Badge
+
+Instructions for badge creation are available [here](./badge.md).
 
 ## Source Directory
 
@@ -44,11 +48,11 @@ Some projects, such as monorepos with multiple projects under the root directory
 In such cases, the `source-dir` property can be used to specify the source files location relative to the root directory.
 
 ```yml
-  - name: check test coverage
-    uses: vladopajic/go-test-coverage@v2
-    with:
-      config: ./.testcoverage.yml
-      source-dir: ./some_project
+- name: check test coverage
+  uses: vladopajic/go-test-coverage@v2
+  with:
+    config: ./.testcoverage.yml
+    source-dir: ./some_project
 ```
 
 ## Liberal Coverage Check
@@ -57,13 +61,13 @@ The `go-test-coverage` GitHub Action can be configured to report the current tes
 
 Below is an example that reports files with coverage below 80% without causing the workflow to fail:
 ```yml
-  - name: check test coverage
-    id: coverage
-    uses: vladopajic/go-test-coverage@v2
-    continue-on-error: true
-    with:
-      profile: cover.out
-      threshold-file: 80
+- name: check test coverage
+  id: coverage
+  uses: vladopajic/go-test-coverage@v2
+  continue-on-error: true
+  with:
+    profile: cover.out
+    threshold-file: 80
 ```
 
 ## Report Coverage Difference
@@ -74,37 +78,37 @@ The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
 Example of report that includes coverage difference is [this PR](https://github.com/vladopajic/go-test-coverage/pull/129).
 
 ```yml
-  # Download main (aka base) branch breakdown
-  - name: download artifact (main.breakdown)
-    id: download-main-breakdown
-    uses: dawidd6/action-download-artifact@v6
-    with:
-      branch: main
-      workflow_conclusion: success
-      name: main.breakdown
-      if_no_artifact_found: warn
+# Download main (aka base) branch breakdown
+- name: download artifact (main.breakdown)
+  id: download-main-breakdown
+  uses: dawidd6/action-download-artifact@v6
+  with:
+    branch: main
+    workflow_conclusion: success
+    name: main.breakdown
+    if_no_artifact_found: warn
 
-  - name: check test coverage
-    uses: vladopajic/go-test-coverage@v2
-    with:
-      config: ./.github/.testcoverage.yml
-      profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
+- name: check test coverage
+  uses: vladopajic/go-test-coverage@v2
+  with:
+    config: ./.github/.testcoverage.yml
+    profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
 
-      # Save current coverage breakdown if current branch is main. It will be  
-      # uploaded as artifact in step below.
-      breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
+    # Save current coverage breakdown if current branch is main. It will be  
+    # uploaded as artifact in step below.
+    breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
 
-      # If this is not main brach we want to show report including
-      # file coverage difference from main branch.
-      diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
-    
-  - name: upload artifact (main.breakdown)
-    uses: actions/upload-artifact@v4
-    if: github.ref_name == 'main'
-    with:
-      name: main.breakdown
-      path: main.breakdown # as specified via `breakdown-file-name`
-      if-no-files-found: error
+    # If this is not main brach we want to show report including
+    # file coverage difference from main branch.
+    diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
+  
+- name: upload artifact (main.breakdown)
+  uses: actions/upload-artifact@v4
+  if: github.ref_name == 'main'
+  with:
+    name: main.breakdown
+    path: main.breakdown # as specified via `breakdown-file-name`
+    if-no-files-found: error
 ```
 
 ## Post Coverage Report to PR
@@ -115,46 +119,42 @@ The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
 Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage/pull/129).
 
 ```yml
-  - name: check test coverage
-    id: coverage
-    uses: vladopajic/go-test-coverage@v2
-    continue-on-error: true # Should fail after coverage comment is posted
-    with:
-      config: ./.github/.testcoverage.yml
+- name: check test coverage
+  id: coverage
+  uses: vladopajic/go-test-coverage@v2
+  continue-on-error: true # Should fail after coverage comment is posted
+  with:
+    config: ./.github/.testcoverage.yml
 
-  # Post coverage report as comment (in 2 steps)
-  - name: find pull request ID
-    run: |
-        PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
-        PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
-        
-        if [ "$PR_ID" != "null" ]; then
-          echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
-        else
-          echo "No open pull request found for this branch."
-        fi
-  - name: post coverage report
-    if: env.pull_request_id
-    uses: thollander/actions-comment-pull-request@v3
-    with:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      comment-tag: coverage-report
-      pr-number: ${{ env.pull_request_id }}
-      message: |
-        go-test-coverage report:
-        ```
-        ${{ fromJSON(steps.coverage.outputs.report) }}```
+# Post coverage report as comment (in 2 steps)
+- name: find pull request ID
+  run: |
+      PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+        "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
+      PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
+      
+      if [ "$PR_ID" != "null" ]; then
+        echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
+      else
+        echo "No open pull request found for this branch."
+      fi
+- name: post coverage report
+  if: env.pull_request_id
+  uses: thollander/actions-comment-pull-request@v3
+  with:
+    github-token: ${{ secrets.GITHUB_TOKEN }}
+    comment-tag: coverage-report
+    pr-number: ${{ env.pull_request_id }}
+    message: |
+      go-test-coverage report:
+      ```
+      ${{ fromJSON(steps.coverage.outputs.report) }}```
 
-  - name: "finally check coverage"
-    if: steps.coverage.outcome == 'failure'
-    shell: bash
-    run: echo "coverage check failed" && exit 1
+- name: "finally check coverage"
+  if: steps.coverage.outcome == 'failure'
+  shell: bash
+  run: echo "coverage check failed" && exit 1
 ```
-
-## Generate Coverage Badge
-
-Instructions for badge creation are available [here](./badge.md).
 
 
 ---
