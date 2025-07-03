@@ -17,11 +17,14 @@ jobs:
         username: ${{ github.repository_owner }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: build and push
+    - name: set up docker buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: build and push
+      uses: docker/build-push-action@v6
       with:
         push: true
-        platforms: linux/amd64,linux/arm/v8,linux/arm64
+        platforms: linux/amd64,linux/arm/v7,linux/arm64
         build-args: |
           VERSION=dev
         tags: |
