@@ -24,7 +24,7 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         build-args: VERSION=dev
         tags: ghcr.io/vladopajic/go-test-coverage:dev
 
