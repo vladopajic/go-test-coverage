@@ -5,7 +5,7 @@ jobs:
     name: build dev image
     permissions:
       packages: write
-    runs-on: [ubuntu-latest, ubuntu-latest-arm64]
+    runs-on: ubuntu-latest
     steps:
     - name: checkout
       uses: actions/checkout@v4
@@ -21,11 +21,11 @@ jobs:
       uses: docker/build-push-action@v6
       with:
         push: true
-        platforms: ${{ runner.os }}/${{ runner.arch }}
+        platforms: linux/amd64,linux/arm/v8,linux/arm64
         build-args: |
-          VERSION=dev-${{ runner.os }}-${{ runner.arch }}
+          VERSION=dev
         tags: |
-          ghcr.io/vladopajic/go-test-coverage:dev-${{ runner.os }}-${{ runner.arch }}
+          ghcr.io/vladopajic/go-test-coverage:dev
 
     - uses: actions/delete-package-versions@v5
       with: 
@@ -36,7 +36,7 @@ jobs:
         delete-only-untagged-versions: true
   test:
     name: test
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, ubuntu-latest-arm64]
     needs: build-dev-image
 
     steps:
@@ -53,7 +53,7 @@ jobs:
 
       - name: set action image version to dev
         run: |
-          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev-${{ runner.os }}-${{ runner.arch }}"' action.yml
+          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
           image=$(yq '.runs.image' action.yml)
           echo "Image: $image"
 
