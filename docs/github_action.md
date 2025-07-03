@@ -155,3 +155,44 @@ Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage
 ## Generate Coverage Badge
 
 Instructions for badge creation are available [here](./badge.md).
+
+
+---
+
+
+# Advanced
+
+## Types of GitHub Actions
+
+The `go-test-coverage` project provides two types of GitHub Actions:
+
+- **Binary-based Action (default)**
+  
+  Executes the compiled binary using a Docker image. This is the default action, defined in [/action.yml](/action.yml).
+  
+  Usage, as demonstrated throughout the documentation:
+  ```yml
+  - name: check test coverage
+    uses: vladopajic/go-test-coverage@v2
+    with: ...
+  ```
+  
+- **Source-based Action (optional/experimental)**
+  
+  Runs the source code using the `go run` command. This experimental action is defined in [/action/source/action.yml](/action/source/action.yml).
+
+  Usage:
+  ```yml
+  - name: check test coverage
+    # note: uses property adds 'action/source' part, compared to default action
+    uses: vladopajic/go-test-coverage/action/source@v2
+    with: ...
+  ```
+   Note: this action requires `go` to be installed.
+
+Both actions have the same inputs, so they can be used interchangeably.
+
+
+
+
+ 
