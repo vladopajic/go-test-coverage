@@ -14,6 +14,10 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
+func ptr[T any](t T) *T {
+	return &t
+}
+
 func mergeStats(a, b []coverage.Stats) []coverage.Stats {
 	r := make([]coverage.Stats, 0, len(a)+len(b))
 	r = append(r, a...)

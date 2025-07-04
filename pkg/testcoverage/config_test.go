@@ -240,6 +240,7 @@ func nonZeroConfig() Config {
 		BreakdownFileName: "breakdown.testcoverage",
 		Diff: Diff{
 			BaseBreakdownFileName: "breakdown.testcoverage",
+			Threshold:             ptr(-1.1),
 		},
 		GithubActionOutput: true,
 	}
@@ -261,7 +262,8 @@ exclude:
     - path2
 breakdown-file-name: 'breakdown.testcoverage'
 diff:
-  base-breakdown-file-name: 'breakdown.testcoverage'	
+  base-breakdown-file-name: 'breakdown.testcoverage'
+  threshold: -1.1	
 github-action-output: true`
 }
 
