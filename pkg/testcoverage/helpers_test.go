@@ -3,6 +3,7 @@ package testcoverage_test
 import (
 	crand "crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"os"
 	"strings"
@@ -191,6 +192,20 @@ func assertNoUncoveredLinesInfo(t *testing.T, content string) {
 
 	_, uncoveredReport := splitReport(t, content)
 	assert.Empty(t, uncoveredReport)
+}
+
+func assertDiffNoChange(t *testing.T, content string) {
+	t.Helper()
+
+	assert.Contains(t, content, "No coverage changes in any files compared to the base")
+}
+
+func assertDiffChange(t *testing.T, content string, lines int) {
+	t.Helper()
+
+	//nolint:lll //relax
+	str := fmt.Sprintf("Test coverage has changed in the current files, with %d lines missing coverage", lines)
+	assert.Contains(t, content, str)
 }
 
 func assertGithubActionErrorsCount(t *testing.T, content string, count int) {

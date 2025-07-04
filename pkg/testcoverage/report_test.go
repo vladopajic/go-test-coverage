@@ -25,6 +25,7 @@ func Test_ReportForHuman(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{}})
+
 		assertHumanReport(t, buf.String(), 3, 0)
 		assertNoUncoveredLinesInfo(t, buf.String())
 	})
@@ -34,6 +35,7 @@ func Test_ReportForHuman(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{Total: 1}})
+
 		assertHumanReport(t, buf.String(), 2, 1)
 		assertNoUncoveredLinesInfo(t, buf.String())
 	})
@@ -48,6 +50,7 @@ func Test_ReportForHuman(t *testing.T) {
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
+
 		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
 		assertContainStats(t, headReport, statsWithError)
@@ -70,6 +73,7 @@ func Test_ReportForHuman(t *testing.T) {
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
+
 		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
 		assertContainStats(t, headReport, MakePackageStats(statsWithError))
@@ -83,6 +87,12 @@ func Test_ReportForHuman(t *testing.T) {
 			coverage.StatsPluckName(coverage.StatsFilterWithCoveredLines(allStats)),
 		)
 	})
+}
+
+func Test_ReportForHumanDiff(t *testing.T) {
+	t.Parallel()
+
+	const prefix = "organization.org"
 
 	t.Run("diff - no change", func(t *testing.T) {
 		t.Parallel()
@@ -94,7 +104,7 @@ func Test_ReportForHuman(t *testing.T) {
 		result := Analyze(cfg, stats, stats)
 		ReportForHuman(buf, result)
 
-		assert.Contains(t, buf.String(), "No coverage changes in any files compared to the base")
+		assertDiffNoChange(t, buf.String())
 	})
 
 	t.Run("diff - has change", func(t *testing.T) {
@@ -113,16 +123,24 @@ func Test_ReportForHuman(t *testing.T) {
 		result := Analyze(cfg, stats, base)
 		ReportForHuman(buf, result)
 
-		assert.Contains(t, buf.String(),
-			"Test coverage has changed in the current files, with 2 lines missing coverage",
-		)
+		assertDiffChange(t, buf.String(), 2)
+	})
+
+	t.Run("diff - threshold failed", func(t *testing.T) {
+		t.Parallel()
+		// add test
+	})
+
+	t.Run("diff - threshold pass", func(t *testing.T) {
+		t.Parallel()
+		// add test
 	})
 }
 
 func Test_ReportForGithubAction(t *testing.T) {
 	t.Parallel()
 
-	prefix := "organization.org/pkg/"
+	const prefix = "organization.org/pkg/"
 
 	t.Run("total coverage - pass", func(t *testing.T) {
 		t.Parallel()
