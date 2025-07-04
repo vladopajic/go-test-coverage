@@ -54,7 +54,7 @@ type Exclude struct {
 
 type Diff struct {
 	BaseBreakdownFileName string   `yaml:"base-breakdown-file-name"`
-	Threshold             *float64 `yaml:"threshold"`
+	Threshold             *float64 `yaml:"threshold,omitempty"`
 }
 
 type Badge struct {
