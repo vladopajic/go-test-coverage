@@ -94,7 +94,7 @@ func Test_ReportForHuman(t *testing.T) {
 		result := Analyze(cfg, stats, stats)
 		ReportForHuman(buf, result)
 
-		assert.Contains(t, buf.String(), "Current tests coverage has not changed")
+		assert.Contains(t, buf.String(), "No coverage changes in any files compared to the base")
 	})
 
 	t.Run("diff - has change", func(t *testing.T) {
@@ -114,7 +114,7 @@ func Test_ReportForHuman(t *testing.T) {
 		ReportForHuman(buf, result)
 
 		assert.Contains(t, buf.String(),
-			"Current tests coverage has changed with 2 lines missing coverage",
+			"Test coverage has changed in the current files, with 2 lines missing coverage",
 		)
 	})
 }
