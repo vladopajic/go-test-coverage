@@ -87,6 +87,7 @@ func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n")
 }
 
+//nolint:lll // relax
 func reportDiff(w io.Writer, result AnalyzeResult) {
 	if !result.HasBaseBreakdown {
 		return
