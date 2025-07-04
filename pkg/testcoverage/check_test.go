@@ -265,6 +265,16 @@ func TestCheck(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to load base coverage breakdown")
 	})
+
+	t.Run("valid profile - diff pass", func(t *testing.T) {
+		t.Parallel()
+		// add test
+	})
+
+	t.Run("valid profile - diff fail", func(t *testing.T) {
+		t.Parallel()
+		// add test
+	})
 }
 
 //nolint:paralleltest // must not be parallel because it uses env
@@ -449,6 +459,21 @@ func Test_Analyze(t *testing.T) {
 		assert.NotEmpty(t, result.PackagesBelowThreshold)
 		assert.False(t, result.Pass())
 		assertPrefix(t, result, prefix, true)
+	})
+
+	t.Run("diff stats", func(t *testing.T) {
+		t.Parallel()
+		// add test
+	})
+
+	t.Run("diff below threshold", func(t *testing.T) {
+		t.Parallel()
+		// add test
+	})
+
+	t.Run("diff above threshold", func(t *testing.T) {
+		t.Parallel()
+		// add test
 	})
 }
 

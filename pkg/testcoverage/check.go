@@ -105,6 +105,7 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 
 	return AnalyzeResult{
 		Threshold:           thr,
+		DiffThreshold:       cfg.Diff.Threshold,
 		HasFileOverrides:    hasFileOverrides,
 		HasPackageOverrides: hasPackageOverrides,
 		FilesBelowThreshold: checkCoverageStatsBelowThreshold(current, thr.File, overrideRules),
@@ -115,6 +116,7 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 		TotalStats:              coverage.StatsCalcTotal(current),
 		HasBaseBreakdown:        len(base) > 0,
 		Diff:                    calculateStatsDiff(current, base),
+		DiffPercentage:          TotalPercentageDiff(current, base),
 	}
 }
 

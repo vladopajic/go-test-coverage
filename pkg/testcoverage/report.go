@@ -27,14 +27,6 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
 	defer tabber.Flush()
 
-	statusStr := func(passing bool) string {
-		if passing {
-			return "PASS"
-		}
-
-		return "FAIL"
-	}
-
 	thr := result.Threshold
 
 	if thr.File > 0 || result.HasFileOverrides { // File threshold report
@@ -95,6 +87,7 @@ func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n")
 }
 
+//nolint:lll // relax
 func reportDiff(w io.Writer, result AnalyzeResult) {
 	if !result.HasBaseBreakdown {
 		return
@@ -103,13 +96,19 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
 	defer tabber.Flush()
 
+	if result.DiffThreshold != nil {
+		status := statusStr(result.MeetsDiffThreshold())
+		fmt.Fprintf(tabber, "\nCoverage difference threshold (%.2f%%) satisfied:\t %s", *result.DiffThreshold, status)
+		fmt.Fprintf(tabber, "\nCoverage difference: %.2f%%\n", result.DiffPercentage)
+	}
+
 	if len(result.Diff) == 0 {
-		fmt.Fprintf(tabber, "\nCurrent tests coverage has not changed.\n")
+		fmt.Fprintf(tabber, "\nNo coverage changes in any files compared to the base.\n")
 		return
 	}
 
-	td := TotalLinesDiff(result.Diff)
-	fmt.Fprintf(tabber, "\nCurrent tests coverage has changed with %d lines missing coverage.", td)
+	td := TotalLinesMissingCoverage(result.Diff)
+	fmt.Fprintf(tabber, "\nTest coverage has changed in the current files, with %d lines missing coverage.", td)
 	fmt.Fprintf(tabber, "\n  file:\tuncovered:\tcurrent coverage:\tbase coverage:")
 
 	for _, d := range result.Diff {
@@ -241,4 +240,12 @@ func compressUncoveredLines(w io.Writer, ull []int) {
 	if last != -1 {
 		printRange(last, ull[len(ull)-1])
 	}
+}
+
+func statusStr(passing bool) string {
+	if passing {
+		return "PASS"
+	}
+
+	return "FAIL"
 }
