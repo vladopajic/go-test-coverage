@@ -27,6 +27,10 @@ func mergeStats(a, b []coverage.Stats) []coverage.Stats {
 	return r
 }
 
+func copyStats(s []coverage.Stats) []coverage.Stats {
+	return mergeStats(make([]coverage.Stats, 0), s)
+}
+
 func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 	const count = 100
 

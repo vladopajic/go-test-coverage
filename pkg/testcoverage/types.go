@@ -133,8 +133,8 @@ func TotalPercentageDiff(current, base []coverage.Stats) float64 {
 	curretStats := coverage.StatsCalcTotal(current)
 	baseStats := coverage.StatsCalcTotal(base)
 
-	cp := curretStats.CoveredPercentageF()
-	bp := baseStats.CoveredPercentageF()
+	cp := curretStats.CoveredPercentageFNR()
+	bp := baseStats.CoveredPercentageFNR()
 
 	return cp - bp
 }
