@@ -208,6 +208,21 @@ func assertDiffChange(t *testing.T, content string, lines int) {
 	assert.Contains(t, content, str)
 }
 
+func assertDiffThreshold(t *testing.T, content string, thr float64, isSatisfied bool) {
+	t.Helper()
+
+	//nolint:lll //relax
+	str := fmt.Sprintf("Coverage difference threshold (%.2f%%) satisfied:\t %s", thr, StatusStr(isSatisfied))
+	assert.Contains(t, content, str)
+}
+
+func assertDiffPercentage(t *testing.T, content string, p float64) {
+	t.Helper()
+
+	str := fmt.Sprintf("Coverage difference: %.2f%%", p)
+	assert.Contains(t, content, str)
+}
+
 func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
 	t.Helper()
 
@@ -263,4 +278,16 @@ func assertGithubOutputValues(t *testing.T, file string) {
 	assertNonEmptyValue(t, content, GaOutputBadgeColor)
 	assertNonEmptyValue(t, content, GaOutputBadgeText)
 	assertNonEmptyValue(t, content, GaOutputReport)
+}
+
+func readStats(t *testing.T, file string) []coverage.Stats {
+	t.Helper()
+
+	contentBytes, err := os.ReadFile(file)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, contentBytes)
+	stats, err := coverage.StatsDeserialize(contentBytes)
+	assert.NoError(t, err)
+
+	return stats
 }
