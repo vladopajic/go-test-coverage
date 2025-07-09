@@ -140,5 +140,5 @@ func TotalPercentageDiff(current, base []coverage.Stats) float64 {
 	p := cp - bp
 
 	// round to %.2f
-	return float64(int(math.Round(p*100))) / 100
+	return float64(int(math.Round(p*100))) / 100 //nolint:mnd //relax
 }

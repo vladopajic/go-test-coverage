@@ -89,6 +89,7 @@ func Test_ReportForHuman(t *testing.T) {
 	})
 }
 
+//nolint:dupl // relax
 func Test_ReportForHumanDiff(t *testing.T) {
 	t.Parallel()
 
@@ -128,7 +129,7 @@ func Test_ReportForHumanDiff(t *testing.T) {
 		assert.Contains(t, buf.String(), "foo-new\t  1\t\t88.9% (8/9)\t")
 	})
 
-	t.Run("diff - threshold failed", func(t *testing.T) { //nolit:dupl // relax
+	t.Run("diff - threshold failed", func(t *testing.T) {
 		t.Parallel()
 
 		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}

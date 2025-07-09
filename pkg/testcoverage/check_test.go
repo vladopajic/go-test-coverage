@@ -563,7 +563,7 @@ func Test_Analyze(t *testing.T) {
 		result := Analyze(cfg, stats, stats)
 		assert.Empty(t, result.Diff)
 		assert.True(t, result.Pass())
-		assert.Equal(t, 0.0, result.DiffPercentage)
+		assert.Equal(t, 0.0, result.DiffPercentage) //nolint:testifylint //relax
 	})
 
 	t.Run("diff below threshold", func(t *testing.T) {
@@ -579,7 +579,7 @@ func Test_Analyze(t *testing.T) {
 		assert.NotEmpty(t, result.Diff)
 		assert.False(t, result.Pass())
 		assert.False(t, result.MeetsDiffThreshold())
-		assert.Equal(t, 70.0, result.DiffPercentage)
+		assert.Equal(t, 70.0, result.DiffPercentage) //nolint:testifylint //relax
 	})
 
 	t.Run("diff above threshold", func(t *testing.T) {
@@ -595,7 +595,7 @@ func Test_Analyze(t *testing.T) {
 		assert.NotEmpty(t, result.Diff)
 		assert.True(t, result.Pass())
 		assert.True(t, result.MeetsDiffThreshold())
-		assert.Equal(t, 70.0, result.DiffPercentage)
+		assert.Equal(t, 70.0, result.DiffPercentage) //nolint:testifylint //relax
 	})
 
 	t.Run("diff above threshold (small diff)", func(t *testing.T) {
@@ -610,7 +610,7 @@ func Test_Analyze(t *testing.T) {
 		result := Analyze(cfg, stats, base)
 		assert.True(t, result.Pass())
 		assert.True(t, result.MeetsDiffThreshold())
-		assert.Equal(t, 0.01, result.DiffPercentage)
+		assert.Equal(t, 0.01, result.DiffPercentage) //nolint:testifylint //relax
 	})
 }
 
