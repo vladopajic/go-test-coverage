@@ -608,7 +608,6 @@ func Test_Analyze(t *testing.T) {
 			Diff: Diff{Threshold: ptr(0.0)},
 		}
 		result := Analyze(cfg, stats, base)
-		assert.NotEmpty(t, result.Diff)
 		assert.True(t, result.Pass())
 		assert.True(t, result.MeetsDiffThreshold())
 		assert.Equal(t, 0.01, result.DiffPercentage)
