@@ -556,17 +556,62 @@ func Test_Analyze(t *testing.T) {
 
 	t.Run("diff stats", func(t *testing.T) {
 		t.Parallel()
-		// add test
+
+		stats := randStats(prefix, 10, 100)
+
+		cfg := Config{}
+		result := Analyze(cfg, stats, stats)
+		assert.Empty(t, result.Diff)
+		assert.True(t, result.Pass())
+		assert.Equal(t, 0.0, result.DiffPercentage)
 	})
 
 	t.Run("diff below threshold", func(t *testing.T) {
 		t.Parallel()
-		// add test
+
+		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(999.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		assert.NotEmpty(t, result.Diff)
+		assert.False(t, result.Pass())
+		assert.False(t, result.MeetsDiffThreshold())
+		assert.Equal(t, 70.0, result.DiffPercentage)
 	})
 
 	t.Run("diff above threshold", func(t *testing.T) {
 		t.Parallel()
-		// add test
+
+		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(1.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		assert.NotEmpty(t, result.Diff)
+		assert.True(t, result.Pass())
+		assert.True(t, result.MeetsDiffThreshold())
+		assert.Equal(t, 70.0, result.DiffPercentage)
+	})
+
+	t.Run("diff above threshold (small diff)", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 10000, Covered: 9999}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10000, Covered: 10000}}
+
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(0.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		assert.NotEmpty(t, result.Diff)
+		assert.True(t, result.Pass())
+		assert.True(t, result.MeetsDiffThreshold())
+		assert.Equal(t, 0.01, result.DiffPercentage)
 	})
 }
 

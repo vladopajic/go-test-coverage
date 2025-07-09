@@ -163,6 +163,24 @@ func Test_ReportForHumanDiff(t *testing.T) {
 		assertDiffPercentage(t, buf.String(), 70)
 		assertDiffChange(t, buf.String(), 2)
 	})
+
+	t.Run("diff - negative threshold pass", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 100, Covered: 100}}
+		stats := []coverage.Stats{{Name: "foo", Total: 100, Covered: 90}}
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(-11.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		ReportForHuman(buf, result)
+
+		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
+		assertDiffPercentage(t, buf.String(), -10)
+		assertDiffChange(t, buf.String(), 10)
+	})
 }
 
 func Test_ReportForGithubAction(t *testing.T) {

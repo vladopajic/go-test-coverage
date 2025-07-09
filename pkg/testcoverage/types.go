@@ -2,6 +2,7 @@ package testcoverage
 
 import (
 	"maps"
+	"math"
 	"slices"
 	"strings"
 
@@ -136,5 +137,8 @@ func TotalPercentageDiff(current, base []coverage.Stats) float64 {
 	cp := curretStats.CoveredPercentageFNR()
 	bp := baseStats.CoveredPercentageFNR()
 
-	return cp - bp
+	p := cp - bp
+
+	// round to %.2f
+	return float64(int(math.Round(p*100))) / 100
 }
