@@ -2,6 +2,7 @@ package testcoverage
 
 import (
 	"maps"
+	"math"
 	"slices"
 	"strings"
 
@@ -10,12 +11,14 @@ import (
 
 type AnalyzeResult struct {
 	Threshold               Threshold
+	DiffThreshold           *float64
 	FilesBelowThreshold     []coverage.Stats
 	PackagesBelowThreshold  []coverage.Stats
 	FilesWithUncoveredLines []coverage.Stats
 	TotalStats              coverage.Stats
 	HasBaseBreakdown        bool
 	Diff                    []FileCoverageDiff
+	DiffPercentage          float64
 	HasFileOverrides        bool
 	HasPackageOverrides     bool
 }
@@ -23,7 +26,16 @@ type AnalyzeResult struct {
 func (r *AnalyzeResult) Pass() bool {
 	return r.MeetsTotalCoverage() &&
 		len(r.FilesBelowThreshold) == 0 &&
-		len(r.PackagesBelowThreshold) == 0
+		len(r.PackagesBelowThreshold) == 0 &&
+		r.MeetsDiffThreshold()
+}
+
+func (r *AnalyzeResult) MeetsDiffThreshold() bool {
+	if r.DiffThreshold == nil || !r.HasBaseBreakdown {
+		return true
+	}
+
+	return *r.DiffThreshold <= r.DiffPercentage
 }
 
 func (r *AnalyzeResult) MeetsTotalCoverage() bool {
@@ -109,11 +121,24 @@ func calculateStatsDiff(current, base []coverage.Stats) []FileCoverageDiff {
 	return res
 }
 
-func TotalLinesDiff(diff []FileCoverageDiff) int {
+func TotalLinesMissingCoverage(diff []FileCoverageDiff) int {
 	r := 0
 	for _, d := range diff {
 		r += d.Current.UncoveredLinesCount()
 	}
 
 	return r
+}
+
+func TotalPercentageDiff(current, base []coverage.Stats) float64 {
+	curretStats := coverage.StatsCalcTotal(current)
+	baseStats := coverage.StatsCalcTotal(base)
+
+	cp := curretStats.CoveredPercentageFNR()
+	bp := baseStats.CoveredPercentageFNR()
+
+	p := cp - bp
+
+	// round to %.2f
+	return float64(int(math.Round(p*100))) / 100 //nolint:mnd //relax
 }

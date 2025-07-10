@@ -17,6 +17,7 @@ var (
 	LoadBaseCoverageBreakdown = loadBaseCoverageBreakdown
 	CompressUncoveredLines    = compressUncoveredLines
 	ReportUncoveredLines      = reportUncoveredLines
+	StatusStr                 = statusStr
 )
 
 type (

@@ -267,6 +267,109 @@ func TestCheck(t *testing.T) {
 	})
 }
 
+func TestCheckDiff(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		return
+	}
+
+	brakedownFile := t.TempDir() + "/breakdown.testcoverage"
+	brakedownCurrentFile := t.TempDir() + "/breakdown-current.testcoverage"
+	brakedownFileEdited := "breakdown-edit.testcoverage"
+
+	// run check to generate brakedown file
+	cfg := Config{
+		Profile:           profileOK,
+		BreakdownFileName: brakedownFile,
+		SourceDir:         sourceDir,
+	}
+	buf := &bytes.Buffer{}
+	pass, err := Check(buf, cfg)
+	assert.True(t, pass)
+	assert.NoError(t, err)
+
+	// should pass since brakedown is the same
+	cfg = Config{
+		Profile:   profileOK,
+		SourceDir: sourceDir,
+		Diff: Diff{
+			BaseBreakdownFileName: brakedownFile,
+			Threshold:             ptr(0.0),
+		},
+	}
+	buf = &bytes.Buffer{}
+	pass, err = Check(buf, cfg)
+	assert.True(t, pass)
+	assert.NoError(t, err)
+	assertDiffNoChange(t, buf.String())
+	assertDiffPercentage(t, buf.String(), 0.0)
+	assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
+
+	// should pass since diff is negative
+	cfg = Config{
+		Profile:   profileOK,
+		SourceDir: sourceDir,
+		Diff: Diff{
+			BaseBreakdownFileName: brakedownFile,
+			Threshold:             ptr(-0.001),
+		},
+	}
+	buf = &bytes.Buffer{}
+	pass, err = Check(buf, cfg)
+	assert.True(t, pass)
+	assert.NoError(t, err)
+	assertDiffNoChange(t, buf.String())
+	assertDiffPercentage(t, buf.String(), 0.0)
+	assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
+
+	// should NOT pass since brakedown is the same, and diff is positive
+	cfg = Config{
+		Profile:   profileOK,
+		SourceDir: sourceDir,
+		Diff: Diff{
+			BaseBreakdownFileName: brakedownFile,
+			Threshold:             ptr(0.1),
+		},
+	}
+	buf = &bytes.Buffer{}
+	pass, err = Check(buf, cfg)
+	assert.False(t, pass)
+	assert.NoError(t, err)
+	assertDiffNoChange(t, buf.String())
+	assertDiffPercentage(t, buf.String(), 0.0)
+	assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, false)
+
+	// change brakedown file to have positive difference
+	base := readStats(t, brakedownFile)
+	base[0].Covered = 0
+	base[1].Covered = 0
+
+	tmpFile, err := os.CreateTemp(t.TempDir(), brakedownFileEdited)
+	assert.NoError(t, err)
+	_, err = tmpFile.Write(coverage.StatsSerialize(base))
+	assert.NoError(t, err)
+
+	// check should now pass since difference has increased
+	cfg = Config{
+		Profile:           profileOK,
+		SourceDir:         sourceDir,
+		BreakdownFileName: brakedownCurrentFile,
+		Diff: Diff{
+			BaseBreakdownFileName: tmpFile.Name(),
+			Threshold:             ptr(1.0),
+		},
+	}
+	buf = &bytes.Buffer{}
+	pass, err = Check(buf, cfg)
+	assert.True(t, pass)
+	assert.NoError(t, err)
+
+	diff := TotalPercentageDiff(readStats(t, brakedownCurrentFile), base)
+	assertDiffPercentage(t, buf.String(), diff)
+	assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
+}
+
 //nolint:paralleltest // must not be parallel because it uses env
 func TestCheckNoParallel(t *testing.T) {
 	if testing.Short() {
@@ -449,6 +552,65 @@ func Test_Analyze(t *testing.T) {
 		assert.NotEmpty(t, result.PackagesBelowThreshold)
 		assert.False(t, result.Pass())
 		assertPrefix(t, result, prefix, true)
+	})
+
+	t.Run("diff stats", func(t *testing.T) {
+		t.Parallel()
+
+		stats := randStats(prefix, 10, 100)
+
+		cfg := Config{}
+		result := Analyze(cfg, stats, stats)
+		assert.Empty(t, result.Diff)
+		assert.True(t, result.Pass())
+		assert.Equal(t, 0.0, result.DiffPercentage) //nolint:testifylint //relax
+	})
+
+	t.Run("diff below threshold", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(999.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		assert.NotEmpty(t, result.Diff)
+		assert.False(t, result.Pass())
+		assert.False(t, result.MeetsDiffThreshold())
+		assert.Equal(t, 70.0, result.DiffPercentage) //nolint:testifylint //relax
+	})
+
+	t.Run("diff above threshold", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(1.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		assert.NotEmpty(t, result.Diff)
+		assert.True(t, result.Pass())
+		assert.True(t, result.MeetsDiffThreshold())
+		assert.Equal(t, 70.0, result.DiffPercentage) //nolint:testifylint //relax
+	})
+
+	t.Run("diff above threshold (small diff)", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 10000, Covered: 9999}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10000, Covered: 10000}}
+
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(0.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		assert.True(t, result.Pass())
+		assert.True(t, result.MeetsDiffThreshold())
+		assert.Equal(t, 0.01, result.DiffPercentage) //nolint:testifylint //relax
 	})
 }
 

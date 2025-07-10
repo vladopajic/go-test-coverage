@@ -3,6 +3,7 @@ package testcoverage_test
 import (
 	crand "crypto/rand"
 	"encoding/hex"
+	"fmt"
 	"math/rand"
 	"os"
 	"strings"
@@ -14,12 +15,20 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
+func ptr[T any](t T) *T {
+	return &t
+}
+
 func mergeStats(a, b []coverage.Stats) []coverage.Stats {
 	r := make([]coverage.Stats, 0, len(a)+len(b))
 	r = append(r, a...)
 	r = append(r, b...)
 
 	return r
+}
+
+func copyStats(s []coverage.Stats) []coverage.Stats {
+	return mergeStats(make([]coverage.Stats, 0), s)
 }
 
 func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
@@ -189,6 +198,35 @@ func assertNoUncoveredLinesInfo(t *testing.T, content string) {
 	assert.Empty(t, uncoveredReport)
 }
 
+func assertDiffNoChange(t *testing.T, content string) {
+	t.Helper()
+
+	assert.Contains(t, content, "No coverage changes in any files compared to the base")
+}
+
+func assertDiffChange(t *testing.T, content string, lines int) {
+	t.Helper()
+
+	//nolint:lll //relax
+	str := fmt.Sprintf("Test coverage has changed in the current files, with %d lines missing coverage", lines)
+	assert.Contains(t, content, str)
+}
+
+func assertDiffThreshold(t *testing.T, content string, thr float64, isSatisfied bool) {
+	t.Helper()
+
+	//nolint:lll //relax
+	str := fmt.Sprintf("Coverage difference threshold (%.2f%%) satisfied:\t %s", thr, StatusStr(isSatisfied))
+	assert.Contains(t, content, str)
+}
+
+func assertDiffPercentage(t *testing.T, content string, p float64) {
+	t.Helper()
+
+	str := fmt.Sprintf("Coverage difference: %.2f%%", p)
+	assert.Contains(t, content, str)
+}
+
 func assertGithubActionErrorsCount(t *testing.T, content string, count int) {
 	t.Helper()
 
@@ -244,4 +282,16 @@ func assertGithubOutputValues(t *testing.T, file string) {
 	assertNonEmptyValue(t, content, GaOutputBadgeColor)
 	assertNonEmptyValue(t, content, GaOutputBadgeText)
 	assertNonEmptyValue(t, content, GaOutputReport)
+}
+
+func readStats(t *testing.T, file string) []coverage.Stats {
+	t.Helper()
+
+	contentBytes, err := os.ReadFile(file)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, contentBytes)
+	stats, err := coverage.StatsDeserialize(contentBytes)
+	assert.NoError(t, err)
+
+	return stats
 }

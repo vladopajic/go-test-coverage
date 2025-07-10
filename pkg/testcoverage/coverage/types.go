@@ -27,7 +27,11 @@ func (s Stats) CoveredPercentage() int {
 }
 
 func (s Stats) CoveredPercentageF() float64 {
-	return coveredPercentageF(s.Total, s.Covered)
+	return coveredPercentageF(s.Total, s.Covered, true)
+}
+
+func (s Stats) CoveredPercentageFNR() float64 {
+	return coveredPercentageF(s.Total, s.Covered, false)
 }
 
 //nolint:mnd // relax
@@ -53,11 +57,11 @@ func StatsSearchMap(stats []Stats) map[string]Stats {
 }
 
 func CoveredPercentage(total, covered int64) int {
-	return int(coveredPercentageF(total, covered))
+	return int(coveredPercentageF(total, covered, true))
 }
 
 //nolint:mnd // relax
-func coveredPercentageF(total, covered int64) float64 {
+func coveredPercentageF(total, covered int64, round bool) float64 {
 	if total == 0 {
 		return 0
 	}
@@ -67,6 +71,10 @@ func coveredPercentageF(total, covered int64) float64 {
 	}
 
 	p := float64(covered*100) / float64(total)
+
+	if !round {
+		return p
+	}
 
 	// round to %.1f
 	return float64(int(math.Round(p*10))) / 10

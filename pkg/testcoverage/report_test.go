@@ -25,6 +25,7 @@ func Test_ReportForHuman(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{}})
+
 		assertHumanReport(t, buf.String(), 3, 0)
 		assertNoUncoveredLinesInfo(t, buf.String())
 	})
@@ -34,6 +35,7 @@ func Test_ReportForHuman(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{Total: 1}})
+
 		assertHumanReport(t, buf.String(), 2, 1)
 		assertNoUncoveredLinesInfo(t, buf.String())
 	})
@@ -48,6 +50,7 @@ func Test_ReportForHuman(t *testing.T) {
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
+
 		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
 		assertContainStats(t, headReport, statsWithError)
@@ -70,6 +73,7 @@ func Test_ReportForHuman(t *testing.T) {
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
 		ReportForHuman(buf, result)
+
 		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
 		assertContainStats(t, headReport, MakePackageStats(statsWithError))
@@ -83,6 +87,13 @@ func Test_ReportForHuman(t *testing.T) {
 			coverage.StatsPluckName(coverage.StatsFilterWithCoveredLines(allStats)),
 		)
 	})
+}
+
+//nolint:dupl // relax
+func Test_ReportForHumanDiff(t *testing.T) {
+	t.Parallel()
+
+	const prefix = "organization.org"
 
 	t.Run("diff - no change", func(t *testing.T) {
 		t.Parallel()
@@ -94,14 +105,14 @@ func Test_ReportForHuman(t *testing.T) {
 		result := Analyze(cfg, stats, stats)
 		ReportForHuman(buf, result)
 
-		assert.Contains(t, buf.String(), "Current tests coverage has not changed")
+		assertDiffNoChange(t, buf.String())
 	})
 
 	t.Run("diff - has change", func(t *testing.T) {
 		t.Parallel()
 
 		stats := randStats(prefix, 10, 100)
-		base := mergeStats(make([]coverage.Stats, 0), stats)
+		base := copyStats(stats)
 
 		stats = append(stats, coverage.Stats{Name: "foo", Total: 9, Covered: 8})
 		stats = append(stats, coverage.Stats{Name: "foo-new", Total: 9, Covered: 8})
@@ -113,16 +124,70 @@ func Test_ReportForHuman(t *testing.T) {
 		result := Analyze(cfg, stats, base)
 		ReportForHuman(buf, result)
 
-		assert.Contains(t, buf.String(),
-			"Current tests coverage has changed with 2 lines missing coverage",
-		)
+		assertDiffChange(t, buf.String(), 2)
+		assert.Contains(t, buf.String(), "foo\t\t  1\t\t88.9% (8/9)\t\t100% (10/10)")
+		assert.Contains(t, buf.String(), "foo-new\t  1\t\t88.9% (8/9)\t")
+	})
+
+	t.Run("diff - threshold failed", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(999.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		ReportForHuman(buf, result)
+
+		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, false)
+		assertDiffPercentage(t, buf.String(), 70)
+		assertDiffChange(t, buf.String(), 2)
+	})
+
+	t.Run("diff - threshold pass", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
+		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(70.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		ReportForHuman(buf, result)
+
+		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
+		assertDiffPercentage(t, buf.String(), 70)
+		assertDiffChange(t, buf.String(), 2)
+	})
+
+	t.Run("diff - negative threshold pass", func(t *testing.T) {
+		t.Parallel()
+
+		base := []coverage.Stats{{Name: "foo", Total: 100, Covered: 100}}
+		stats := []coverage.Stats{{Name: "foo", Total: 100, Covered: 90}}
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Diff: Diff{Threshold: ptr(-11.0)},
+		}
+		result := Analyze(cfg, stats, base)
+		ReportForHuman(buf, result)
+
+		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
+		assertDiffPercentage(t, buf.String(), -10)
+		assertDiffChange(t, buf.String(), 10)
 	})
 }
 
 func Test_ReportForGithubAction(t *testing.T) {
 	t.Parallel()
 
-	prefix := "organization.org/pkg/"
+	const prefix = "organization.org/pkg/"
 
 	t.Run("total coverage - pass", func(t *testing.T) {
 		t.Parallel()
