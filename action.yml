@@ -146,9 +146,9 @@ runs:
     - --source-dir "${{ inputs.source-dir }}"
     - --debug=${{ inputs.debug }}
     - --github-action-output=true
-    - --threshold-file "${{ inputs.threshold-file }}"
-    - --threshold-package "${{ inputs.threshold-package }}"
-    - --threshold-total "${{ inputs.threshold-total }}"
+    - --threshold-file ${{ inputs.threshold-file }}
+    - --threshold-package ${{ inputs.threshold-package }}
+    - --threshold-total ${{ inputs.threshold-total }}
     - --breakdown-file-name "${{ inputs.breakdown-file-name }}"
     - --diff-base-breakdown-file-name "${{ inputs.diff-base-breakdown-file-name }}"
     - --badge-file-name "${{ inputs.badge-file-name }}"
