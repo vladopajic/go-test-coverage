@@ -38,17 +38,14 @@ inputs:
   threshold-file:
     description: Minimum coverage percentage required for individual files. Overrides value from configuration.
     required: false
-    default: -1
     type: number
   threshold-package:
     description: Minimum coverage percentage required for each package. Overrides value from configuration.
     required: false
-    default: -1
     type: number
   threshold-total:
     description: Minimum overall project coverage percentage required. Overrides value from configuration.
     required: false
-    default: -1
     type: number
 
   breakdown-file-name:
@@ -174,9 +171,9 @@ runs:
         --source-dir "${{ inputs.source-dir }}" \
         --debug=${{ inputs.debug }} \
         --github-action-output=true \
-        --threshold-file ${{ inputs.threshold-file }} \
-        --threshold-package ${{ inputs.threshold-package }} \
-        --threshold-total ${{ inputs.threshold-total }} \
+        --threshold-file "${{ inputs.threshold-file }}" \
+        --threshold-package "${{ inputs.threshold-package }}" \
+        --threshold-total "${{ inputs.threshold-total }}" \
         --breakdown-file-name "${{ inputs.breakdown-file-name }}" \
         --diff-base-breakdown-file-name "${{ inputs.diff-base-breakdown-file-name }}" \
         --badge-file-name "${{ inputs.badge-file-name }}" \
