@@ -144,7 +144,7 @@ diff:
   # Allowed threshold for the test coverage difference (in percentage) 
   # between the feature branch and the base branch.
   #
-  # By default, this is disabled (set to nil). Valid values range from 
+  # By default, this is disabled (set to null). Valid values range from 
   # -100.0 to +100.0.
   #
   # Example: 
@@ -152,7 +152,7 @@ diff:
   #   less than 0.5% more coverage than the base.
   #
   #   If set to -0.5, the check allows up to 0.5% less coverage than the base.
-  threshold: nil
+  threshold: null
 ```
 
 ### Exclude Code from Coverage
