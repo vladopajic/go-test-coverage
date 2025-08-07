@@ -213,6 +213,15 @@ func Test_ConfigFromFile(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, savedCfg, cfg)
 	})
+
+	t.Run("example file", func(t *testing.T) {
+		t.Parallel()
+
+		cfg := Config{}
+		filename := "../../.testcoverage.example.yml"
+		err := ConfigFromFile(&cfg, filename)
+		assert.NoError(t, err)
+	})
 }
 
 func TestConfigYamlParse(t *testing.T) {
