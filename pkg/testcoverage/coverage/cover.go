@@ -9,6 +9,7 @@ import (
 	"math"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -18,12 +19,11 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
 )
 
-const IgnoreText = "coverage-ignore"
-
 type Config struct {
 	Profiles     []string
 	ExcludePaths []string
 	SourceDir    string
+	IgnoreTextRegex string
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -52,7 +52,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi)
+		s, err := coverageForFile(profile, fi, cfg.IgnoreTextRegex)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +78,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
+func coverageForFile(profile *cover.Profile, fi fileInfo, ignoreTextRegex string) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
 	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
@@ -89,7 +89,7 @@ func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
 		return Stats{}, err
 	}
 
-	annotations, err := findAnnotations(source)
+	annotations, err := findAnnotations(source, ignoreTextRegex)
 	if err != nil { // coverage-ignore
 		return Stats{}, err
 	}
@@ -251,7 +251,7 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	return path
 }
 
-func findAnnotations(source []byte) ([]extent, error) {
+func findAnnotations(source []byte, ignoreTextRegex string) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
@@ -261,13 +261,29 @@ func findAnnotations(source []byte) ([]extent, error) {
 
 	var res []extent
 
+	ignoreTextRegex = defaultIgnoreTextRegex(ignoreTextRegex)
+
 	for _, c := range node.Comments {
-		if strings.Contains(c.Text(), IgnoreText) {
+		matched, rgxErr := regexp.MatchString(ignoreTextRegex, c.Text())
+		if rgxErr != nil { // coverage-ignore
+			fmt.Printf("error matching regex: %v\n", rgxErr)
+			continue
+		}
+
+		if matched {
 			res = append(res, newExtent(fset, c))
 		}
 	}
 
 	return res, nil
+}
+
+func defaultIgnoreTextRegex(ignoreTextRegex string) string {
+	if ignoreTextRegex == "" {
+		ignoreTextRegex = `^coverage-ignore(\s*//.*)?\n$`
+	}
+
+	return ignoreTextRegex
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {

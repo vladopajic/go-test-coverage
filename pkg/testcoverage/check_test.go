@@ -83,6 +83,7 @@ func TestCheck(t *testing.T) {
 				Paths: []string{`cdn\.go$`, `github\.go$`, `cover\.go$`, `check\.go$`, `path\.go$`},
 			},
 			SourceDir: sourceDir,
+			IgnoreTextRegex: "",
 		}
 		pass, err := Check(buf, cfg)
 		assert.True(t, pass)

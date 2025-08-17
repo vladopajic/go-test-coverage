@@ -95,6 +95,7 @@ func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 		Profiles:     strings.Split(cfg.Profile, ","),
 		ExcludePaths: cfg.Exclude.Paths,
 		SourceDir:    cfg.SourceDir,
+		IgnoreTextRegex: cfg.IgnoreTextRegex,
 	})
 }
 
