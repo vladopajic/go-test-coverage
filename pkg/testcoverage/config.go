@@ -35,7 +35,7 @@ type Config struct {
 	GithubActionOutput    bool       `yaml:"github-action-output"`
 	Diff                  Diff       `yaml:"diff"`
 	Badge                 Badge      `yaml:"-"`
-	IgnoreTextRegex	      string     `yaml:"ignore-text-regex,omitempty"`
+	CoverageIgnoreRegex	      string     `yaml:"ignore-text-regex,omitempty"`
 }
 
 type Threshold struct {

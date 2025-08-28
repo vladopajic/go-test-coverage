@@ -27,7 +27,7 @@ type args struct {
 	ThresholdFile      int    `arg:"-f,--threshold-file"`
 	ThresholdPackage   int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     int    `arg:"-t,--threshold-total"`
-	IgnoreTextRegex    string `arg:"-i,--ignore-text"         help:"regular expression for coverage ignore text"`
+	CoverageIgnoreRegex    string `arg:"-i,--ignore-text"         help:"regular expression for coverage ignore text"`
 
 	BreakdownFileName         string `arg:"--breakdown-file-name"`
 	DiffBaseBreakdownFileName string `arg:"--diff-base-breakdown-file-name"`
@@ -59,7 +59,7 @@ func newArgs() args {
 		ThresholdFile:      ciDefaultInt,
 		ThresholdPackage:   ciDefaultInt,
 		ThresholdTotal:     ciDefaultInt,
-		IgnoreTextRegex:    ciDefaultString,
+		CoverageIgnoreRegex:    ciDefaultString,
 
 		BreakdownFileName:         ciDefaultString,
 		DiffBaseBreakdownFileName: ciDefaultString,
@@ -122,8 +122,8 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 		cfg.Threshold.Total = a.ThresholdTotal
 	}
 
-	if !isCIDefaultString(a.IgnoreTextRegex) {
-		cfg.IgnoreTextRegex = a.IgnoreTextRegex
+	if !isCIDefaultString(a.CoverageIgnoreRegex) {
+		cfg.CoverageIgnoreRegex = a.CoverageIgnoreRegex
 	}
 
 	if !isCIDefaultString(a.BreakdownFileName) {

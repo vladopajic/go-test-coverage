@@ -44,7 +44,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats, err = GenerateCoverageStats(Config{
 		Profiles:  []string{profileNOK},
 		SourceDir: sourceDir,
-		IgnoreTextRegex: "",
+		CoverageIgnoreRegex: "",
 	})
 	assert.Error(t, err)
 	assert.Empty(t, stats)
@@ -53,7 +53,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats1, err := GenerateCoverageStats(Config{
 		Profiles:  []string{profileOK},
 		SourceDir: sourceDir,
-		IgnoreTextRegex: "",
+		CoverageIgnoreRegex: "",
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats1)
@@ -63,7 +63,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 		Profiles:     []string{profileOK},
 		ExcludePaths: []string{`cover\.go$`},
 		SourceDir:    sourceDir,
-		IgnoreTextRegex: "",
+		CoverageIgnoreRegex: "",
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats2)
@@ -74,7 +74,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats3, err := GenerateCoverageStats(Config{
 		Profiles:  []string{profileOK, profileOKFull},
 		SourceDir: sourceDir,
-		IgnoreTextRegex: "",
+		CoverageIgnoreRegex: "",
 	})
 	assert.NoError(t, err)
 	assert.NotEmpty(t, stats3)
@@ -84,7 +84,7 @@ func Test_GenerateCoverageStats(t *testing.T) {
 	stats4, err := GenerateCoverageStats(Config{
 		Profiles:  []string{profileOKNoStatements},
 		SourceDir: sourceDir,
-		IgnoreTextRegex: "",
+		CoverageIgnoreRegex: "",
 	})
 	assert.NoError(t, err)
 	assert.Len(t, stats4, 1)

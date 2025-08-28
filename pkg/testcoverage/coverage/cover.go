@@ -23,7 +23,7 @@ type Config struct {
 	Profiles     []string
 	ExcludePaths []string
 	SourceDir    string
-	IgnoreTextRegex string
+	CoverageIgnoreRegex string
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -52,7 +52,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi, cfg.IgnoreTextRegex)
+		s, err := coverageForFile(profile, fi, cfg.CoverageIgnoreRegex)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +78,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func coverageForFile(profile *cover.Profile, fi fileInfo, ignoreTextRegex string) (Stats, error) {
+func coverageForFile(profile *cover.Profile, fi fileInfo, CoverageIgnoreRegex string) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
 	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
@@ -89,7 +89,7 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, ignoreTextRegex string
 		return Stats{}, err
 	}
 
-	annotations, err := findAnnotations(source, ignoreTextRegex)
+	annotations, err := findAnnotations(source, CoverageIgnoreRegex)
 	if err != nil { // coverage-ignore
 		return Stats{}, err
 	}
@@ -251,7 +251,7 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	return path
 }
 
-func findAnnotations(source []byte, ignoreTextRegex string) ([]extent, error) {
+func findAnnotations(source []byte, CoverageIgnoreRegex string) ([]extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
@@ -261,10 +261,10 @@ func findAnnotations(source []byte, ignoreTextRegex string) ([]extent, error) {
 
 	var res []extent
 
-	ignoreTextRegex = defaultIgnoreTextRegex(ignoreTextRegex)
+	CoverageIgnoreRegex = defaultCoverageIgnoreRegex(CoverageIgnoreRegex)
 
 	for _, c := range node.Comments {
-		matched, rgxErr := regexp.MatchString(ignoreTextRegex, c.Text())
+		matched, rgxErr := regexp.MatchString(CoverageIgnoreRegex, c.Text())
 		if rgxErr != nil { // coverage-ignore
 			fmt.Printf("error matching regex: %v\n", rgxErr)
 			continue
@@ -278,12 +278,12 @@ func findAnnotations(source []byte, ignoreTextRegex string) ([]extent, error) {
 	return res, nil
 }
 
-func defaultIgnoreTextRegex(ignoreTextRegex string) string {
-	if ignoreTextRegex == "" {
-		ignoreTextRegex = `^coverage-ignore(\s*//.*)?\n$`
+func defaultCoverageIgnoreRegex(CoverageIgnoreRegex string) string {
+	if CoverageIgnoreRegex == "" {
+		CoverageIgnoreRegex = `^coverage-ignore(\s*//.*)?\n$`
 	}
 
-	return ignoreTextRegex
+	return CoverageIgnoreRegex
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
