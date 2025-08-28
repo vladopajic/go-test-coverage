@@ -41,13 +41,11 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
-# (optional; default '//coverage-ignore')
-# ignore-text-regex: Defines regular expressions to match specific comment patterns in your code
+# (optional)
+# Defines regular expressions to match specific comment patterns in your code
 # that will be recognized as valid coverage ignore markers.
-#
-# this feature can be used to ensure team members properly document WHY coverage is being skipped,
-# which helps maintain code quality and avoid unexplained coverage gaps.
-ignore-text-regex:
+# By default lines having `//coverage-ignore` are excluded from coverage statistic.
+coverage-ignore-regex: ''
 
 # If specified, saves the current test coverage breakdown to this file.
 #
