@@ -175,6 +175,31 @@ func bar() { // coverage-ignore
 }
 ```
 
+#### Requiring Explanations for Ignored Coverage
+
+You can enforce that all `coverage-ignore` annotations must include explanatory comments. This helps ensure that developers document why specific code blocks are excluded from coverage.
+
+To enable this feature, add the following to your configuration:
+
+```yml
+# Settings for coverage-ignore annotations
+# When true, requires all coverage-ignore annotations to include explanatory comments
+force-annotation-comment: false
+```
+
+When enabled, annotations without explanations will cause the check to fail with detailed error messages.
+
+Examples of valid annotations with explanations:
+```go
+if err != nil { // coverage-ignore - this error is handled by the caller
+	return err
+}
+
+func handleSpecialCase() { // coverage-ignore - tested in integration tests
+	// ...
+}
+```
+
 ## Generate Coverage Badge
 
 You can easily generate a stylish coverage badge for your repository and embed it in your markdown files. Here’s an example badge: ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)
