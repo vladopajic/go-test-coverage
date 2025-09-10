@@ -41,6 +41,10 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+# (optional; default false)
+# When true, requires all coverage-ignore annotations to include explanatory comments
+force-annotation-comment: false
+
 # If specified, saves the current test coverage breakdown to this file.
 #
 # Typically, this breakdown is generated only for main (base) branches and 

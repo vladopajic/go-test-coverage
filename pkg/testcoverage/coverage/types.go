@@ -10,12 +10,20 @@ import (
 	"strings"
 )
 
+type Extent struct {
+	StartLine int
+	StartCol  int
+	EndLine   int
+	EndCol    int
+}
+
 type Stats struct {
-	Name           string
-	Total          int64
-	Covered        int64
-	Threshold      int
-	UncoveredLines []int
+	Name                       string
+	Total                      int64
+	Covered                    int64
+	Threshold                  int
+	UncoveredLines             []int
+	AnnotationsWithoutComments []Extent
 }
 
 func (s Stats) UncoveredLinesCount() int {
@@ -146,6 +154,13 @@ func StatsFilterWithUncoveredLines(stats []Stats) []Stats {
 func StatsFilterWithCoveredLines(stats []Stats) []Stats {
 	return filter(stats, func(s Stats) bool {
 		return len(s.UncoveredLines) == 0
+	})
+}
+
+// StatsFilterWithMissingExplanations returns stats that have missing explanations
+func StatsFilterWithMissingExplanations(stats []Stats) []Stats {
+	return filter(stats, func(s Stats) bool {
+		return len(s.AnnotationsWithoutComments) > 0
 	})
 }
 

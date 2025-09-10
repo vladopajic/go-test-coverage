@@ -20,6 +20,7 @@ func ReportForHuman(w io.Writer, result AnalyzeResult) {
 
 	reportCoverage(out, result)
 	reportUncoveredLines(out, result)
+	reportMissingExplanations(out, result)
 	reportDiff(out, result)
 }
 
@@ -87,6 +88,34 @@ func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n")
 }
 
+func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
+	if !result.RequireIgnoreExplanation || len(result.FilesWithMissingExplanations) == 0 {
+		return
+	}
+
+	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
+	defer tabber.Flush()
+
+	fmt.Fprintf(tabber, "\nFiles with missing explanations for coverage-ignore annotations:")
+	fmt.Fprintf(tabber, "\n  file:\tline numbers:")
+
+	for _, stats := range result.FilesWithMissingExplanations {
+		if len(stats.AnnotationsWithoutComments) > 0 {
+			fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
+
+			separator := ""
+			for _, ann := range stats.AnnotationsWithoutComments {
+				fmt.Fprintf(tabber, "%s%d", separator, ann.StartLine)
+				separator = ", "
+			}
+		}
+	}
+
+	fmt.Fprintf(tabber, "\n")
+
+	fmt.Fprintf(w, "Missing explanation for coverage-ignore: add an explanation\n")
+}
+
 //nolint:lll // relax
 func reportDiff(w io.Writer, result AnalyzeResult) {
 	if !result.HasBaseBreakdown {
@@ -126,7 +155,7 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n")
 }
 
-func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
+func ReportForGithubAction(w io.Writer, result AnalyzeResult) { //nolint:maintidx // relax
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
@@ -162,6 +191,22 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 			title, result.TotalStats.Str(), result.Threshold.Total,
 		)
 		reportError(title, msg)
+	}
+
+	// Report missing explanations for coverage-ignore annotations
+	if result.RequireIgnoreExplanation {
+		for _, stats := range result.FilesWithMissingExplanations {
+			if len(stats.AnnotationsWithoutComments) > 0 {
+				for _, ann := range stats.AnnotationsWithoutComments {
+					title := "Missing explanation for coverage-ignore"
+					msg := title + ": add an explanation after the coverage-ignore annotation"
+
+					file := stats.Name
+					lineNumber := ann.StartLine
+					fmt.Fprintf(out, "::error file=%s,title=%s,line=%d::%s\n", file, title, lineNumber, msg)
+				}
+			}
+		}
 	}
 }
 
