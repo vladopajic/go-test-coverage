@@ -104,6 +104,11 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 	overrideRules := compileOverridePathRules(cfg)
 	hasFileOverrides, hasPackageOverrides := detectOverrides(cfg.Override)
 
+	var filesWithMissingExplanations []coverage.Stats
+	if cfg.ForceAnnotationComment {
+		filesWithMissingExplanations = coverage.StatsFilterWithMissingExplanations(current)
+	}
+
 	return AnalyzeResult{
 		Threshold:           thr,
 		DiffThreshold:       cfg.Diff.Threshold,
@@ -114,12 +119,11 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 			makePackageStats(current), thr.Package, overrideRules,
 		),
 		FilesWithUncoveredLines:      coverage.StatsFilterWithUncoveredLines(current),
-		FilesWithMissingExplanations: coverage.StatsFilterWithMissingExplanations(current),
+		FilesWithMissingExplanations: filesWithMissingExplanations,
 		TotalStats:                   coverage.StatsCalcTotal(current),
 		HasBaseBreakdown:             len(base) > 0,
 		Diff:                         calculateStatsDiff(current, base),
 		DiffPercentage:               TotalPercentageDiff(current, base),
-		RequireIgnoreExplanation:     cfg.ForceAnnotationComment,
 	}
 }
 

@@ -89,7 +89,7 @@ func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
 }
 
 func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
-	if !result.RequireIgnoreExplanation || len(result.FilesWithMissingExplanations) == 0 {
+	if len(result.FilesWithMissingExplanations) == 0 {
 		return
 	}
 
@@ -112,8 +112,6 @@ func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
 	}
 
 	fmt.Fprintf(tabber, "\n")
-
-	fmt.Fprintf(w, "Missing explanation for coverage-ignore: add an explanation\n")
 }
 
 //nolint:lll // relax
@@ -194,17 +192,15 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) { //nolint:maintid
 	}
 
 	// Report missing explanations for coverage-ignore annotations
-	if result.RequireIgnoreExplanation {
-		for _, stats := range result.FilesWithMissingExplanations {
-			if len(stats.AnnotationsWithoutComments) > 0 {
-				for _, ann := range stats.AnnotationsWithoutComments {
-					title := "Missing explanation for coverage-ignore"
-					msg := title + ": add an explanation after the coverage-ignore annotation"
+	for _, stats := range result.FilesWithMissingExplanations {
+		if len(stats.AnnotationsWithoutComments) > 0 {
+			for _, ann := range stats.AnnotationsWithoutComments {
+				title := "Missing explanation for coverage-ignore"
+				msg := title + ": add an explanation after the coverage-ignore annotation"
 
-					file := stats.Name
-					lineNumber := ann
-					fmt.Fprintf(out, "::error file=%s,title=%s,line=%d::%s\n", file, title, lineNumber, msg)
-				}
+				file := stats.Name
+				lineNumber := ann
+				fmt.Fprintf(out, "::error file=%s,title=%s,line=%d::%s\n", file, title, lineNumber, msg)
 			}
 		}
 	}

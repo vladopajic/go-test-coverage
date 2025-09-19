@@ -22,17 +22,14 @@ type AnalyzeResult struct {
 	DiffPercentage               float64
 	HasFileOverrides             bool
 	HasPackageOverrides          bool
-	RequireIgnoreExplanation     bool
 }
 
 func (r *AnalyzeResult) Pass() bool {
-	hasNoMissingExplanations := !r.RequireIgnoreExplanation || len(r.FilesWithMissingExplanations) == 0
-
 	return r.MeetsTotalCoverage() &&
 		len(r.FilesBelowThreshold) == 0 &&
 		len(r.PackagesBelowThreshold) == 0 &&
 		r.MeetsDiffThreshold() &&
-		hasNoMissingExplanations
+		len(r.FilesWithMissingExplanations) == 0
 }
 
 func (r *AnalyzeResult) MeetsDiffThreshold() bool {

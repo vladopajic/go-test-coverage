@@ -281,7 +281,6 @@ func TestCheck(t *testing.T) {
 
 		// Should report missing explanations
 		assert.Contains(t, buf.String(), "Files with missing explanations for coverage-ignore")
-		assert.Contains(t, buf.String(), "Missing explanation for coverage-ignore")
 	})
 
 	t.Run("valid profile - pass when not checking for explanations", func(t *testing.T) {
@@ -299,7 +298,6 @@ func TestCheck(t *testing.T) {
 
 		// Should not report missing explanations
 		assert.NotContains(t, buf.String(), "Files with missing explanations for coverage-ignore")
-		assert.NotContains(t, buf.String(), "Missing explanation for coverage-ignore")
 	})
 }
 
@@ -668,8 +666,7 @@ func Test_Analyze(t *testing.T) {
 		}
 		result := Analyze(cfg, stats, nil)
 		assert.True(t, result.Pass())
-		assert.NotEmpty(t, result.FilesWithMissingExplanations)
-		assert.False(t, result.RequireIgnoreExplanation)
+		assert.Empty(t, result.FilesWithMissingExplanations)
 
 		// When explanations are required, the check should fail
 		cfg = Config{
@@ -678,7 +675,6 @@ func Test_Analyze(t *testing.T) {
 		result = Analyze(cfg, stats, nil)
 		assert.False(t, result.Pass())
 		assert.NotEmpty(t, result.FilesWithMissingExplanations)
-		assert.True(t, result.RequireIgnoreExplanation)
 	})
 }
 
