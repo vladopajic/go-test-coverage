@@ -125,6 +125,10 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+# (optional; default false)
+# When true, requires all coverage-ignore annotations to include explanatory comments
+force-annotation-comment: false
+
 # If specified, saves the current test coverage breakdown to this file.
 #
 # Typically, this breakdown is generated only for main (base) branches and 
@@ -172,31 +176,6 @@ Similarly, the entire function can be excluded from coverage statistics when a c
 ```go
 func bar() { // coverage-ignore
 ...
-}
-```
-
-#### Requiring Explanations for Ignored Coverage
-
-You can enforce that all `coverage-ignore` annotations must include explanatory comments. This helps ensure that developers document why specific code blocks are excluded from coverage.
-
-To enable this feature, add the following to your configuration:
-
-```yml
-# Settings for coverage-ignore annotations
-# When true, requires all coverage-ignore annotations to include explanatory comments
-force-annotation-comment: false
-```
-
-When enabled, annotations without explanations will cause the check to fail with detailed error messages.
-
-Examples of valid annotations with explanations:
-```go
-if err != nil { // coverage-ignore - this error is handled by the caller
-	return err
-}
-
-func handleSpecialCase() { // coverage-ignore - tested in integration tests
-	// ...
 }
 ```
 

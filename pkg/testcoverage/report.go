@@ -105,7 +105,7 @@ func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
 
 			separator := ""
 			for _, ann := range stats.AnnotationsWithoutComments {
-				fmt.Fprintf(tabber, "%s%d", separator, ann.StartLine)
+				fmt.Fprintf(tabber, "%s%d", separator, ann)
 				separator = ", "
 			}
 		}
@@ -202,7 +202,7 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) { //nolint:maintid
 					msg := title + ": add an explanation after the coverage-ignore annotation"
 
 					file := stats.Name
-					lineNumber := ann.StartLine
+					lineNumber := ann
 					fmt.Fprintf(out, "::error file=%s,title=%s,line=%d::%s\n", file, title, lineNumber, msg)
 				}
 			}

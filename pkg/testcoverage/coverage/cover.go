@@ -20,14 +20,6 @@ import (
 
 const IgnoreText = "coverage-ignore"
 
-// IgnoreAnnotation represents a coverage-ignore annotation in the code
-type IgnoreAnnotation struct {
-	Extent         extent
-	HasExplanation bool
-	FilePath       string
-	LineNumber     int
-}
-
 type Config struct {
 	Profiles               []string
 	ExcludePaths           []string
@@ -106,8 +98,10 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (St
 	s := sumCoverage(profile, funcs, blocks, annotations)
 	s.Name = fi.name
 
-	s.AnnotationsWithoutComments = make([]Extent, len(withoutComment))
-	copy(s.AnnotationsWithoutComments, withoutComment)
+	s.AnnotationsWithoutComments = make([]int, len(withoutComment))
+	for i, extent := range withoutComment {
+		s.AnnotationsWithoutComments[i] = extent.StartLine
+	}
 
 	return s, nil
 }
@@ -354,7 +348,12 @@ func (v *visitor) addBlock(n ast.Node) {
 	v.blocks = append(v.blocks, newExtent(v.fset, n))
 }
 
-type extent = Extent
+type extent struct {
+	StartLine int
+	StartCol  int
+	EndLine   int
+	EndCol    int
+}
 
 func newExtent(fset *token.FileSet, n ast.Node) extent {
 	start := fset.Position(n.Pos())

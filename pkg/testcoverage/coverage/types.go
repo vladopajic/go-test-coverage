@@ -10,20 +10,13 @@ import (
 	"strings"
 )
 
-type Extent struct {
-	StartLine int
-	StartCol  int
-	EndLine   int
-	EndCol    int
-}
-
 type Stats struct {
 	Name                       string
 	Total                      int64
 	Covered                    int64
 	Threshold                  int
 	UncoveredLines             []int
-	AnnotationsWithoutComments []Extent
+	AnnotationsWithoutComments []int
 }
 
 func (s Stats) UncoveredLinesCount() int {

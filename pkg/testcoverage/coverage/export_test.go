@@ -9,3 +9,5 @@ var (
 	SumCoverage                = sumCoverage
 	FindGoModFile              = findGoModFile
 )
+
+type Extent = extent

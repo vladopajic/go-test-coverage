@@ -655,15 +655,10 @@ func Test_Analyze(t *testing.T) {
 		// Create a stat with missing explanations
 		stats := []coverage.Stats{
 			{
-				Name:    prefix + "/foo.go",
-				Total:   100,
-				Covered: 100,
-				AnnotationsWithoutComments: []coverage.Extent{
-					{
-						StartLine: 10,
-						EndLine:   10,
-					},
-				},
+				Name:                       prefix + "/foo.go",
+				Total:                      100,
+				Covered:                    100,
+				AnnotationsWithoutComments: []int{10},
 			},
 		}
 
