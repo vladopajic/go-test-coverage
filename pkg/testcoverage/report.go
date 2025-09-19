@@ -155,7 +155,7 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n")
 }
 
-func ReportForGithubAction(w io.Writer, result AnalyzeResult) { //nolint:maintidx // relax
+func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 

@@ -121,10 +121,10 @@ func Test_findFile(t *testing.T) {
 func Test_findAnnotations(t *testing.T) {
 	t.Parallel()
 
-	_, err := FindAnnotations(nil)
+	_, _, err := FindAnnotations(nil, false)
 	assert.Error(t, err)
 
-	_, err = FindAnnotations([]byte{})
+	_, _, err = FindAnnotations([]byte{}, false)
 	assert.Error(t, err)
 
 	const source = `
@@ -138,7 +138,7 @@ func Test_findAnnotations(t *testing.T) {
 	}
 	`
 
-	comments, err := FindAnnotations([]byte(source))
+	comments, _, err := FindAnnotations([]byte(source), false)
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
 }
@@ -146,10 +146,10 @@ func Test_findAnnotations(t *testing.T) {
 func Test_findAnnotationsWithComment(t *testing.T) {
 	t.Parallel()
 
-	_, _, err := FindAnnotationsWithComment(nil, true)
+	_, _, err := FindAnnotations(nil, true)
 	assert.Error(t, err)
 
-	_, _, err = FindAnnotationsWithComment([]byte{}, true)
+	_, _, err = FindAnnotations([]byte{}, true)
 	assert.Error(t, err)
 
 	const source = `
@@ -167,12 +167,12 @@ func Test_findAnnotationsWithComment(t *testing.T) {
 	}
 	`
 
-	validAnnotations, withoutComment, err := FindAnnotationsWithComment([]byte(source), true)
+	validAnnotations, withoutComment, err := FindAnnotations([]byte(source), true)
 	assert.NoError(t, err)
 	assert.Equal(t, []int{6}, pluckStartLine(validAnnotations))
 	assert.Equal(t, []int{3, 9}, pluckStartLine(withoutComment))
 
-	validAnnotations, withoutComment, err = FindAnnotationsWithComment([]byte(source), false)
+	validAnnotations, withoutComment, err = FindAnnotations([]byte(source), false)
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 6, 9}, pluckStartLine(validAnnotations))
 	assert.Empty(t, withoutComment)

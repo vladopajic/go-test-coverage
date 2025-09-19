@@ -81,17 +81,17 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 
 func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
-	if err != nil { // coverage-ignore - handle file read errors
+	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
 	}
 
 	funcs, blocks, err := findFuncsAndBlocks(source)
-	if err != nil { // coverage-ignore - handle parsing errors
+	if err != nil { // coverage-ignore
 		return Stats{}, err
 	}
 
-	annotations, withoutComment, err := findAnnotationsWithComment(source, forceComment)
-	if err != nil { // coverage-ignore - handle annotation parsing errors
+	annotations, withoutComment, err := findAnnotations(source, forceComment)
+	if err != nil { // coverage-ignore
 		return Stats{}, err
 	}
 
@@ -257,8 +257,8 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	return path
 }
 
-// findAnnotationsWithExplanation finds coverage-ignore annotations and checks for explanations
-func findAnnotationsWithComment(source []byte, forceComment bool) ([]extent, []extent, error) {
+// findAnnotations finds coverage-ignore annotations and checks for explanations
+func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
@@ -294,11 +294,6 @@ func hasComment(text string) bool {
 	// coverage-ignore should be followed by additional text to be considered an explanation
 	trimmedComment := strings.TrimSpace(text)
 	return len(trimmedComment) > len(IgnoreText)
-}
-
-func findAnnotations(source []byte) ([]extent, error) {
-	extents, _, err := findAnnotationsWithComment(source, false)
-	return extents, err
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
