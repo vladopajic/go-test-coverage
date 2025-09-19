@@ -100,14 +100,16 @@ func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n  file:\tline numbers:")
 
 	for _, stats := range result.FilesWithMissingExplanations {
-		if len(stats.AnnotationsWithoutComments) > 0 {
-			fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
+		if len(stats.AnnotationsWithoutComments) == 0 {
+			continue
+		}
 
-			separator := ""
-			for _, ann := range stats.AnnotationsWithoutComments {
-				fmt.Fprintf(tabber, "%s%d", separator, ann)
-				separator = ", "
-			}
+		fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
+
+		separator := ""
+		for _, ann := range stats.AnnotationsWithoutComments {
+			fmt.Fprintf(tabber, "%s%d", separator, ann)
+			separator = ", "
 		}
 	}
 
