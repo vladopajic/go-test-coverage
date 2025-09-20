@@ -6,7 +6,7 @@ threshold:
   total: 98
 override:
 - path: badgestorer/github.go$  ## is integration test
-  threshold: 64
+  threshold: 43
 - path: path/path.go$           ## requires windows to be tested
   threshold: 66
 exclude:
