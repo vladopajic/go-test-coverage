@@ -21,9 +21,10 @@ import (
 const IgnoreText = "coverage-ignore"
 
 type Config struct {
-	Profiles     []string
-	ExcludePaths []string
-	SourceDir    string
+	Profiles               []string
+	ExcludePaths           []string
+	SourceDir              string
+	ForceAnnotationComment bool
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -52,7 +53,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi)
+		s, err := coverageForFile(profile, fi, cfg.ForceAnnotationComment)
 		if err != nil {
 			return nil, err
 		}
@@ -78,7 +79,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
+func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
 	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
@@ -89,13 +90,18 @@ func coverageForFile(profile *cover.Profile, fi fileInfo) (Stats, error) {
 		return Stats{}, err
 	}
 
-	annotations, err := findAnnotations(source)
+	annotations, withoutComment, err := findAnnotations(source, forceComment)
 	if err != nil { // coverage-ignore
 		return Stats{}, err
 	}
 
 	s := sumCoverage(profile, funcs, blocks, annotations)
 	s.Name = fi.name
+
+	s.AnnotationsWithoutComments = make([]int, len(withoutComment))
+	for i, extent := range withoutComment {
+		s.AnnotationsWithoutComments[i] = extent.StartLine
+	}
 
 	return s, nil
 }
@@ -251,23 +257,43 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	return path
 }
 
-func findAnnotations(source []byte) ([]extent, error) {
+// findAnnotations finds coverage-ignore annotations and checks for explanations
+func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
 	if err != nil {
-		return nil, fmt.Errorf("can't parse comments: %w", err)
+		return nil, nil, fmt.Errorf("can't parse comments: %w", err)
 	}
 
-	var res []extent
+	var validAnnotations []extent
+
+	var annotationsWithoutComment []extent
 
 	for _, c := range node.Comments {
-		if strings.Contains(c.Text(), IgnoreText) {
-			res = append(res, newExtent(fset, c))
+		if !strings.Contains(c.Text(), IgnoreText) {
+			continue // does not have annotation continue to next comment
+		}
+
+		if forceComment {
+			if hasComment(c.Text()) {
+				validAnnotations = append(validAnnotations, newExtent(fset, c))
+			} else {
+				annotationsWithoutComment = append(annotationsWithoutComment, newExtent(fset, c))
+			}
+		} else {
+			validAnnotations = append(validAnnotations, newExtent(fset, c))
 		}
 	}
 
-	return res, nil
+	return validAnnotations, annotationsWithoutComment, nil
+}
+
+// hasComment checks if the coverage-ignore annotation has an explanation comment
+func hasComment(text string) bool {
+	// coverage-ignore should be followed by additional text to be considered an explanation
+	trimmedComment := strings.TrimSpace(text)
+	return len(trimmedComment) > len(IgnoreText)
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {

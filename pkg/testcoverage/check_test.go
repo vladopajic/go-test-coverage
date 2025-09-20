@@ -265,6 +265,40 @@ func TestCheck(t *testing.T) {
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to load base coverage breakdown")
 	})
+
+	t.Run("valid profile - fail when missing explanations", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:                profileOK,
+			SourceDir:              sourceDir,
+			ForceAnnotationComment: true,
+		}
+		pass, err := Check(buf, cfg)
+		assert.False(t, pass)
+		assert.NoError(t, err)
+
+		// Should report missing explanations
+		assert.Contains(t, buf.String(), "Files with missing explanations for coverage-ignore")
+	})
+
+	t.Run("valid profile - pass when not checking for explanations", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Profile:                profileOK,
+			SourceDir:              sourceDir,
+			ForceAnnotationComment: false,
+		}
+		pass, err := Check(buf, cfg)
+		assert.True(t, pass)
+		assert.NoError(t, err)
+
+		// Should not report missing explanations
+		assert.NotContains(t, buf.String(), "Files with missing explanations for coverage-ignore")
+	})
 }
 
 func TestCheckDiff(t *testing.T) {
@@ -611,6 +645,36 @@ func Test_Analyze(t *testing.T) {
 		assert.True(t, result.Pass())
 		assert.True(t, result.MeetsDiffThreshold())
 		assert.Equal(t, 0.01, result.DiffPercentage) //nolint:testifylint //relax
+	})
+
+	t.Run("missing explanations for coverage-ignore", func(t *testing.T) {
+		t.Parallel()
+
+		// Create a stat with missing explanations
+		stats := []coverage.Stats{
+			{
+				Name:                       prefix + "/foo.go",
+				Total:                      100,
+				Covered:                    100,
+				AnnotationsWithoutComments: []int{10},
+			},
+		}
+
+		// When explanations are not required, the check should pass
+		cfg := Config{
+			ForceAnnotationComment: false,
+		}
+		result := Analyze(cfg, stats, nil)
+		assert.True(t, result.Pass())
+		assert.Empty(t, result.FilesWithMissingExplanations)
+
+		// When explanations are required, the check should fail
+		cfg = Config{
+			ForceAnnotationComment: true,
+		}
+		result = Analyze(cfg, stats, nil)
+		assert.False(t, result.Pass())
+		assert.NotEmpty(t, result.FilesWithMissingExplanations)
 	})
 }
 

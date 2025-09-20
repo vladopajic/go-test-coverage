@@ -251,7 +251,8 @@ func nonZeroConfig() Config {
 			BaseBreakdownFileName: "breakdown.testcoverage",
 			Threshold:             ptr(-1.01),
 		},
-		GithubActionOutput: true,
+		GithubActionOutput:     true,
+		ForceAnnotationComment: false,
 	}
 }
 
@@ -265,6 +266,7 @@ threshold:
 override:
     - threshold: 99
       path: pathToFile
+force-annotation-comment: false
 exclude:
   paths:
     - path1

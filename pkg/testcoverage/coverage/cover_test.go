@@ -121,10 +121,10 @@ func Test_findFile(t *testing.T) {
 func Test_findAnnotations(t *testing.T) {
 	t.Parallel()
 
-	_, err := FindAnnotations(nil)
+	_, _, err := FindAnnotations(nil, false)
 	assert.Error(t, err)
 
-	_, err = FindAnnotations([]byte{})
+	_, _, err = FindAnnotations([]byte{}, false)
 	assert.Error(t, err)
 
 	const source = `
@@ -138,9 +138,44 @@ func Test_findAnnotations(t *testing.T) {
 	}
 	`
 
-	comments, err := FindAnnotations([]byte(source))
+	comments, _, err := FindAnnotations([]byte(source), false)
 	assert.NoError(t, err)
 	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
+}
+
+func Test_findAnnotationsWithComment(t *testing.T) {
+	t.Parallel()
+
+	_, _, err := FindAnnotations(nil, true)
+	assert.Error(t, err)
+
+	_, _, err = FindAnnotations([]byte{}, true)
+	assert.Error(t, err)
+
+	const source = `
+	package foo
+	func foo() int { // coverage-ignore
+		a := 0
+		// This is a regular comment
+		for i := range 10 { // coverage-ignore - this has an explanation
+			a += i
+		}
+		if a > 5 { // coverage-ignore  
+			a = 5
+		}
+		return a
+	}
+	`
+
+	validAnnotations, withoutComment, err := FindAnnotations([]byte(source), true)
+	assert.NoError(t, err)
+	assert.Equal(t, []int{6}, pluckStartLine(validAnnotations))
+	assert.Equal(t, []int{3, 9}, pluckStartLine(withoutComment))
+
+	validAnnotations, withoutComment, err = FindAnnotations([]byte(source), false)
+	assert.NoError(t, err)
+	assert.Equal(t, []int{3, 6, 9}, pluckStartLine(validAnnotations))
+	assert.Empty(t, withoutComment)
 }
 
 func Test_findFuncs(t *testing.T) {
