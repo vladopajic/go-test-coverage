@@ -285,7 +285,7 @@ func Test_ReportForGithubAction(t *testing.T) {
 		assertNotContainStats(t, buf.String(), MakePackageStats(statsNoError))
 		assertNotContainStats(t, buf.String(), statsNoError)
 	})
-	
+
 	t.Run("missing explanation annotations", func(t *testing.T) {
 		t.Parallel()
 
@@ -293,19 +293,19 @@ func Test_ReportForGithubAction(t *testing.T) {
 		result := AnalyzeResult{
 			FilesWithMissingExplanations: []coverage.Stats{
 				{
-					Name: "test.go",
+					Name:                       "test.go",
 					AnnotationsWithoutComments: []int{10, 20},
 				},
 			},
 		}
 		ReportForGithubAction(buf, result)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "file=test.go,title=Missing explanation for coverage-ignore,line=10")
 		assert.Contains(t, output, "file=test.go,title=Missing explanation for coverage-ignore,line=20")
 		assert.Contains(t, output, "add an explanation after the coverage-ignore annotation")
 	})
-	
+
 	t.Run("missing explanation annotations - empty list", func(t *testing.T) {
 		t.Parallel()
 
@@ -313,13 +313,13 @@ func Test_ReportForGithubAction(t *testing.T) {
 		result := AnalyzeResult{
 			FilesWithMissingExplanations: []coverage.Stats{
 				{
-					Name: "test.go",
+					Name:                       "test.go",
 					AnnotationsWithoutComments: []int{},
 				},
 			},
 		}
 		ReportForGithubAction(buf, result)
-		
+
 		output := buf.String()
 		assert.NotContains(t, output, "Missing explanation for coverage-ignore")
 	})
@@ -330,55 +330,55 @@ func Test_ReportMissingExplanations(t *testing.T) {
 
 	t.Run("with missing explanations", func(t *testing.T) {
 		t.Parallel()
-		
+
 		buf := &bytes.Buffer{}
 		result := AnalyzeResult{
 			FilesWithMissingExplanations: []coverage.Stats{
 				{
-					Name: "test.go",
+					Name:                       "test.go",
 					AnnotationsWithoutComments: []int{10, 20},
 				},
 			},
 		}
-		
+
 		ReportForHuman(buf, result)
-		
+
 		output := buf.String()
 		assert.Contains(t, output, "Files with missing explanations for coverage-ignore annotations:")
 		assert.Contains(t, output, "test.go")
 		assert.Contains(t, output, "10, 20")
 	})
-	
+
 	t.Run("with empty annotations list", func(t *testing.T) {
 		t.Parallel()
-		
+
 		buf := &bytes.Buffer{}
 		result := AnalyzeResult{
 			FilesWithMissingExplanations: []coverage.Stats{
 				{
-					Name: "test.go",
+					Name:                       "test.go",
 					AnnotationsWithoutComments: []int{},
 				},
 			},
 		}
-		
+
 		ReportForHuman(buf, result)
-		
+
 		output := buf.String()
 		// Should not contain the file with empty annotations
 		assert.NotContains(t, output, "test.go\t")
 	})
-	
+
 	t.Run("with no missing explanations", func(t *testing.T) {
 		t.Parallel()
-		
+
 		buf := &bytes.Buffer{}
 		result := AnalyzeResult{
 			FilesWithMissingExplanations: []coverage.Stats{},
 		}
-		
+
 		ReportForHuman(buf, result)
-		
+
 		output := buf.String()
 		assert.NotContains(t, output, "Files with missing explanations for coverage-ignore annotations:")
 	})
