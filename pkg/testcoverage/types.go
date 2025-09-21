@@ -32,6 +32,13 @@ func (r *AnalyzeResult) Pass() bool {
 		len(r.FilesWithMissingExplanations) == 0
 }
 
+func (r *AnalyzeResult) PassCoverage() bool {
+	return r.MeetsTotalCoverage() &&
+		len(r.FilesBelowThreshold) == 0 &&
+		len(r.PackagesBelowThreshold) == 0 &&
+		r.MeetsDiffThreshold()
+}
+
 func (r *AnalyzeResult) MeetsDiffThreshold() bool {
 	if r.DiffThreshold == nil || !r.HasBaseBreakdown {
 		return true

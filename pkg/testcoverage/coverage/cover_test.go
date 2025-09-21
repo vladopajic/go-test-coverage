@@ -169,7 +169,7 @@ func Test_findAnnotationsWithComment(t *testing.T) {
 
 	validAnnotations, withoutComment, err := FindAnnotations([]byte(source), true)
 	assert.NoError(t, err)
-	assert.Equal(t, []int{6}, PluckStartLine(validAnnotations))
+	assert.Equal(t, []int{3, 6, 9}, PluckStartLine(validAnnotations))
 	assert.Equal(t, []int{3, 9}, PluckStartLine(withoutComment))
 
 	validAnnotations, withoutComment, err = FindAnnotations([]byte(source), false)

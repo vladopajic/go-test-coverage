@@ -262,23 +262,17 @@ func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, erro
 		return nil, nil, fmt.Errorf("can't parse comments: %w", err)
 	}
 
-	var validAnnotations []extent
-
-	var annotationsWithoutComment []extent
+	var validAnnotations, annotationsWithoutComment []extent //nolint:prealloc // relax
 
 	for _, c := range node.Comments {
 		if !strings.Contains(c.Text(), IgnoreText) {
 			continue // does not have annotation continue to next comment
 		}
 
-		if forceComment {
-			if hasComment(c.Text()) {
-				validAnnotations = append(validAnnotations, newExtent(fset, c))
-			} else {
-				annotationsWithoutComment = append(annotationsWithoutComment, newExtent(fset, c))
-			}
-		} else {
-			validAnnotations = append(validAnnotations, newExtent(fset, c))
+		validAnnotations = append(validAnnotations, newExtent(fset, c))
+
+		if forceComment && !hasComment(c.Text()) {
+			annotationsWithoutComment = append(annotationsWithoutComment, newExtent(fset, c))
 		}
 	}
 
