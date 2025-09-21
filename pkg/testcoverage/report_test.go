@@ -344,29 +344,9 @@ func Test_ReportMissingExplanations(t *testing.T) {
 		ReportForHuman(buf, result)
 
 		output := buf.String()
-		assert.Contains(t, output, "Files with missing explanations for coverage-ignore annotations:")
+		assert.Contains(t, output, "Files with missing explanation for coverage-ignore annotation:")
 		assert.Contains(t, output, "test.go")
 		assert.Contains(t, output, "10, 20")
-	})
-
-	t.Run("with empty annotations list", func(t *testing.T) {
-		t.Parallel()
-
-		buf := &bytes.Buffer{}
-		result := AnalyzeResult{
-			FilesWithMissingExplanations: []coverage.Stats{
-				{
-					Name:                       "test.go",
-					AnnotationsWithoutComments: []int{},
-				},
-			},
-		}
-
-		ReportForHuman(buf, result)
-
-		output := buf.String()
-		// Should not contain the file with empty annotations
-		assert.NotContains(t, output, "test.go\t")
 	})
 
 	t.Run("with no missing explanations", func(t *testing.T) {

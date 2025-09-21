@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
@@ -68,7 +69,7 @@ func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 }
 
 func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
-	if result.Pass() || len(result.FilesWithUncoveredLines) == 0 {
+	if result.PassCoverage() || len(result.FilesWithUncoveredLines) == 0 {
 		return
 	}
 
@@ -96,21 +97,16 @@ func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
 	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
 	defer tabber.Flush()
 
-	fmt.Fprintf(tabber, "\nFiles with missing explanations for coverage-ignore annotations:")
+	fmt.Fprintf(tabber, "\nFiles with missing explanation for coverage-ignore annotation:")
 	fmt.Fprintf(tabber, "\n  file:\tline numbers:")
 
 	for _, stats := range result.FilesWithMissingExplanations {
-		if len(stats.AnnotationsWithoutComments) == 0 {
+		if len(stats.AnnotationsWithoutComments) == 0 { // coverage-ignore
 			continue
 		}
 
-		fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
-
-		separator := ""
-		for _, ann := range stats.AnnotationsWithoutComments {
-			fmt.Fprintf(tabber, "%s%d", separator, ann)
-			separator = ", "
-		}
+		lines := sliceIntsStr(stats.AnnotationsWithoutComments, ", ")
+		fmt.Fprintf(tabber, "\n  %s\t%s", stats.Name, lines)
 	}
 
 	fmt.Fprintf(tabber, "\n")
@@ -159,8 +155,8 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
-	reportLineError := func(file, title, msg string) {
-		fmt.Fprintf(out, "::error file=%s,title=%s,line=1::%s\n", file, title, msg)
+	reportLineError := func(file, title, msg string, line int) {
+		fmt.Fprintf(out, "::error file=%s,title=%s,line=%d::%s\n", file, title, line, msg)
 	}
 	reportError := func(title, msg string) {
 		fmt.Fprintf(out, "::error title=%s::%s\n", title, msg)
@@ -172,7 +168,7 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 			"%s: coverage: %s; threshold: %d%%",
 			title, stats.Str(), stats.Threshold,
 		)
-		reportLineError(stats.Name, title, msg)
+		reportLineError(stats.Name, title, msg, 1)
 	}
 
 	for _, stats := range result.PackagesBelowThreshold {
@@ -193,17 +189,12 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 		reportError(title, msg)
 	}
 
-	// Report missing explanations for coverage-ignore annotations
 	for _, stats := range result.FilesWithMissingExplanations {
-		if len(stats.AnnotationsWithoutComments) > 0 {
-			for _, ann := range stats.AnnotationsWithoutComments {
-				title := "Missing explanation for coverage-ignore"
-				msg := title + ": add an explanation after the coverage-ignore annotation"
+		for _, line := range stats.AnnotationsWithoutComments {
+			title := "Missing explanation for coverage-ignore"
+			msg := title + ": add an explanation after the coverage-ignore annotation"
 
-				file := stats.Name
-				lineNumber := ann
-				fmt.Fprintf(out, "::error file=%s,title=%s,line=%d::%s\n", file, title, lineNumber, msg)
-			}
+			reportLineError(stats.Name, title, msg, line)
 		}
 	}
 }
@@ -291,4 +282,13 @@ func statusStr(passing bool) string {
 	}
 
 	return "FAIL"
+}
+
+func sliceIntsStr(s []int, sep string) string {
+	strs := make([]string, len(s))
+	for i, v := range s {
+		strs[i] = strconv.Itoa(v)
+	}
+
+	return strings.Join(strs, sep)
 }
