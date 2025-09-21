@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 	"text/tabwriter"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
@@ -104,13 +105,8 @@ func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
 			continue
 		}
 
-		fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
-
-		separator := ""
-		for _, ann := range stats.AnnotationsWithoutComments {
-			fmt.Fprintf(tabber, "%s%d", separator, ann)
-			separator = ", "
-		}
+		lines := sliceIntsStr(stats.AnnotationsWithoutComments, ", ")
+		fmt.Fprintf(tabber, "\n  %s\t%s", stats.Name, lines)
 	}
 
 	fmt.Fprintf(tabber, "\n")
@@ -291,4 +287,13 @@ func statusStr(passing bool) string {
 	}
 
 	return "FAIL"
+}
+
+func sliceIntsStr(s []int, sep string) string {
+	strs := make([]string, len(s))
+	for i, v := range s {
+		strs[i] = strconv.Itoa(v)
+	}
+
+	return strings.Join(strs, sep)
 }

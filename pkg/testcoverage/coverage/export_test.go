@@ -7,6 +7,7 @@ var (
 	ParseProfiles      = parseProfiles
 	SumCoverage        = sumCoverage
 	FindGoModFile      = findGoModFile
+	PluckStartLine     = pluckStartLine
 )
 
 type Extent = extent

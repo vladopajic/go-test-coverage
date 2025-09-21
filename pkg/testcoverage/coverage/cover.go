@@ -97,11 +97,7 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (St
 
 	s := sumCoverage(profile, funcs, blocks, annotations)
 	s.Name = fi.name
-
-	s.AnnotationsWithoutComments = make([]int, len(withoutComment))
-	for i, extent := range withoutComment {
-		s.AnnotationsWithoutComments[i] = extent.StartLine
-	}
+	s.AnnotationsWithoutComments = pluckStartLine(withoutComment)
 
 	return s, nil
 }
@@ -375,6 +371,15 @@ func findExtentWithStartLine(ee []extent, line int) (extent, bool) {
 func hasExtentWithStartLine(ee []extent, startLine int) bool {
 	_, found := findExtentWithStartLine(ee, startLine)
 	return found
+}
+
+func pluckStartLine(extents []extent) []int {
+	res := make([]int, len(extents))
+	for i, e := range extents {
+		res[i] = e.StartLine
+	}
+
+	return res
 }
 
 func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {

@@ -140,7 +140,7 @@ func Test_findAnnotations(t *testing.T) {
 
 	comments, _, err := FindAnnotations([]byte(source), false)
 	assert.NoError(t, err)
-	assert.Equal(t, []int{3, 5}, pluckStartLine(comments))
+	assert.Equal(t, []int{3, 5}, PluckStartLine(comments))
 }
 
 func Test_findAnnotationsWithComment(t *testing.T) {
@@ -169,12 +169,12 @@ func Test_findAnnotationsWithComment(t *testing.T) {
 
 	validAnnotations, withoutComment, err := FindAnnotations([]byte(source), true)
 	assert.NoError(t, err)
-	assert.Equal(t, []int{6}, pluckStartLine(validAnnotations))
-	assert.Equal(t, []int{3, 9}, pluckStartLine(withoutComment))
+	assert.Equal(t, []int{6}, PluckStartLine(validAnnotations))
+	assert.Equal(t, []int{3, 9}, PluckStartLine(withoutComment))
 
 	validAnnotations, withoutComment, err = FindAnnotations([]byte(source), false)
 	assert.NoError(t, err)
-	assert.Equal(t, []int{3, 6, 9}, pluckStartLine(validAnnotations))
+	assert.Equal(t, []int{3, 6, 9}, PluckStartLine(validAnnotations))
 	assert.Empty(t, withoutComment)
 }
 
@@ -218,7 +218,7 @@ func Test_findFuncs(t *testing.T) {
 
 	funcs, blocks, err := FindFuncsAndBlocks([]byte(source))
 	assert.NoError(t, err)
-	assert.Equal(t, []int{3, 6, 13, 20}, pluckStartLine(funcs))
+	assert.Equal(t, []int{3, 6, 13, 20}, PluckStartLine(funcs))
 	assert.Equal(t, []Extent{
 		{8, 16, 10, 4},
 		{15, 22, 17, 4},
@@ -261,13 +261,4 @@ func Test_sumCoverage(t *testing.T) {
 		1, 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 	}}
 	assert.Equal(t, expected, s)
-}
-
-func pluckStartLine(extents []Extent) []int {
-	res := make([]int, len(extents))
-	for i, e := range extents {
-		res[i] = e.StartLine
-	}
-
-	return res
 }
