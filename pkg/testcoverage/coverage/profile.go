@@ -68,12 +68,12 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 	if len(ap.Blocks) != len(bp.Blocks) {
 		logger.L.Debug().
 			Str("a-file", ap.FileName).
-			Int("a-len", len(ap.Blocks)).
 			Str("b-file", bp.FileName).
+			Int("a-len", len(ap.Blocks)).
 			Int("b-len", len(bp.Blocks)).
 			Msg("inconsistent profile length")
 
-		return nil, fmt.Errorf("inconsistent profiles length [%q, %q]", ap.FileName, bp.FileName)
+		return nil, fmt.Errorf("inconsistent profiles length [%q]", ap.FileName)
 	}
 
 	for i := range ap.Blocks {
@@ -88,12 +88,12 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 		} else {
 			logger.L.Debug().
 				Str("a-file", ap.FileName).
-				Interface("a", a).
 				Str("b-file", bp.FileName).
+				Interface("a", a).
 				Interface("b", b).
 				Msg("inconsistent profile data")
 
-			return nil, fmt.Errorf("inconsistent profile data [%q, %q]", ap.FileName, bp.FileName)
+			return nil, fmt.Errorf("inconsistent profile data [%q]", ap.FileName)
 		}
 	}
 
