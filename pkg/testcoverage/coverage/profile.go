@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"golang.org/x/tools/cover"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
 func parseProfiles(paths []string) ([]*cover.Profile, error) {
@@ -77,6 +79,13 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 			b.NumStmt == a.NumStmt {
 			ap.Blocks[i].Count = max(a.Count, b.Count)
 		} else {
+			logger.L.Debug().
+				Str("a-file", ap.FileName).
+				Interface("a", a).
+				Str("b-file", bp.FileName).
+				Interface("b", b).
+				Msg("inconsistent profile data")
+
 			return nil, fmt.Errorf("inconsistent profile data [%q, %q]", ap.FileName, bp.FileName)
 		}
 	}
