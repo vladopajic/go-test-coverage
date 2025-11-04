@@ -89,8 +89,8 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 			logger.L.Debug().
 				Str("a-file", ap.FileName).
 				Str("b-file", bp.FileName).
-				Interface("a", a).
-				Interface("b", b).
+				Interface("a-block", a).
+				Interface("b-block", b).
 				Msg("inconsistent profile data")
 
 			return nil, fmt.Errorf("inconsistent profile data [%q]", ap.FileName)
