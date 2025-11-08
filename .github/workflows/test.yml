@@ -1,5 +1,7 @@
 name: test
-on: [push]
+on:
+  pull_request:
+  merge_group:
 permissions:
   contents: write
   pull-requests: write
@@ -12,9 +14,9 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: setup go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       
@@ -24,7 +26,7 @@ jobs:
         run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ matrix.os }}-profile
           path: ${{ matrix.os }}-profile
@@ -36,18 +38,18 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: download ubuntu-latest-profile
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: ubuntu-latest-profile
       - name: download macos-latest-profile
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: macos-latest-profile
       - name: download windows-latest-profile
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: windows-latest-profile
   
@@ -73,7 +75,7 @@ jobs:
           diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
  
       - name: upload artifact (main.breakdown)
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: github.ref_name == 'main'
         with:
           name: main.breakdown

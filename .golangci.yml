@@ -14,6 +14,7 @@ linters:
     - dupl
     - dupword
     - durationcheck
+    - embeddedstructfieldcheck
     - err113
     - errchkjson
     - errname
@@ -24,6 +25,7 @@ linters:
     - forbidigo
     - forcetypeassert
     - funlen
+    - funcorder
     - gocheckcompilerdirectives
     - gochecknoglobals
     - gochecknoinits
@@ -44,6 +46,7 @@ linters:
     - inamedparam
     - interfacebloat
     - intrange
+    - iotamixing
     - lll
     - loggercheck
     - maintidx
@@ -86,7 +89,7 @@ linters:
     - wastedassign
     - whitespace
     - wrapcheck
-    - wsl
+    - wsl_v5
     - zerologlint
   settings:
     dupl:

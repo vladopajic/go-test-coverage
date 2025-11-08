@@ -11,9 +11,9 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
@@ -29,7 +29,7 @@ jobs:
             
       - name: update the major version tag
         id: majorver
-        uses: actions/publish-action@v0.3.0
+        uses: actions/publish-action@v0.4.0
         with:
           source-tag: ${{ env.RELEASE_VERSION }}
 

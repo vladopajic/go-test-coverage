@@ -92,9 +92,10 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 
 func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
-		Profiles:     strings.Split(cfg.Profile, ","),
-		ExcludePaths: cfg.Exclude.Paths,
-		SourceDir:    cfg.SourceDir,
+		Profiles:               strings.Split(cfg.Profile, ","),
+		ExcludePaths:           cfg.Exclude.Paths,
+		SourceDir:              cfg.SourceDir,
+		ForceAnnotationComment: cfg.ForceAnnotationComment,
 	})
 }
 
@@ -102,6 +103,11 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 	thr := cfg.Threshold
 	overrideRules := compileOverridePathRules(cfg)
 	hasFileOverrides, hasPackageOverrides := detectOverrides(cfg.Override)
+
+	var filesWithMissingExplanations []coverage.Stats
+	if cfg.ForceAnnotationComment {
+		filesWithMissingExplanations = coverage.StatsFilterWithMissingExplanations(current)
+	}
 
 	return AnalyzeResult{
 		Threshold:           thr,
@@ -112,11 +118,12 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
 			makePackageStats(current), thr.Package, overrideRules,
 		),
-		FilesWithUncoveredLines: coverage.StatsFilterWithUncoveredLines(current),
-		TotalStats:              coverage.StatsCalcTotal(current),
-		HasBaseBreakdown:        len(base) > 0,
-		Diff:                    calculateStatsDiff(current, base),
-		DiffPercentage:          TotalPercentageDiff(current, base),
+		FilesWithUncoveredLines:      coverage.StatsFilterWithUncoveredLines(current),
+		FilesWithMissingExplanations: filesWithMissingExplanations,
+		TotalStats:                   coverage.StatsCalcTotal(current),
+		HasBaseBreakdown:             len(base) > 0,
+		Diff:                         calculateStatsDiff(current, base),
+		DiffPercentage:               TotalPercentageDiff(current, base),
 	}
 }
 

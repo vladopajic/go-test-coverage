@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"golang.org/x/tools/cover"
+
+	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
 func parseProfiles(paths []string) ([]*cover.Profile, error) {
@@ -64,7 +66,14 @@ func findProfileForFile(profiles []*cover.Profile, file string) (int, bool) {
 
 func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 	if len(ap.Blocks) != len(bp.Blocks) {
-		return nil, fmt.Errorf("inconsistent profiles length [%q, %q]", ap.FileName, bp.FileName)
+		logger.L.Debug().
+			Str("a-file", ap.FileName).
+			Str("b-file", bp.FileName).
+			Int("a-len", len(ap.Blocks)).
+			Int("b-len", len(bp.Blocks)).
+			Msg("inconsistent profile length")
+
+		return nil, fmt.Errorf("inconsistent profiles length [%q]", ap.FileName)
 	}
 
 	for i := range ap.Blocks {
@@ -77,7 +86,14 @@ func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {
 			b.NumStmt == a.NumStmt {
 			ap.Blocks[i].Count = max(a.Count, b.Count)
 		} else {
-			return nil, fmt.Errorf("inconsistent profile data [%q, %q]", ap.FileName, bp.FileName)
+			logger.L.Debug().
+				Str("a-file", ap.FileName).
+				Str("b-file", bp.FileName).
+				Interface("a-block", a).
+				Interface("b-block", b).
+				Msg("inconsistent profile data")
+
+			return nil, fmt.Errorf("inconsistent profile data [%q]", ap.FileName)
 		}
 	}
 

@@ -24,17 +24,18 @@ var (
 )
 
 type Config struct {
-	Profile               string     `yaml:"profile"`
-	Debug                 bool       `yaml:"-"`
-	LocalPrefixDeprecated string     `yaml:"-"`
-	SourceDir             string     `yaml:"-"`
-	Threshold             Threshold  `yaml:"threshold"`
-	Override              []Override `yaml:"override,omitempty"`
-	Exclude               Exclude    `yaml:"exclude"`
-	BreakdownFileName     string     `yaml:"breakdown-file-name"`
-	GithubActionOutput    bool       `yaml:"github-action-output"`
-	Diff                  Diff       `yaml:"diff"`
-	Badge                 Badge      `yaml:"-"`
+	Profile                string     `yaml:"profile"`
+	Debug                  bool       `yaml:"-"`
+	LocalPrefixDeprecated  string     `yaml:"-"`
+	SourceDir              string     `yaml:"-"`
+	Threshold              Threshold  `yaml:"threshold"`
+	Override               []Override `yaml:"override,omitempty"`
+	Exclude                Exclude    `yaml:"exclude"`
+	BreakdownFileName      string     `yaml:"breakdown-file-name"`
+	GithubActionOutput     bool       `yaml:"github-action-output"`
+	Diff                   Diff       `yaml:"diff"`
+	Badge                  Badge      `yaml:"-"`
+	ForceAnnotationComment bool       `yaml:"force-annotation-comment"`
 }
 
 type Threshold struct {
@@ -70,9 +71,11 @@ func (c Config) Redacted() Config {
 	if r.Badge.CDN.Key != "" {
 		r.Badge.CDN.Key = r.Badge.CDN.Key[0:min(len(r.Badge.CDN.Key), 5)] + HiddenValue
 	}
+
 	if r.Badge.CDN.Secret != "" {
 		r.Badge.CDN.Secret = HiddenValue
 	}
+
 	if r.Badge.Git.Token != "" {
 		r.Badge.Git.Token = HiddenValue
 	}

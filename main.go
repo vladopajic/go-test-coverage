@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Version = "v2.16.0" // TOOL_VERSION: when changing version update version in other places
+	Version = "v2.17.1" // TOOL_VERSION: when changing version update version in other places
 	Name    = "go-test-coverage"
 )
 
@@ -27,12 +27,14 @@ func main() {
 	if err != nil {
 		fmt.Println("Running coverage check failed.")
 		fmt.Printf("Error: %v\n", err)
+
 		if cfg.GithubActionOutput {
 			fmt.Printf("Please set `debug: true` input to see detailed output.")
 		} else {
 			fmt.Println("Please use `--debug=true` flag to see detailed output.")
 		}
 	}
+
 	if !pass || err != nil {
 		os.Exit(1)
 	}

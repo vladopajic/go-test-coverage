@@ -10,20 +10,29 @@ import (
 )
 
 type AnalyzeResult struct {
-	Threshold               Threshold
-	DiffThreshold           *float64
-	FilesBelowThreshold     []coverage.Stats
-	PackagesBelowThreshold  []coverage.Stats
-	FilesWithUncoveredLines []coverage.Stats
-	TotalStats              coverage.Stats
-	HasBaseBreakdown        bool
-	Diff                    []FileCoverageDiff
-	DiffPercentage          float64
-	HasFileOverrides        bool
-	HasPackageOverrides     bool
+	Threshold                    Threshold
+	DiffThreshold                *float64
+	FilesBelowThreshold          []coverage.Stats
+	PackagesBelowThreshold       []coverage.Stats
+	FilesWithUncoveredLines      []coverage.Stats
+	FilesWithMissingExplanations []coverage.Stats
+	TotalStats                   coverage.Stats
+	HasBaseBreakdown             bool
+	Diff                         []FileCoverageDiff
+	DiffPercentage               float64
+	HasFileOverrides             bool
+	HasPackageOverrides          bool
 }
 
 func (r *AnalyzeResult) Pass() bool {
+	return r.MeetsTotalCoverage() &&
+		len(r.FilesBelowThreshold) == 0 &&
+		len(r.PackagesBelowThreshold) == 0 &&
+		r.MeetsDiffThreshold() &&
+		len(r.FilesWithMissingExplanations) == 0
+}
+
+func (r *AnalyzeResult) PassCoverage() bool {
 	return r.MeetsTotalCoverage() &&
 		len(r.FilesBelowThreshold) == 0 &&
 		len(r.PackagesBelowThreshold) == 0 &&

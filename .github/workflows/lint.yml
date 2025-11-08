@@ -1,21 +1,23 @@
 name: lint
-on: [push]
+on:
+  pull_request:
+  merge_group:
 jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: setup go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
       - name: go mod tidy check
         uses: katexochen/go-tidy-check@v2
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.0.1 # LINT_VERSION: update version in other places
+          version: v2.6.1 # LINT_VERSION: update version in other places
       - id: govulncheck
         uses: golang/govulncheck-action@v1

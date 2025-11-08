@@ -125,6 +125,10 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+# (optional; default false)
+# When true, requires all coverage-ignore annotations to include explanatory comments
+force-annotation-comment: false
+
 # If specified, saves the current test coverage breakdown to this file.
 #
 # Typically, this breakdown is generated only for main (base) branches and 
@@ -144,7 +148,7 @@ diff:
   # Allowed threshold for the test coverage difference (in percentage) 
   # between the feature branch and the base branch.
   #
-  # By default, this is disabled (set to nil). Valid values range from 
+  # By default, this is disabled (set to null). Valid values range from 
   # -100.0 to +100.0.
   #
   # Example: 
@@ -152,7 +156,7 @@ diff:
   #   less than 0.5% more coverage than the base.
   #
   #   If set to -0.5, the check allows up to 0.5% less coverage than the base.
-  threshold: nil
+  threshold: null
 ```
 
 ### Exclude Code from Coverage
@@ -193,6 +197,8 @@ go tool cover -html=cover.out -o=cover.html
 
 `go-test-coverage` is freely available for all users. If your organization benefits from this tool, especially if you’ve transitioned from a paid coverage service, consider [sponsoring the project](https://github.com/sponsors/vladopajic). 
 Your sponsorship will help sustain development, introduce new features, and maintain high-quality support. Every contribution directly impacts the future growth and stability of this project.
+
+⭐ Love this project? Star it!
 
 ## Contribution
 

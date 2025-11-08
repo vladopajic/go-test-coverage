@@ -47,7 +47,7 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 				SHA:     sha,
 			},
 		)
-		if err != nil {
+		if err != nil { // coverage-ignore
 			return false, fmt.Errorf("update badge contents: %w", err)
 		}
 
