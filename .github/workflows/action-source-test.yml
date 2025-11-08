@@ -1,7 +1,5 @@
 name: action-test (source version)
-on:
-  pull_request:
-  merge_group:
+on: [push]
 jobs:
   test:
     name: test
