@@ -413,11 +413,13 @@ func Test_ReportUncoveredLines(t *testing.T) {
 		FilesWithUncoveredLines: []coverage.Stats{
 			{Name: "a.go", UncoveredLines: []int{1, 2, 3}},
 			{Name: "b.go", UncoveredLines: []int{3, 5, 7}},
+			{Name: "c.go", UncoveredLines: []int{1, 4, 10}, Covered: 20, Total: 100},
 		},
 	})
 	assertHasUncoveredLinesInfo(t, buf.String(), []string{
-		"a.go\t\t1-3\n",
-		"b.go\t\t3 5 7\n",
+		"a.go\t\t0%\t\t1-3\n",
+		"b.go\t\t0%\t\t3 5 7\n",
+		"c.go\t\t20%\t\t1 4 10\n",
 	})
 
 	// when result passes, there should be no output
