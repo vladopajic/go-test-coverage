@@ -71,9 +71,11 @@ func (c Config) Redacted() Config {
 	if r.Badge.CDN.Key != "" {
 		r.Badge.CDN.Key = r.Badge.CDN.Key[0:min(len(r.Badge.CDN.Key), 5)] + HiddenValue
 	}
+
 	if r.Badge.CDN.Secret != "" {
 		r.Badge.CDN.Secret = HiddenValue
 	}
+
 	if r.Badge.Git.Token != "" {
 		r.Badge.Git.Token = HiddenValue
 	}

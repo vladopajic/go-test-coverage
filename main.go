@@ -27,12 +27,14 @@ func main() {
 	if err != nil {
 		fmt.Println("Running coverage check failed.")
 		fmt.Printf("Error: %v\n", err)
+
 		if cfg.GithubActionOutput {
 			fmt.Printf("Please set `debug: true` input to see detailed output.")
 		} else {
 			fmt.Println("Please use `--debug=true` flag to see detailed output.")
 		}
 	}
+
 	if !pass || err != nil {
 		os.Exit(1)
 	}

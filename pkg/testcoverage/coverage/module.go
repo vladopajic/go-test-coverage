@@ -14,6 +14,7 @@ func findModuleDirective(rootDir string) string {
 	if goModFile == "" {
 		logger.L.Warn().Str("dir", rootDir).
 			Msg("go.mod file not found in root directory (consider setting up source dir)")
+
 		return ""
 	}
 
