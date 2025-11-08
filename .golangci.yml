@@ -144,7 +144,7 @@ linters:
       enable-all: true
     unparam:
       check-exported: true
-    wsl_v5:
+    wsl:
       force-err-cuddling: true
   exclusions:
     generated: lax
