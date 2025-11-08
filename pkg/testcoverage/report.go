@@ -80,7 +80,6 @@ func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "\n  file:\tfile coverage:\tuncovered lines:")
 
 	for _, stats := range result.FilesWithUncoveredLines {
-
 		if len(stats.UncoveredLines) > 0 {
 			fmt.Fprintf(tabber, "\n  %s\t", stats.Name)
 			fmt.Fprintf(tabber, "%v%%\t", stats.CoveredPercentageF())
