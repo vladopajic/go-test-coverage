@@ -1,5 +1,5 @@
 # GO_VERSION: automatically update to most recent via dependabot
-FROM golang:1.25.3 AS builder
+FROM golang:1.25.4 AS builder
 WORKDIR /workspace
 
 COPY go.mod go.mod
