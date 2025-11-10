@@ -1,5 +1,7 @@
 name: test
-on: [push]
+on:
+  pull_request:
+  merge_group:
 permissions:
   contents: write
   pull-requests: write

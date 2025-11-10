@@ -463,7 +463,7 @@ func TestCheckNoParallel(t *testing.T) {
 
 	t.Run("logger has output", func(t *testing.T) {
 		logger.Init()
-		defer logger.Destruct()
+		defer logger.Destruct() //nolint:wsl_v5 // relax
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
