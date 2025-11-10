@@ -40,12 +40,19 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.11.1
+        with:
+          use: true
+          platforms: linux/arm64,linux/amd64
+
       - name: build and push
         uses: docker/build-push-action@v6
         with:
           push: true
           build-args: |
             VERSION=${{ env.RELEASE_VERSION }}
+          platforms: linux/arm64,linux/amd64
           tags: |
             ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
             ghcr.io/vladopajic/go-test-coverage:${{ steps.majorver.outputs.major-tag }}
