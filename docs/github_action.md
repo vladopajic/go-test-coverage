@@ -176,6 +176,10 @@ The `go-test-coverage` project provides two types of GitHub Actions:
     uses: vladopajic/go-test-coverage@v2
     with: ...
   ```
+  Pros/Cons:
+    - Generally faster in practice because everything is packaged and prebuilt.
+    - Does not require any additional dependencies on the CI runner.
+    - However, **it introduces a potential supply-chain risk**: using a prebuilt container image means you must trust that the image is safe and has not been tampered with. This repository has no intention of introducing malicious code, but projects with stricter security requirements may still prefer to avoid running opaque binaries.
   
 - **Source-based Action (optional/experimental)**
   
@@ -188,9 +192,17 @@ The `go-test-coverage` project provides two types of GitHub Actions:
     uses: vladopajic/go-test-coverage/action/source@v2
     with: ...
   ```
-   Note: this action requires `go` to be installed.
+   Pros/Cons:
+   - Requires `go` to be installed on the CI runner.
+   - Slightly slower, as dependencies need to be fetched and the binary built during the workflow.
+   - The main **advantage is transparency and auditability**: the action runs exactly the code in this repository, which can be reviewed and pinned to a specific version. This can be preferable for environments with strong security or compliance requirements.
 
-Both actions have the same inputs, so they can be used interchangeably.
+Both actions have the same inputs, so they can be used interchangeably. 
+
+
+
+
+
 
 
 
