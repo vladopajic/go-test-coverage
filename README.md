@@ -200,7 +200,7 @@ Your sponsorship will help sustain development, introduce new features, and main
 
 ⭐ Love this project? Star it!
 
-This tool is still not widely known, and giving the repository a ⭐️ is a simple, cost-free way to help it gain visibility. It’s a win-win for everyone: new users discover a useful tool they might have otherwise missed, and existing users benefit from a larger community where issues get identified sooner, improvements happen faster, and new contributions help the project grow.
+This tool is still not widely known, and giving the repository a ⭐️ is a simple, cost-free way to help it gain visibility. It’s a win-win for everyone: new users discover a useful tool they might have otherwise missed, and existing users benefit from a larger community where issues get identified sooner, improvements happen faster and new contributions help the project grow.
 
 ## Contribution
 
