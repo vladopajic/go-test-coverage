@@ -202,7 +202,10 @@ Your sponsorship will help sustain development, introduce new features, and main
 
 ## Contribution
 
-We welcome all contributions - whether it's fixing a typo, adding new features, or pointing out an issue. Feel free to open a pull request or issue to contribute!
+All contributions are welcome - whether you're fixing a typo, adding a new feature, or reporting an issue. Feel free to open a pull request or create an issue to contribute!
 
+See the [contributing](/docs/contributing.md) page for more details before opening a PR.
+
+---
 
 Happy coding 🌞
