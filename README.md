@@ -21,7 +21,7 @@ Here are the key features and benefits:
   - Eliminates connectivity or server-related failures.
 - **Data Privacy**: All coverage checks are done locally, so no sensitive information leaks to third parties.
   - Learn more about [information leakage risks](https://gist.github.com/vladopajic/0b835b28bcfe4a5a22bb0ae20e365266).
-- **Performance**: Lightning-fast execution (e.g., ~1 second on [this repo](https://github.com/vladopajic/go-test-coverage/actions/runs/13832675278/job/38700510962)).
+- **Performance**: Lightning-fast execution (e.g., ~1 second on [this repo](https://github.com/vladopajic/go-test-coverage/actions/runs/19500646271/job/55814181873)).
 - **Versatility**: Can be used both locally and in CI pipelines.
 - **Customizable**: Extensive configuration options to fit any project's needs.
 - **Stylish Badges**: Generate beautiful coverage badges for your repository.
