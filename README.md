@@ -70,7 +70,7 @@ steps:
     run: go test ./... -coverprofile=./cover.out -covermode=atomic -coverpkg=./...
 
   - name: check test coverage
-    uses: vladopajic/go-test-coverage@v2
+    uses: vladopajic/go-test-coverage/action/source@v2
     with:
       config: ./.testcoverage.yml
 ```
