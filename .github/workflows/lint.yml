@@ -1,7 +1,5 @@
 name: lint
-on:
-  pull_request:
-  merge_group:
+on: [push]
 jobs:
   lint:
     name: lint
