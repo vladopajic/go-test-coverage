@@ -133,7 +133,7 @@ inputs:
     description: Version of go-test-coverage source to run
     required: false
     # TOOL_VERSION: when changing version update version in other places
-    default: v2.18.0
+    default: v2.18.1
     type: string
 
 outputs:
