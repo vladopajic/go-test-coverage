@@ -39,15 +39,15 @@ jobs:
         uses: actions/checkout@v6
 
       - name: download ubuntu-latest-profile
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: ubuntu-latest-profile
       - name: download macos-latest-profile
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: macos-latest-profile
       - name: download windows-latest-profile
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: windows-latest-profile
   
