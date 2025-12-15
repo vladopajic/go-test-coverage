@@ -1,7 +1,5 @@
 name: action-test (docker version)
-on:
-  pull_request:
-  merge_group:
+on: [push]
 jobs:
   build-dev-image:
     name: build dev image
