@@ -24,7 +24,7 @@ jobs:
         run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ${{ matrix.os }}-profile
           path: ${{ matrix.os }}-profile
@@ -73,7 +73,7 @@ jobs:
           diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
  
       - name: upload artifact (main.breakdown)
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         if: github.ref_name == 'main'
         with:
           name: main.breakdown
