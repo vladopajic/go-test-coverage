@@ -30,6 +30,8 @@ jobs:
         platforms: linux/arm64,linux/amd64
         build-args: |
           VERSION=dev
+        provenance: false
+        sbom: false
         tags: |
           ghcr.io/vladopajic/go-test-coverage:dev
 
