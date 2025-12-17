@@ -53,6 +53,8 @@ jobs:
           build-args: |
             VERSION=${{ env.RELEASE_VERSION }}
           platforms: linux/arm64,linux/amd64
+          provenance: false
+          sbom: false
           tags: |
             ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
             ghcr.io/vladopajic/go-test-coverage:${{ steps.majorver.outputs.major-tag }}
