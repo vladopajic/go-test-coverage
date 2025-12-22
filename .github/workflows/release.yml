@@ -1,9 +1,5 @@
 name: release
-on:
-  push:
-    tags:
-      - "v[0-9]+\\.[0-9]+\\.[0-9]+"
-
+on: [push]
 jobs:
   release:
     permissions:
@@ -18,7 +14,7 @@ jobs:
           go-version-file: go.mod
 
       - name: set RELEASE_VERSION ENV var
-        run: echo "RELEASE_VERSION=${GITHUB_REF:10}" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=v2.18.2" >> $GITHUB_ENV
 
       - name: ensure image version is set to release version
         run: |
@@ -26,12 +22,6 @@ jobs:
           echo "Image: $image"
           echo "Release version: ${{ env.RELEASE_VERSION }}"
           [[ "$image" == *"${{ env.RELEASE_VERSION }}" ]]
-            
-      - name: update the major version tag
-        id: majorver
-        uses: actions/publish-action@v0.4.0
-        with:
-          source-tag: ${{ env.RELEASE_VERSION }}
 
       - name: login to GitHub container registry
         uses: docker/login-action@v3
@@ -57,5 +47,10 @@ jobs:
           sbom: false
           tags: |
             ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
-            ghcr.io/vladopajic/go-test-coverage:${{ steps.majorver.outputs.major-tag }}
             ghcr.io/vladopajic/go-test-coverage:latest
+
+      - name: update the major version tag
+        id: majorver
+        uses: actions/publish-action@v0.4.0
+        with:
+          source-tag: ${{ env.RELEASE_VERSION }}
