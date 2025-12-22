@@ -14,7 +14,10 @@ jobs:
           go-version-file: go.mod
 
       - name: set RELEASE_VERSION ENV var
-        run: echo "RELEASE_VERSION=v2.18.2" >> $GITHUB_ENV
+        run: |
+          echo "RELEASE_VERSION=v2.18.2" >> $GITHUB_ENV
+          MAJOR_VERSION="${RELEASE_VERSION:0:2}"
+          echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
 
       - name: ensure image version is set to release version
         run: |
@@ -47,10 +50,5 @@ jobs:
           sbom: false
           tags: |
             ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
+            ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
             ghcr.io/vladopajic/go-test-coverage:latest
-
-      - name: update the major version tag
-        id: majorver
-        uses: actions/publish-action@v0.4.0
-        with:
-          source-tag: ${{ env.RELEASE_VERSION }}
