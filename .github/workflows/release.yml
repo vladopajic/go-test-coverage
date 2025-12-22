@@ -14,8 +14,10 @@ jobs:
           go-version-file: go.mod
 
       - name: set RELEASE_VERSION ENV var
+        run: echo "RELEASE_VERSION=v2.18.2" >> $GITHUB_ENV
+      
+      - name:
         run: |
-          echo "RELEASE_VERSION=v2.18.2" >> $GITHUB_ENV
           MAJOR_VERSION="${RELEASE_VERSION:0:2}"
           echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
 
@@ -24,31 +26,32 @@ jobs:
           image=$(yq '.runs.image' action.yml)
           echo "Image: $image"
           echo "Release version: ${{ env.RELEASE_VERSION }}"
+          echo "Major version: ${{ env.MAJOR_VERSION }}"
           [[ "$image" == *"${{ env.RELEASE_VERSION }}" ]]
 
-      - name: login to GitHub container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: login to GitHub container registry
+      #   uses: docker/login-action@v3
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.repository_owner }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3.12.0
-        with:
-          use: true
-          platforms: linux/arm64,linux/amd64
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v3.12.0
+      #   with:
+      #     use: true
+      #     platforms: linux/arm64,linux/amd64
 
-      - name: build and push
-        uses: docker/build-push-action@v6
-        with:
-          push: true
-          build-args: |
-            VERSION=${{ env.RELEASE_VERSION }}
-          platforms: linux/arm64,linux/amd64
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
-            ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
-            ghcr.io/vladopajic/go-test-coverage:latest
+      # - name: build and push
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     push: true
+      #     build-args: |
+      #       VERSION=${{ env.RELEASE_VERSION }}
+      #     platforms: linux/arm64,linux/amd64
+      #     provenance: false
+      #     sbom: false
+      #     tags: |
+      #       ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
+      #       ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
+      #       ghcr.io/vladopajic/go-test-coverage:latest
