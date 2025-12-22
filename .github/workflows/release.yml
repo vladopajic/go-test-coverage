@@ -3,7 +3,6 @@ on:
   push:
     tags:
       - "v[0-9]+\\.[0-9]+\\.[0-9]+"
-
 jobs:
   release:
     permissions:
@@ -17,21 +16,24 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: set RELEASE_VERSION ENV var
+      - name: set RELEASE_VERSION env
         run: echo "RELEASE_VERSION=${GITHUB_REF:10}" >> $GITHUB_ENV
+      
+      - name: set MAJOR_VERSION env
+        run: |
+          MAJOR_VERSION="${RELEASE_VERSION:0:2}"
+          echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
+
+      - name: echo env var
+        run: |
+          echo "Release version: ${{ env.RELEASE_VERSION }}"
+          echo "Major version: ${{ env.MAJOR_VERSION }}"
 
       - name: ensure image version is set to release version
         run: |
           image=$(yq '.runs.image' action.yml)
-          echo "Image: $image"
-          echo "Release version: ${{ env.RELEASE_VERSION }}"
+          echo "Image version: $image"
           [[ "$image" == *"${{ env.RELEASE_VERSION }}" ]]
-            
-      - name: update the major version tag
-        id: majorver
-        uses: actions/publish-action@v0.4.0
-        with:
-          source-tag: ${{ env.RELEASE_VERSION }}
 
       - name: login to GitHub container registry
         uses: docker/login-action@v3
@@ -40,7 +42,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up Docker Buildx
+      - name: set up docker buildx
         uses: docker/setup-buildx-action@v3.12.0
         with:
           use: true
@@ -57,5 +59,5 @@ jobs:
           sbom: false
           tags: |
             ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
-            ghcr.io/vladopajic/go-test-coverage:${{ steps.majorver.outputs.major-tag }}
+            ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
             ghcr.io/vladopajic/go-test-coverage:latest
