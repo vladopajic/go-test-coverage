@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	Version = "v2.18.2" // TOOL_VERSION: when changing version update version in other places
+	Version = "v2.18.3" // TOOL_VERSION: when changing version update version in other places
 	Name    = "go-test-coverage"
 )
 
