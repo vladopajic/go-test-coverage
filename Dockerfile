@@ -1,6 +1,5 @@
 # GO_VERSION: automatically update to most recent via dependabot
-FROM --platform=$BUILDPLATFORM golang:1.25.3 AS builder
-
+FROM golang:1.25.3 AS builder
 WORKDIR /workspace
 
 COPY go.mod go.mod
@@ -11,13 +10,10 @@ RUN go mod download all
 COPY ./ ./
 
 ARG VERSION
-ARG TARGETOS 
-ARG TARGETARCH
-
-RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o go-test-coverage .
 
-FROM --platform=$BUILDPLATFORM gcr.io/distroless/base:latest
+FROM gcr.io/distroless/base:latest
 WORKDIR /
 COPY --from=builder /workspace/go-test-coverage .
 COPY --from=builder /usr/local/go/bin/go /usr/local/go/bin/go
