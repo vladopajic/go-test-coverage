@@ -55,7 +55,7 @@ jobs:
             ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
             ghcr.io/vladopajic/go-test-coverage:latest
 
-      - name: update the major version tag
+      - name: point major version tag latest release version
         uses: actions/publish-action@v0.4.0
         with:
           source-tag: ${{ env.RELEASE_VERSION }}
