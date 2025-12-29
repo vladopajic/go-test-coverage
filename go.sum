@@ -1,5 +1,5 @@
-github.com/alexflint/go-arg v1.6.0 h1:wPP9TwTPO54fUVQl4nZoxbFfKCcy5E6HBCumj1XVRSo=
-github.com/alexflint/go-arg v1.6.0/go.mod h1:A7vTJzvjoaSTypg4biM5uYNTkJ27SkNTArtYXnlqVO8=
+github.com/alexflint/go-arg v1.6.1 h1:uZogJ6VDBjcuosydKgvYYRhh9sRCusjOvoOLZopBlnA=
+github.com/alexflint/go-arg v1.6.1/go.mod h1:nQ0LFYftLJ6njcaee0sU+G0iS2+2XJQfA8I062D0LGc=
 github.com/alexflint/go-scalar v1.2.0 h1:WR7JPKkeNpnYIOfHRa7ivM21aWAdHD0gEWHCx+WQBRw=
 github.com/alexflint/go-scalar v1.2.0/go.mod h1:LoFvNMqS1CPrMVltza4LvnGKhaSpc3oyLEBUZVhhS2o=
 github.com/aws/aws-sdk-go v1.44.256/go.mod h1:aVsgQcEevwlmQ7qHE9I3h+dtQgpqhFB+i8Phjh7fkwI=
