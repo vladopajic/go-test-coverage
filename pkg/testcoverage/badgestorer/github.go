@@ -2,6 +2,7 @@ package badgestorer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -61,12 +62,18 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 		git.FileName,
 		&github.RepositoryContentGetOptions{Ref: git.Branch},
 	)
-	if httpResp.StatusCode == http.StatusNotFound { // when badge is not found create it
-		return updateBadge(nil)
+	
+	if err != nil {
+		// Check for 404 or return error
+		var ghErr *github.ErrorResponse
+		if errors.As(err, &ghErr) && ghErr.Response != nil && ghErr.Response.StatusCode == http.StatusNotFound {
+			return updateBadge(nil)
+		}
+		return false, fmt.Errorf("get badge content: %w", err)
 	}
 
-	if err != nil { // coverage-ignore
-		return false, fmt.Errorf("get badge content: %w", err)
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound { // when badge is not found create it
+		return updateBadge(nil)
 	}
 
 	content, err := fc.GetContent()
