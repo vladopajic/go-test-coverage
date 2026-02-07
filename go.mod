@@ -1,6 +1,6 @@
 module github.com/vladopajic/go-test-coverage/v2
 
-go 1.25.0
+go 1.25
 
 require (
 	github.com/alexflint/go-arg v1.6.0
