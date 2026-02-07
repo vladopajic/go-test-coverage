@@ -102,7 +102,7 @@ func deleteFile(t *testing.T, cfg Git) {
 		cfg.Repository,
 		cfg.FileName,
 		&github.RepositoryContentFileOptions{
-			Message: github.String("delete testing badge " + cfg.FileName),
+			Message: github.Ptr("delete testing badge " + cfg.FileName),
 			Branch:  &cfg.Branch,
 			SHA:     fc.SHA,
 		},

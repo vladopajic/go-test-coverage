@@ -31,6 +31,7 @@ func NewGithub(cfg Git) Storer {
 	return &githubStorer{cfg: cfg}
 }
 
+//nolint:maintidx // relax
 func (s *githubStorer) Store(data []byte) (bool, error) {
 	git := s.cfg
 	client := github.NewClient(nil).WithAuthToken(git.Token)
@@ -62,13 +63,17 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 		git.FileName,
 		&github.RepositoryContentGetOptions{Ref: git.Branch},
 	)
+
 	var ghErr *github.ErrorResponse
-	if errors.As(err, &ghErr) && ghErr.Response != nil && ghErr.Response.StatusCode == http.StatusNotFound { // coverage-ignore
+	if errors.As(err, &ghErr) &&
+		ghErr.Response != nil && ghErr.Response.StatusCode == http.StatusNotFound { // coverage-ignore
 		return updateBadge(nil) // when badge is not found create it
 	}
+
 	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound { // coverage-ignore
-		return updateBadge(nil)
+		return updateBadge(nil) // when badge is not found create it
 	}
+
 	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("get badge content: %w", err)
 	}
