@@ -1,13 +1,11 @@
 module github.com/vladopajic/go-test-coverage/v2
 
-go 1.24
-
-toolchain go1.24.0
+go 1.25.0
 
 require (
 	github.com/alexflint/go-arg v1.6.0
 	github.com/aws/aws-sdk-go v1.49.4
-	github.com/google/go-github/v56 v56.0.0
+	github.com/google/go-github/v82 v82.0.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
 	github.com/rs/zerolog v1.34.0
@@ -20,7 +18,7 @@ require (
 	github.com/alexflint/go-scalar v1.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
-	github.com/google/go-querystring v1.1.0 // indirect
+	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

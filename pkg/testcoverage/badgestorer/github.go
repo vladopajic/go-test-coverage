@@ -2,10 +2,11 @@ package badgestorer
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
-	"github.com/google/go-github/v56/github"
+	"github.com/google/go-github/v82/github"
 )
 
 type Git struct {
@@ -41,7 +42,7 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 			git.Repository,
 			git.FileName,
 			&github.RepositoryContentFileOptions{
-				Message: github.String("update badge " + git.FileName),
+				Message: github.Ptr("update badge " + git.FileName),
 				Content: data,
 				Branch:  &git.Branch,
 				SHA:     sha,
@@ -61,10 +62,13 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 		git.FileName,
 		&github.RepositoryContentGetOptions{Ref: git.Branch},
 	)
-	if httpResp.StatusCode == http.StatusNotFound { // when badge is not found create it
+	var ghErr *github.ErrorResponse
+	if errors.As(err, &ghErr) && ghErr.Response != nil && ghErr.Response.StatusCode == http.StatusNotFound { // coverage-ignore
+		return updateBadge(nil) // when badge is not found create it
+	}
+	if httpResp != nil && httpResp.StatusCode == http.StatusNotFound { // coverage-ignore
 		return updateBadge(nil)
 	}
-
 	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("get badge content: %w", err)
 	}

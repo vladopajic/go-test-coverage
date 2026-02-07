@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-github/v56/github"
+	"github.com/google/go-github/v82/github"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
