@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/google/go-github/v56/github"
+	"github.com/google/go-github/v82/github"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
@@ -102,7 +102,7 @@ func deleteFile(t *testing.T, cfg Git) {
 		cfg.Repository,
 		cfg.FileName,
 		&github.RepositoryContentFileOptions{
-			Message: github.String("delete testing badge " + cfg.FileName),
+			Message: github.Ptr("delete testing badge " + cfg.FileName),
 			Branch:  &cfg.Branch,
 			SHA:     fc.SHA,
 		},
