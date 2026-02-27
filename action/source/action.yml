@@ -38,17 +38,14 @@ inputs:
   threshold-file:
     description: Minimum coverage percentage required for individual files. Overrides value from configuration.
     required: false
-    default: -1
     type: number
   threshold-package:
     description: Minimum coverage percentage required for each package. Overrides value from configuration.
     required: false
-    default: -1
     type: number
   threshold-total:
     description: Minimum overall project coverage percentage required. Overrides value from configuration.
     required: false
-    default: -1
     type: number
 
   breakdown-file-name:
@@ -169,25 +166,25 @@ runs:
     shell: bash
     run: |
       go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} \
-        --config=${{ inputs.config || '***' }} \
-        --profile=${{ inputs.profile || '***' }} \
-        --source-dir=${{ inputs.source-dir || '***' }} \
+        --config "${{ inputs.config }}" \
+        --profile "${{ inputs.profile }}" \
+        --source-dir "${{ inputs.source-dir }}" \
         --debug=${{ inputs.debug }} \
         --github-action-output=true \
-        --threshold-file=${{ inputs.threshold-file }} \
-        --threshold-package=${{ inputs.threshold-package }} \
-        --threshold-total=${{ inputs.threshold-total }} \
-        --breakdown-file-name=${{ inputs.breakdown-file-name || '***' }} \
-        --diff-base-breakdown-file-name=${{ inputs.diff-base-breakdown-file-name || '***' }} \
-        --badge-file-name=${{ inputs.badge-file-name || '***' }} \
-        --cdn-key=${{ inputs.cdn-key || '***' }} \
-        --cdn-secret=${{ inputs.cdn-secret || '***' }} \
-        --cdn-region=${{ inputs.cdn-region || '***' }} \
-        --cdn-endpoint=${{ inputs.cdn-endpoint || '***' }} \
-        --cdn-file-name=${{ inputs.cdn-file-name || '***' }} \
-        --cdn-bucket-name=${{ inputs.cdn-bucket-name || '***' }} \
+        --threshold-file ${{ inputs.threshold-file }} \
+        --threshold-package ${{ inputs.threshold-package }} \
+        --threshold-total ${{ inputs.threshold-total }} \
+        --breakdown-file-name "${{ inputs.breakdown-file-name }}" \
+        --diff-base-breakdown-file-name "${{ inputs.diff-base-breakdown-file-name }}" \
+        --badge-file-name "${{ inputs.badge-file-name }}" \
+        --cdn-key "${{ inputs.cdn-key }}" \
+        --cdn-secret "${{ inputs.cdn-secret }}" \
+        --cdn-region "${{ inputs.cdn-region }}" \
+        --cdn-endpoint "${{ inputs.cdn-endpoint }}" \
+        --cdn-file-name "${{ inputs.cdn-file-name }}" \
+        --cdn-bucket-name "${{ inputs.cdn-bucket-name }}" \
         --cdn-force-path-style=${{ inputs.cdn-force-path-style }} \
-        --git-token=${{ inputs.git-token || '***' }} \
-        --git-branch=${{ inputs.git-branch || '***' }} \
-        --git-repository=${{ inputs.git-repository || '***'}} \
-        --git-file-name=${{ inputs.git-file-name || '***' }}
+        --git-token "${{ inputs.git-token }}" \
+        --git-branch "${{ inputs.git-branch }}" \
+        --git-repository "${{ inputs.git-repository }}" \
+        --git-file-name "${{ inputs.git-file-name }}"
