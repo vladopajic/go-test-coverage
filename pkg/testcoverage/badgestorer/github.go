@@ -56,7 +56,7 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 		return true, nil // has changed
 	}
 
-	fc, _, httpResp, err := client.Repositories.GetContents(
+	fc, _, _, err := client.Repositories.GetContents(
 		context.Background(),
 		git.Owner,
 		git.Repository,
