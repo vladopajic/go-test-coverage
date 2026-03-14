@@ -70,6 +70,7 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 			return updateBadge(nil) // when badge is not found create it
 		}
 	}
+
 	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("get badge content: %w", err)
 	}
