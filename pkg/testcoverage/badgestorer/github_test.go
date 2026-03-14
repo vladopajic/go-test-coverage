@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"os"
+	"runtime"
 	"testing"
 
 	"github.com/google/go-github/v82/github"
@@ -118,5 +119,5 @@ func randName() string {
 		panic(err) //nolint:forbidigo // okay here because it is only used for tests
 	}
 
-	return hex.EncodeToString(buf)
+	return hex.EncodeToString(buf) + runtime.GOOS
 }
