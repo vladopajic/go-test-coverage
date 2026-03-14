@@ -16,9 +16,9 @@ jobs:
         uses: katexochen/go-tidy-check@v2
       
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@v9.2.0
         with:
-          version: v2.6.1 # LINT_VERSION: update version in other places
+          version: v2.11.3 # LINT_VERSION: update version in other places
       
       - id: govulncheck
         uses: golang/govulncheck-action@v1

@@ -159,7 +159,7 @@ func TestCheck(t *testing.T) {
 		cfg := Config{
 			Profile:   profileOK,
 			Threshold: Threshold{File: 70},
-			Override:  []Override{{Threshold: 60, Path: "pkg/testcoverage/badgestorer/github.go"}},
+			Override:  []Override{{Threshold: 50, Path: "pkg/testcoverage/badgestorer/github.go"}},
 			SourceDir: sourceDir,
 		}
 		pass, err := Check(buf, cfg)

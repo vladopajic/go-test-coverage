@@ -262,7 +262,7 @@ func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, erro
 		return nil, nil, fmt.Errorf("can't parse comments: %w", err)
 	}
 
-	var validAnnotations, annotationsWithoutComment []extent //nolint:prealloc // relax
+	var validAnnotations, annotationsWithoutComment []extent
 
 	for _, c := range node.Comments {
 		if !strings.Contains(c.Text(), IgnoreText) {
