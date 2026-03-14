@@ -21,7 +21,6 @@ type args struct {
 	ConfigPath         string `arg:"-c,--config"`
 	Profile            string `arg:"-p,--profile"              help:"path to coverage profile"`
 	Debug              bool   `arg:"-d,--debug"`
-	LocalPrefix        string `arg:"-l,--local-prefix"` // deprecated
 	SourceDir          string `arg:"-s,--source-dir"`
 	GithubActionOutput bool   `arg:"-o,--github-action-output"`
 	ThresholdFile      int    `arg:"-f,--threshold-file"`
@@ -52,7 +51,6 @@ func newArgs() args {
 		ConfigPath:         ciDefaultString,
 		Profile:            ciDefaultString,
 		Debug:              false,
-		LocalPrefix:        ciDefaultString,
 		SourceDir:          ciDefaultString,
 		GithubActionOutput: false,
 		ThresholdFile:      ciDefaultInt,
@@ -98,10 +96,6 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 
 	if a.GithubActionOutput {
 		cfg.GithubActionOutput = true
-	}
-
-	if !isCIDefaultString(a.LocalPrefix) {
-		cfg.LocalPrefixDeprecated = a.LocalPrefix
 	}
 
 	if !isCIDefaultString(a.SourceDir) {
