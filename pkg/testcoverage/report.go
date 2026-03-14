@@ -230,7 +230,7 @@ func SetGithubActionOutput(result AnalyzeResult, report string) error {
 }
 
 func openGitHubOutput(p string) (io.WriteCloser, error) {
-	//nolint:mnd,wrapcheck // error is wrapped at level above
+	//nolint:mnd,wrapcheck,gosec // error is wrapped at level above
 	return os.OpenFile(p, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 }
 
