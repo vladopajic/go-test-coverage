@@ -20,6 +20,7 @@ func Generate(coverage int) ([]byte, error) {
 	)
 }
 
+// Color returns the badge hex color for the given coverage percentage.
 func Color(coverage int) string {
 	//nolint:mnd // relax
 	switch {
