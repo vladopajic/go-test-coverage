@@ -41,7 +41,7 @@ func (s Stats) Str() string {
 
 	if c == 100 { // precision not needed
 		return fmt.Sprintf("%d%% (%d/%d)", c, s.Covered, s.Total)
-	} else if c < 10 { // adds space for singe digit number
+	} else if c < 10 { // adds space for single digit number
 		return fmt.Sprintf(" %.1f%% (%d/%d)", s.CoveredPercentageF(), s.Covered, s.Total)
 	}
 

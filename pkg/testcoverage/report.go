@@ -140,13 +140,13 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 	for _, d := range result.Diff {
 		var baseStr string
 		if d.Base == nil {
-			baseStr = " / "
+			baseStr = " / " // no base coverage for this file
 		} else {
 			baseStr = d.Base.Str()
 		}
 
-		dp := d.Current.UncoveredLinesCount()
-		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", d.Current.Name, dp, d.Current.Str(), baseStr)
+		c := d.Current
+		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", c.Name, c.UncoveredLinesCount(), c.Str(), baseStr)
 	}
 
 	fmt.Fprintf(tabber, "\n")
@@ -220,7 +220,7 @@ func SetGithubActionOutput(result AnalyzeResult, report string) error {
 		setOutputValue(file, gaOutputTotalCoverage, totalStr),
 		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalStats.CoveredPercentage())),
 		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
-		setOutputValue(file, gaOutputReport, multiline(report)),
+		setOutputValue(file, gaOutputReport, marshalReportValue(report)),
 		file.Close(),
 	)
 }
@@ -241,7 +241,7 @@ func setOutputValue(w io.Writer, name, value string) error {
 	return nil
 }
 
-func multiline(s string) string {
+func marshalReportValue(s string) string {
 	resp, _ := json.Marshal(s) //nolint:errcheck,errchkjson // relax
 	return string(resp)
 }

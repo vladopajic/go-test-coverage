@@ -36,8 +36,7 @@ func findGoModFile(rootDir string) string {
 		return goModFile
 	}
 
-	// fallback to find first go mod file wherever it may be
-	// not really sure if we really need this ???
+	// fallback: search the entire directory tree for go.mod
 	return findGoModWithWalk(rootDir)
 }
 

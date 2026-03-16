@@ -25,13 +25,11 @@ type AnalyzeResult struct {
 }
 
 func (r *AnalyzeResult) Pass() bool {
-	return r.MeetsTotalCoverage() &&
-		len(r.FilesBelowThreshold) == 0 &&
-		len(r.PackagesBelowThreshold) == 0 &&
-		r.MeetsDiffThreshold() &&
+	return r.PassCoverage() &&
 		len(r.FilesWithMissingExplanations) == 0
 }
 
+// PassCoverage returns true if all coverage thresholds are met, ignoring annotation completeness.
 func (r *AnalyzeResult) PassCoverage() bool {
 	return r.MeetsTotalCoverage() &&
 		len(r.FilesBelowThreshold) == 0 &&
@@ -109,7 +107,8 @@ type FileCoverageDiff struct {
 }
 
 func calculateStatsDiff(current, base []coverage.Stats) []FileCoverageDiff {
-	res := make([]FileCoverageDiff, 0)
+	var res []FileCoverageDiff
+
 	baseSearchMap := coverage.StatsSearchMap(base)
 
 	for _, s := range current {
@@ -140,10 +139,10 @@ func TotalLinesMissingCoverage(diff []FileCoverageDiff) int {
 }
 
 func TotalPercentageDiff(current, base []coverage.Stats) float64 {
-	curretStats := coverage.StatsCalcTotal(current)
+	currentStats := coverage.StatsCalcTotal(current)
 	baseStats := coverage.StatsCalcTotal(base)
 
-	cp := curretStats.CoveredPercentageFNR()
+	cp := currentStats.CoveredPercentageFNR()
 	bp := baseStats.CoveredPercentageFNR()
 
 	p := cp - bp

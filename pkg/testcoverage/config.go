@@ -63,6 +63,8 @@ type Badge struct {
 	Git      badgestorer.Git
 }
 
+// Redacted returns a copy of Config with sensitive credentials obscured.
+//
 //nolint:wsl,mnd // relax
 func (c Config) Redacted() Config {
 	r := c
@@ -140,7 +142,7 @@ func (c Config) validateThreshold() error {
 }
 
 func (c Config) validateCDN() error {
-	// when cnd config is empty, cnd feature is disabled and it's not need to validate
+	// when cdn config is empty, cdn feature is disabled and there is no need to validate
 	if reflect.DeepEqual(c.Badge.CDN, badgestorer.CDN{}) {
 		return nil
 	}
@@ -149,7 +151,7 @@ func (c Config) validateCDN() error {
 }
 
 func (c Config) validateGit() error {
-	// when git config is empty, git feature is disabled and it's not need to validate
+	// when git config is empty, git feature is disabled and there is no need to validate
 	if reflect.DeepEqual(c.Badge.Git, badgestorer.Git{}) {
 		return nil
 	}
@@ -162,7 +164,7 @@ func hasNonEmptyFields(obj any) error {
 	for i := range v.NumField() {
 		f := v.Field(i)
 
-		if !f.IsZero() { // filed is set
+		if !f.IsZero() { // field is set
 			continue
 		}
 

@@ -216,6 +216,8 @@ func listAllFiles(rootDir string) []fileInfo {
 	return files
 }
 
+// findFilePathMatchingSearch finds the file best matching search and
+// removes it from files to prevent duplicate matches.
 func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	// Finds file that best matches search. For example search file "foo.go"
 	// matches files "bar/foo.go", "bar/baz/foo.go" and "foo.go", but it's the
@@ -391,8 +393,8 @@ func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) St
 	return s
 }
 
-// coverage returns the fraction of the statements in the
-// function that were covered, as a numerator and denominator.
+// coverage returns the number of covered and total statements in the function,
+// along with the list of uncovered line numbers.
 //
 //nolint:cyclop,gocognit,maintidx // relax
 func coverage(
