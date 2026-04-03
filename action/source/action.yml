@@ -38,14 +38,17 @@ inputs:
   threshold-file:
     description: Minimum coverage percentage required for individual files. Overrides value from configuration.
     required: false
+    default: -1
     type: number
   threshold-package:
     description: Minimum coverage percentage required for each package. Overrides value from configuration.
     required: false
+    default: -1
     type: number
   threshold-total:
     description: Minimum overall project coverage percentage required. Overrides value from configuration.
     required: false
+    default: -1
     type: number
 
   breakdown-file-name:
