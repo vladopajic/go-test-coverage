@@ -43,7 +43,6 @@ func (*args) Version() string {
 	return Name + " " + Version
 }
 
-//nolint:maintidx,mnd,funlen // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	setValue(&cfg.Profile, a.Profile)
 	setValue(&cfg.Debug, &a.Debug)
@@ -75,7 +74,7 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 
 		if a.GitRepository != nil {
 			parts := strings.Split(*a.GitRepository, "/")
-			if len(parts) != 2 {
+			if len(parts) != 2 { //nolint:mnd // relax
 				return cfg, errors.New("--git-repository flag should have format {owner}/{repository}")
 			}
 
