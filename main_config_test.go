@@ -232,10 +232,11 @@ func Test_args_Version(t *testing.T) {
 	assert.Equal(t, Name+" "+Version, (&args{}).Version())
 }
 
+//nolint:lll,paralleltest // realx
 func Test_readConfig(t *testing.T) {
 	// os.Args manipulation - tests must not run in parallel
 	origArgs := os.Args
-	t.Cleanup(func() { os.Args = origArgs })
+	t.Cleanup(func() { os.Args = origArgs }) //nolint:wsl_v5 // realax
 
 	t.Run("valid profile arg", func(t *testing.T) {
 		os.Args = []string{"cmd", "--profile", "cover.out"}
