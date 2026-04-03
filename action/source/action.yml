@@ -168,26 +168,26 @@ runs:
     id: coverage
     shell: bash
     run: |
-      go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} \
-        --config=${{ inputs.config || '***' }} \
-        --profile=${{ inputs.profile || '***' }} \
-        --source-dir=${{ inputs.source-dir || '***' }} \
-        --debug=${{ inputs.debug }} \
-        --github-action-output=true \
-        --threshold-file=${{ inputs.threshold-file }} \
-        --threshold-package=${{ inputs.threshold-package }} \
-        --threshold-total=${{ inputs.threshold-total }} \
-        --breakdown-file-name=${{ inputs.breakdown-file-name || '***' }} \
-        --diff-base-breakdown-file-name=${{ inputs.diff-base-breakdown-file-name || '***' }} \
-        --badge-file-name=${{ inputs.badge-file-name || '***' }} \
-        --cdn-key=${{ inputs.cdn-key || '***' }} \
-        --cdn-secret=${{ inputs.cdn-secret || '***' }} \
-        --cdn-region=${{ inputs.cdn-region || '***' }} \
-        --cdn-endpoint=${{ inputs.cdn-endpoint || '***' }} \
-        --cdn-file-name=${{ inputs.cdn-file-name || '***' }} \
-        --cdn-bucket-name=${{ inputs.cdn-bucket-name || '***' }} \
-        --cdn-force-path-style=${{ inputs.cdn-force-path-style }} \
-        --git-token=${{ inputs.git-token || '***' }} \
-        --git-branch=${{ inputs.git-branch || '***' }} \
-        --git-repository=${{ inputs.git-repository || '***'}} \
-        --git-file-name=${{ inputs.git-file-name || '***' }}
+      ARGS=(--github-action-output=true)
+      ARGS+=(--debug=${{ inputs.debug }})
+      ARGS+=(--cdn-force-path-style=${{ inputs.cdn-force-path-style }})
+      [ -n "${{ inputs.config }}" ]                       && ARGS+=(--config="${{ inputs.config }}")
+      [ -n "${{ inputs.profile }}" ]                      && ARGS+=(--profile="${{ inputs.profile }}")
+      [ -n "${{ inputs.source-dir }}" ]                   && ARGS+=(--source-dir="${{ inputs.source-dir }}")
+      [ "${{ inputs.threshold-file }}" != "-1" ]          && ARGS+=(--threshold-file=${{ inputs.threshold-file }})
+      [ "${{ inputs.threshold-package }}" != "-1" ]       && ARGS+=(--threshold-package=${{ inputs.threshold-package }})
+      [ "${{ inputs.threshold-total }}" != "-1" ]         && ARGS+=(--threshold-total=${{ inputs.threshold-total }})
+      [ -n "${{ inputs.breakdown-file-name }}" ]          && ARGS+=(--breakdown-file-name="${{ inputs.breakdown-file-name }}")
+      [ -n "${{ inputs.diff-base-breakdown-file-name }}" ] && ARGS+=(--diff-base-breakdown-file-name="${{ inputs.diff-base-breakdown-file-name }}")
+      [ -n "${{ inputs.badge-file-name }}" ]              && ARGS+=(--badge-file-name="${{ inputs.badge-file-name }}")
+      [ -n "${{ inputs.cdn-key }}" ]                      && ARGS+=(--cdn-key="${{ inputs.cdn-key }}")
+      [ -n "${{ inputs.cdn-secret }}" ]                   && ARGS+=(--cdn-secret="${{ inputs.cdn-secret }}")
+      [ -n "${{ inputs.cdn-region }}" ]                   && ARGS+=(--cdn-region="${{ inputs.cdn-region }}")
+      [ -n "${{ inputs.cdn-endpoint }}" ]                 && ARGS+=(--cdn-endpoint="${{ inputs.cdn-endpoint }}")
+      [ -n "${{ inputs.cdn-file-name }}" ]                && ARGS+=(--cdn-file-name="${{ inputs.cdn-file-name }}")
+      [ -n "${{ inputs.cdn-bucket-name }}" ]              && ARGS+=(--cdn-bucket-name="${{ inputs.cdn-bucket-name }}")
+      [ -n "${{ inputs.git-token }}" ]                    && ARGS+=(--git-token="${{ inputs.git-token }}")
+      [ -n "${{ inputs.git-branch }}" ]                   && ARGS+=(--git-branch="${{ inputs.git-branch }}")
+      [ -n "${{ inputs.git-repository }}" ]               && ARGS+=(--git-repository="${{ inputs.git-repository }}")
+      [ -n "${{ inputs.git-file-name }}" ]                && ARGS+=(--git-file-name="${{ inputs.git-file-name }}")
+      go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} "${ARGS[@]}"

@@ -184,7 +184,7 @@ func readConfig() (testcoverage.Config, error) {
 	return cfg, nil
 }
 
-func isCIDefaultString(v string) bool { return v == ciDefaultString }
+func isCIDefaultString(v string) bool { return v == ciDefaultString || v == "" }
 
 func isCIDefaultInt(v int) bool { return v == ciDefaultInt }
 
