@@ -7,7 +7,8 @@ jobs:
     name: build dev image
     # Docker build requires push to ghcr.io which is not available for fork PRs.
     # Fork PRs are covered by action-source-test.yml instead.
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    # Same-repo PRs are skipped to avoid running twice (push event already covers them).
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     permissions:
       packages: write
       contents: read
