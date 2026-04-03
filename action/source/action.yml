@@ -166,25 +166,25 @@ runs:
     shell: bash
     run: |
       go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} \
-        --config "${{ inputs.config }}" \
-        --profile "${{ inputs.profile }}" \
-        --source-dir "${{ inputs.source-dir }}" \
-        --debug "${{ inputs.debug }}" \
-        --github-action-output "true" \
-        --threshold-file "${{ inputs.threshold-file }}" \
-        --threshold-package "${{ inputs.threshold-package }}" \
-        --threshold-total "${{ inputs.threshold-total }}" \
-        --breakdown-file-name "${{ inputs.breakdown-file-name }}" \
-        --diff-base-breakdown-file-name "${{ inputs.diff-base-breakdown-file-name }}" \
-        --badge-file-name "${{ inputs.badge-file-name }}" \
-        --cdn-key "${{ inputs.cdn-key }}" \
-        --cdn-secret "${{ inputs.cdn-secret }}" \
-        --cdn-region "${{ inputs.cdn-region }}" \
-        --cdn-endpoint "${{ inputs.cdn-endpoint }}" \
-        --cdn-file-name "${{ inputs.cdn-file-name }}" \
-        --cdn-bucket-name "${{ inputs.cdn-bucket-name }}" \
-        --cdn-force-path-style "${{ inputs.cdn-force-path-style }}" \
-        --git-token "${{ inputs.git-token }}" \
-        --git-branch "${{ inputs.git-branch }}" \
-        --git-repository "${{ inputs.git-repository }}" \
-        --git-file-name "${{ inputs.git-file-name }}"
+        ${{ inputs.config && format('--config={0}', inputs.config) || '' }} \
+        ${{ inputs.profile && format('--profile={0}', inputs.profile) || '' }} \
+        ${{ inputs.source-dir && format('--source-dir={0}', inputs.source-dir) || '' }} \
+        --debug=${{ inputs.debug }} \
+        --github-action-output=true \
+        ${{ inputs.threshold-file != -1 && format('--threshold-file={0}', inputs.threshold-file) || '' }} \
+        ${{ inputs.threshold-package != -1 && format('--threshold-package={0}', inputs.threshold-package) || '' }} \
+        ${{ inputs.threshold-total != -1 && format('--threshold-total={0}', inputs.threshold-total) || '' }} \
+        ${{ inputs.breakdown-file-name && format('--breakdown-file-name={0}', inputs.breakdown-file-name) || '' }} \
+        ${{ inputs.diff-base-breakdown-file-name && format('--diff-base-breakdown-file-name={0}', inputs.diff-base-breakdown-file-name) || '' }} \
+        ${{ inputs.badge-file-name && format('--badge-file-name={0}', inputs.badge-file-name) || '' }} \
+        ${{ inputs.cdn-key && format('--cdn-key={0}', inputs.cdn-key) || '' }} \
+        ${{ inputs.cdn-secret && format('--cdn-secret={0}', inputs.cdn-secret) || '' }} \
+        ${{ inputs.cdn-region && format('--cdn-region={0}', inputs.cdn-region) || '' }} \
+        ${{ inputs.cdn-endpoint && format('--cdn-endpoint={0}', inputs.cdn-endpoint) || '' }} \
+        ${{ inputs.cdn-file-name && format('--cdn-file-name={0}', inputs.cdn-file-name) || '' }} \
+        ${{ inputs.cdn-bucket-name && format('--cdn-bucket-name={0}', inputs.cdn-bucket-name) || '' }} \
+        --cdn-force-path-style=${{ inputs.cdn-force-path-style }} \
+        ${{ inputs.git-token && format('--git-token={0}', inputs.git-token) || '' }} \
+        ${{ inputs.git-branch && format('--git-branch={0}', inputs.git-branch) || '' }} \
+        ${{ inputs.git-repository && format('--git-repository={0}', inputs.git-repository) || '' }} \
+        ${{ inputs.git-file-name && format('--git-file-name={0}', inputs.git-file-name) || '' }}
