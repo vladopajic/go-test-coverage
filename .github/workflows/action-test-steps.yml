@@ -134,3 +134,90 @@ jobs:
       - name: "check: test should have failed"
         if: steps.test-6.outcome != 'failure'
         run: echo "Previous step should have failed" && exit 1
+
+      ## Test 7
+
+      - name: "test: threshold-file failure (inputs)"
+        uses: ./
+        id: test-7
+        continue-on-error: true
+        with:
+          version: ${{ inputs.version }}
+          profile: cover.out
+          threshold-file: 100
+          threshold-package: 0
+          threshold-total: 0
+
+      - name: "check: test should have failed"
+        if: steps.test-7.outcome != 'failure'
+        run: echo "Previous step should have failed" && exit 1
+
+      ## Test 8
+
+      - name: "test: threshold-package failure (inputs)"
+        uses: ./
+        id: test-8
+        continue-on-error: true
+        with:
+          version: ${{ inputs.version }}
+          profile: cover.out
+          threshold-file: 0
+          threshold-package: 100
+          threshold-total: 0
+
+      - name: "check: test should have failed"
+        if: steps.test-8.outcome != 'failure'
+        run: echo "Previous step should have failed" && exit 1
+
+      ## Test 9
+
+      - name: "test: badge file generation"
+        uses: ./
+        id: test-9
+        with:
+          version: ${{ inputs.version }}
+          config: ./.github/workflows/testdata/zero.yml
+          badge-file-name: coverage-badge.svg
+
+      - name: "check: badge file was created"
+        run: test -f coverage-badge.svg || (echo "Badge file was not created" && exit 1)
+
+      ## Test 10
+
+      - name: "test: breakdown file generation"
+        uses: ./
+        id: test-10
+        with:
+          version: ${{ inputs.version }}
+          config: ./.github/workflows/testdata/zero.yml
+          breakdown-file-name: coverage.breakdown
+
+      - name: "check: breakdown file was created"
+        run: test -f coverage.breakdown || (echo "Breakdown file was not created" && exit 1)
+
+      ## Test 11
+
+      - name: "test: diff with base breakdown"
+        uses: ./
+        id: test-11
+        with:
+          version: ${{ inputs.version }}
+          config: ./.github/workflows/testdata/zero.yml
+          diff-base-breakdown-file-name: coverage.breakdown
+
+      ## Test 12
+
+      - name: "test: missing profile without debug"
+        uses: ./
+        id: test-12
+        continue-on-error: true
+        with:
+          version: ${{ inputs.version }}
+          profile: nonexistent-profile.out
+          threshold-file: 0
+          threshold-package: 0
+          threshold-total: 0
+
+      - name: "check: test should have failed"
+        if: steps.test-12.outcome != 'failure'
+        run: echo "Previous step should have failed" && exit 1
