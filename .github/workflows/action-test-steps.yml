@@ -53,10 +53,10 @@ jobs:
 
       - name: "check: test output values"
         if: |
-          steps.test-1-docker.outputs.total-coverage == '' && steps.test-1-source.outputs.total-coverage == '' ||
-          steps.test-1-docker.outputs.badge-text == ''      && steps.test-1-source.outputs.badge-text == ''      ||
-          steps.test-1-docker.outputs.badge-color == ''     && steps.test-1-source.outputs.badge-color == ''     ||
-          steps.test-1-docker.outputs.report == ''          && steps.test-1-source.outputs.report == ''
+          (steps.test-1-docker.outputs.total-coverage == '' && steps.test-1-source.outputs.total-coverage == '') ||
+          (steps.test-1-docker.outputs.badge-text == ''     && steps.test-1-source.outputs.badge-text == '')     ||
+          (steps.test-1-docker.outputs.badge-color == ''    && steps.test-1-source.outputs.badge-color == '')    ||
+          (steps.test-1-docker.outputs.report == ''         && steps.test-1-source.outputs.report == '')
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 2
@@ -84,9 +84,9 @@ jobs:
 
       - name: "check: test output values"
         if: |
-          steps.test-2-docker.outputs.total-coverage == '' && steps.test-2-source.outputs.total-coverage == '' ||
-          steps.test-2-docker.outputs.badge-text == ''      && steps.test-2-source.outputs.badge-text == ''      ||
-          steps.test-2-docker.outputs.badge-color == ''     && steps.test-2-source.outputs.badge-color == ''
+          (steps.test-2-docker.outputs.total-coverage == '' && steps.test-2-source.outputs.total-coverage == '') ||
+          (steps.test-2-docker.outputs.badge-text == ''     && steps.test-2-source.outputs.badge-text == '')     ||
+          (steps.test-2-docker.outputs.badge-color == ''    && steps.test-2-source.outputs.badge-color == '')
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 3
