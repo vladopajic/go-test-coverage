@@ -45,71 +45,43 @@ func (*args) Version() string {
 
 //nolint:cyclop,maintidx,mnd,funlen // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
-	if a.Profile != nil {
-		cfg.Profile = *a.Profile
-	}
+	setValue(&cfg.Profile, a.Profile)
+	setValue(&cfg.Debug, &a.Debug)
+	setValue(&cfg.SourceDir, a.SourceDir)
+	setValue(&cfg.GithubActionOutput, &a.GithubActionOutput)
+	setValue(&cfg.Threshold.File, a.ThresholdFile)
+	setValue(&cfg.Threshold.Package, a.ThresholdPackage)
+	setValue(&cfg.Threshold.Total, a.ThresholdTotal)
 
-	if a.Debug {
-		cfg.Debug = true
-	}
+	setValue(&cfg.BreakdownFileName, a.BreakdownFileName)
+	setValue(&cfg.Diff.BaseBreakdownFileName, a.DiffBaseBreakdownFileName)
 
-	if a.GithubActionOutput {
-		cfg.GithubActionOutput = true
-	}
-
-	if a.SourceDir != nil {
-		cfg.SourceDir = *a.SourceDir
-	}
-
-	if a.ThresholdFile != nil {
-		cfg.Threshold.File = *a.ThresholdFile
-	}
-
-	if a.ThresholdPackage != nil {
-		cfg.Threshold.Package = *a.ThresholdPackage
-	}
-
-	if a.ThresholdTotal != nil {
-		cfg.Threshold.Total = *a.ThresholdTotal
-	}
-
-	if a.BreakdownFileName != nil {
-		cfg.BreakdownFileName = *a.BreakdownFileName
-	}
-
-	if a.DiffBaseBreakdownFileName != nil {
-		cfg.Diff.BaseBreakdownFileName = *a.DiffBaseBreakdownFileName
-	}
-
-	if a.BadgeFileName != nil {
-		cfg.Badge.FileName = *a.BadgeFileName
-	}
+	setValue(&cfg.Badge.FileName, a.BadgeFileName)
 
 	if a.CDNSecret != nil {
-		cfg.Badge.CDN.Secret = *a.CDNSecret
-		cfg.Badge.CDN.Key = escapeCiDefaultString(a.CDNKey)
-		cfg.Badge.CDN.Region = escapeCiDefaultString(a.CDNRegion)
-		cfg.Badge.CDN.FileName = escapeCiDefaultString(a.CDNFileName)
-		cfg.Badge.CDN.BucketName = escapeCiDefaultString(a.CDNBucketName)
-		cfg.Badge.CDN.ForcePathStyle = a.CDNForcePathStyle
-
-		if a.CDNEndpoint != nil {
-			cfg.Badge.CDN.Endpoint = *a.CDNEndpoint
-		}
+		setValue(&cfg.Badge.CDN.Secret, a.CDNSecret)
+		setValue(&cfg.Badge.CDN.Key, a.CDNKey)
+		setValue(&cfg.Badge.CDN.Region, a.CDNRegion)
+		setValue(&cfg.Badge.CDN.FileName, a.CDNFileName)
+		setValue(&cfg.Badge.CDN.BucketName, a.CDNBucketName)
+		setValue(&cfg.Badge.CDN.ForcePathStyle, &a.CDNForcePathStyle)
+		setValue(&cfg.Badge.CDN.Endpoint, a.CDNEndpoint)
 	}
 
 	if a.GitToken != nil {
-		cfg.Badge.Git.Token = *a.GitToken
-		cfg.Badge.Git.Branch = escapeCiDefaultString(a.GitBranch)
-		cfg.Badge.Git.FileName = escapeCiDefaultString(a.GitFileName)
+		setValue(&cfg.Badge.Git.Token, a.GitToken)
+		setValue(&cfg.Badge.Git.Branch, a.GitBranch)
+		setValue(&cfg.Badge.Git.FileName, a.GitFileName)
 
-		parts := strings.Split(escapeCiDefaultString(a.GitRepository), "/")
-		if len(parts) != 2 {
-			return cfg, errors.New("--git-repository flag should have format {owner}/{repository}")
+		if a.GitRepository != nil {
+			parts := strings.Split(*a.GitRepository, "/")
+			if len(parts) != 2 {
+				return cfg, errors.New("--git-repository flag should have format {owner}/{repository}")
+			}
+
+			cfg.Badge.Git.Owner = parts[0]
+			cfg.Badge.Git.Repository = parts[1]
 		}
-
-		cfg.Badge.Git.Owner = parts[0]
-		cfg.Badge.Git.Repository = parts[1]
 	}
 
 	return cfg, nil
@@ -143,10 +115,8 @@ func readConfig() (testcoverage.Config, error) {
 	return cfg, nil
 }
 
-func escapeCiDefaultString(str *string) string {
-	if str == nil {
-		return ""
+func setValue[T any](dest *T, source *T) {
+	if source != nil {
+		*dest = *source
 	}
-
-	return *str
 }
