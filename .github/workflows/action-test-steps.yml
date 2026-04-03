@@ -125,7 +125,7 @@ jobs:
         continue-on-error: true
         with:
           version: ${{ inputs.version }}
-          profile: unexistant-profile.out
+          profile: nonexistent-profile.out
           debug: true
           threshold-file: 0
           threshold-package: 0
