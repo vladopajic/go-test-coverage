@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -222,5 +223,46 @@ func Test_args_overrideConfig(t *testing.T) {
 		result, err := (&args{}).overrideConfig(cfg)
 		assert.NoError(t, err)
 		assert.Equal(t, cfg, result)
+	})
+}
+
+func Test_args_Version(t *testing.T) {
+	t.Parallel()
+
+	assert.Equal(t, Name+" "+Version, (&args{}).Version())
+}
+
+func Test_readConfig(t *testing.T) {
+	// os.Args manipulation - tests must not run in parallel
+	origArgs := os.Args
+	t.Cleanup(func() { os.Args = origArgs })
+
+	t.Run("valid profile arg", func(t *testing.T) {
+		os.Args = []string{"cmd", "--profile", "cover.out"}
+
+		cfg, err := readConfig()
+		assert.NoError(t, err)
+		assert.Equal(t, "cover.out", cfg.Profile)
+	})
+
+	t.Run("no profile returns validation error", func(t *testing.T) {
+		os.Args = []string{"cmd"}
+
+		_, err := readConfig()
+		assert.ErrorContains(t, err, "config file is not valid")
+	})
+
+	t.Run("invalid git repository returns override error", func(t *testing.T) {
+		os.Args = []string{"cmd", "--profile", "cover.out", "--git-token", "tok", "--git-repository", "no-slash"}
+
+		_, err := readConfig()
+		assert.ErrorContains(t, err, "argument is not valid")
+	})
+
+	t.Run("nonexistent config file returns load error", func(t *testing.T) {
+		os.Args = []string{"cmd", "--config", "nonexistent.yml"}
+
+		_, err := readConfig()
+		assert.ErrorContains(t, err, "failed loading config from file")
 	})
 }
