@@ -129,6 +129,13 @@ inputs:
     default: .badges/${{ github.ref_name }}/coverage.svg
     type: string
 
+  version:
+    description: Version of go-test-coverage source to run
+    required: false
+    # TOOL_VERSION: when changing version update version in other places
+    default: v2.18.4
+    type: string
+
 outputs:
   total-coverage:
     description: Integer value in the range [0-100], representing the overall project test coverage percentage.
@@ -141,8 +148,7 @@ outputs:
 
 runs:
   using: docker
-  # TOOL_VERSION: when changing version update version in other places
-  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.18.4
+  image: docker://ghcr.io/vladopajic/go-test-coverage:${{ inputs.version }}
   entrypoint: /docker-entrypoint.sh
   env:
     INPUT_CONFIG: ${{ inputs.config }}

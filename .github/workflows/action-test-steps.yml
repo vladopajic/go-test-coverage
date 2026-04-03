@@ -7,9 +7,9 @@ on:
         type: string
         required: true
       version:
-        description: 'Version passed to source action (github.sha)'
+        description: 'Docker image tag (docker variant) or git sha (source variant)'
         type: string
-        default: ''
+        required: true
 
 jobs:
   test:
@@ -27,84 +27,60 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
 
-      - name: set action image version to dev
+      - name: set action to docker image
         if: inputs.variant == 'docker'
         run: |
-          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:dev"' action.yml
+          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:${{ inputs.version }}"' action.yml
           image=$(yq '.runs.image' action.yml)
           echo "Image: $image"
+
+      - name: set action to source
+        if: inputs.variant == 'source'
+        run: cp action/source/action.yml action.yml
 
       ## Test 1
 
       - name: "test: total coverage 0% (config)"
-        if: inputs.variant == 'docker'
         uses: ./
-        id: test-1-docker
-        with:
-          config: ./.github/workflows/testdata/zero.yml
-
-      - name: "test: total coverage 0% (config)"
-        if: inputs.variant == 'source'
-        uses: ./action/source/.
-        id: test-1-source
+        id: test-1
         with:
           version: ${{ inputs.version }}
           config: ./.github/workflows/testdata/zero.yml
 
       - name: "check: test output values"
         if: |
-          (steps.test-1-docker.outputs.total-coverage == '' && steps.test-1-source.outputs.total-coverage == '') ||
-          (steps.test-1-docker.outputs.badge-text == ''     && steps.test-1-source.outputs.badge-text == '')     ||
-          (steps.test-1-docker.outputs.badge-color == ''    && steps.test-1-source.outputs.badge-color == '')    ||
-          (steps.test-1-docker.outputs.report == ''         && steps.test-1-source.outputs.report == '')
+          steps.test-1.outputs.total-coverage == '' ||
+          steps.test-1.outputs.badge-text == ''     ||
+          steps.test-1.outputs.badge-color == ''    ||
+          steps.test-1.outputs.report == ''
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 2
 
       - name: "test: total coverage 100% (config)"
-        if: inputs.variant == 'docker'
         uses: ./
-        id: test-2-docker
-        continue-on-error: true
-        with:
-          config: ./.github/workflows/testdata/total100.yml
-
-      - name: "test: total coverage 100% (config)"
-        if: inputs.variant == 'source'
-        uses: ./action/source/.
-        id: test-2-source
+        id: test-2
         continue-on-error: true
         with:
           version: ${{ inputs.version }}
           config: ./.github/workflows/testdata/total100.yml
 
       - name: "check: test should have failed"
-        if: steps.test-2-docker.outcome != 'failure' && steps.test-2-source.outcome != 'failure'
+        if: steps.test-2.outcome != 'failure'
         run: echo "Previous step should have failed" && exit 1
 
       - name: "check: test output values"
         if: |
-          (steps.test-2-docker.outputs.total-coverage == '' && steps.test-2-source.outputs.total-coverage == '') ||
-          (steps.test-2-docker.outputs.badge-text == ''     && steps.test-2-source.outputs.badge-text == '')     ||
-          (steps.test-2-docker.outputs.badge-color == ''    && steps.test-2-source.outputs.badge-color == '')
+          steps.test-2.outputs.total-coverage == '' ||
+          steps.test-2.outputs.badge-text == ''     ||
+          steps.test-2.outputs.badge-color == ''
         run: echo "Previous step should have output values" && exit 1
 
       ## Test 3
 
       - name: "test: total coverage 0% (inputs)"
-        if: inputs.variant == 'docker'
         uses: ./
-        id: test-3-docker
-        with:
-          profile: cover.out
-          threshold-file: 0
-          threshold-package: 0
-          threshold-total: 0
-
-      - name: "test: total coverage 0% (inputs)"
-        if: inputs.variant == 'source'
-        uses: ./action/source/.
-        id: test-3-source
+        id: test-3
         with:
           version: ${{ inputs.version }}
           profile: cover.out
@@ -115,20 +91,8 @@ jobs:
       ## Test 4
 
       - name: "test: total coverage 100% (inputs)"
-        if: inputs.variant == 'docker'
         uses: ./
-        id: test-4-docker
-        continue-on-error: true
-        with:
-          profile: cover.out
-          threshold-file: 0
-          threshold-package: 0
-          threshold-total: 100
-
-      - name: "test: total coverage 100% (inputs)"
-        if: inputs.variant == 'source'
-        uses: ./action/source/.
-        id: test-4-source
+        id: test-4
         continue-on-error: true
         with:
           version: ${{ inputs.version }}
@@ -138,25 +102,14 @@ jobs:
           threshold-total: 100
 
       - name: "check: test should have failed"
-        if: steps.test-4-docker.outcome != 'failure' && steps.test-4-source.outcome != 'failure'
+        if: steps.test-4.outcome != 'failure'
         run: echo "Previous step should have failed" && exit 1
 
       ## Test 5
 
       - name: "test: override config"
-        if: inputs.variant == 'docker'
         uses: ./
-        id: test-5-docker
-        with:
-          config: ./.github/workflows/testdata/total100.yml
-          threshold-file: 0
-          threshold-package: 0
-          threshold-total: 0
-
-      - name: "test: override config"
-        if: inputs.variant == 'source'
-        uses: ./action/source/.
-        id: test-5-source
+        id: test-5
         with:
           version: ${{ inputs.version }}
           config: ./.github/workflows/testdata/total100.yml
@@ -167,21 +120,8 @@ jobs:
       ## Test 6
 
       - name: "test: debug output"
-        if: inputs.variant == 'docker'
         uses: ./
-        id: test-6-docker
-        continue-on-error: true
-        with:
-          profile: unexistant-profile.out
-          debug: true
-          threshold-file: 0
-          threshold-package: 0
-          threshold-total: 100
-
-      - name: "test: debug output"
-        if: inputs.variant == 'source'
-        uses: ./action/source/.
-        id: test-6-source
+        id: test-6
         continue-on-error: true
         with:
           version: ${{ inputs.version }}
@@ -192,5 +132,5 @@ jobs:
           threshold-total: 100
 
       - name: "check: test should have failed"
-        if: steps.test-6-docker.outcome != 'failure' && steps.test-6-source.outcome != 'failure'
+        if: steps.test-6.outcome != 'failure'
         run: echo "Previous step should have failed" && exit 1
