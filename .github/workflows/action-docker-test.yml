@@ -7,34 +7,34 @@ jobs:
       packages: write
     runs-on: ubuntu-latest
     steps:
-    - name: checkout
-      uses: actions/checkout@v6
+      - name: checkout
+        uses: actions/checkout@v6
 
-    - name: login to GitHub container registry
-      uses: docker/login-action@v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.repository_owner }}
-        password: ${{ secrets.GITHUB_TOKEN }}
+      - name: login to GitHub container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: build and push
-      uses: docker/build-push-action@v7
-      with:
-        push: true
-        build-args: |
-          VERSION=dev
-        provenance: false
-        sbom: false
-        tags: |
-          ghcr.io/vladopajic/go-test-coverage:dev
+      - name: build and push
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          build-args: |
+            VERSION=dev
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/vladopajic/go-test-coverage:dev
 
-    - uses: actions/delete-package-versions@v5
-      with:
-        owner: vladopajic
-        package-name: go-test-coverage
-        package-type: container
-        min-versions-to-keep: 5
-        delete-only-untagged-versions: true
+      - uses: actions/delete-package-versions@v5
+        with:
+          owner: vladopajic
+          package-name: go-test-coverage
+          package-type: container
+          min-versions-to-keep: 5
+          delete-only-untagged-versions: true
 
   test:
     name: docker test steps
