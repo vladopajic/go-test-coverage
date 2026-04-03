@@ -1,5 +1,7 @@
 name: test
-on: [push]
+on:
+  push:
+  pull_request:
 permissions:
   contents: write
   pull-requests: write
@@ -82,14 +84,17 @@ jobs:
 
       - name: find pull request ID
         run: |
-          PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
-          PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
-          
-          if [ "$PR_ID" != "null" ]; then
-            echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "pull_request_id=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           else
-            echo "No open pull request found for this branch."
+            PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
+            PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
+            if [ "$PR_ID" != "null" ]; then
+              echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
+            else
+              echo "No open pull request found for this branch."
+            fi
           fi
       - name: post coverage report
         if: env.pull_request_id

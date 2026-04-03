@@ -1,5 +1,7 @@
 name: action-test (source version)
-on: [push]
+on:
+  push:
+  pull_request:
 jobs:
   test:
     name: source test steps

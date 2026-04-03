@@ -1,8 +1,13 @@
 name: action-test (docker version)
-on: [push]
+on:
+  push:
+  pull_request:
 jobs:
   build-dev-image:
     name: build dev image
+    # Docker build requires push to ghcr.io which is not available for fork PRs.
+    # Fork PRs are covered by action-source-test.yml instead.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       packages: write
       contents: read
