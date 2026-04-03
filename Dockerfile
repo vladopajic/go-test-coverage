@@ -15,7 +15,11 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
 
 FROM gcr.io/distroless/base:latest
 WORKDIR /
+
+COPY docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
 COPY --from=builder /workspace/go-test-coverage .
 COPY --from=builder /usr/local/go/bin/go /usr/local/go/bin/go
 ENV PATH="${PATH}:/usr/local/go/bin"
-ENTRYPOINT ["/go-test-coverage"]
+ENTRYPOINT ["/docker-entrypoint.sh"]

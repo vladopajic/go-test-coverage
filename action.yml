@@ -143,26 +143,26 @@ runs:
   using: docker
   # TOOL_VERSION: when changing version update version in other places
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.18.4
-  args:
-    - ${{ inputs.config && format('--config={0}', inputs.config) || '' }} 
-    - ${{ inputs.profile && format('--profile={0}', inputs.profile) || '' }} 
-    - ${{ inputs.source-dir && format('--source-dir={0}', inputs.source-dir) || '' }} 
-    - --debug=${{ inputs.debug }} 
-    - --github-action-output=true
-    - ${{ inputs.threshold-file && format('--threshold-file={0}', inputs.threshold-file) || '' }} 
-    - ${{ inputs.threshold-package && format('--threshold-package={0}', inputs.threshold-package) || '' }} 
-    - ${{ inputs.threshold-total && format('--threshold-total={0}', inputs.threshold-total) || '' }} 
-    - ${{ inputs.breakdown-file-name && format('--breakdown-file-name={0}', inputs.breakdown-file-name) || '' }} 
-    - ${{ inputs.diff-base-breakdown-file-name && format('--diff-base-breakdown-file-name={0}', inputs.diff-base-breakdown-file-name) || '' }} 
-    - ${{ inputs.badge-file-name && format('--badge-file-name={0}', inputs.badge-file-name) || '' }} 
-    - ${{ inputs.cdn-key && format('--cdn-key={0}', inputs.cdn-key) || '' }} 
-    - ${{ inputs.cdn-secret && format('--cdn-secret={0}', inputs.cdn-secret) || '' }} 
-    - ${{ inputs.cdn-region && format('--cdn-region={0}', inputs.cdn-region) || '' }} 
-    - ${{ inputs.cdn-endpoint && format('--cdn-endpoint={0}', inputs.cdn-endpoint) || '' }} 
-    - ${{ inputs.cdn-file-name && format('--cdn-file-name={0}', inputs.cdn-file-name) || '' }} 
-    - ${{ inputs.cdn-bucket-name && format('--cdn-bucket-name={0}', inputs.cdn-bucket-name) || '' }} 
-    - --cdn-force-path-style=${{ inputs.cdn-force-path-style }} 
-    - ${{ inputs.git-token && format('--git-token={0}', inputs.git-token) || '' }} 
-    - ${{ inputs.git-branch && format('--git-branch={0}', inputs.git-branch) || '' }} 
-    - ${{ inputs.git-repository && format('--git-repository={0}', inputs.git-repository) || '' }} 
-    - ${{ inputs.git-file-name && format('--git-file-name={0}', inputs.git-file-name) || '' }}
+  entrypoint: /docker-entrypoint.sh
+  env:
+    INPUT_CONFIG: ${{ inputs.config }}
+    INPUT_PROFILE: ${{ inputs.profile }}
+    INPUT_SOURCE_DIR: ${{ inputs.source-dir }}
+    INPUT_DEBUG: ${{ inputs.debug }}
+    INPUT_THRESHOLD_FILE: ${{ inputs.threshold-file }}
+    INPUT_THRESHOLD_PACKAGE: ${{ inputs.threshold-package }}
+    INPUT_THRESHOLD_TOTAL: ${{ inputs.threshold-total }}
+    INPUT_BREAKDOWN_FILE_NAME: ${{ inputs.breakdown-file-name }}
+    INPUT_DIFF_BASE_BREAKDOWN_FILE_NAME: ${{ inputs.diff-base-breakdown-file-name }}
+    INPUT_BADGE_FILE_NAME: ${{ inputs.badge-file-name }}
+    INPUT_CDN_KEY: ${{ inputs.cdn-key }}
+    INPUT_CDN_SECRET: ${{ inputs.cdn-secret }}
+    INPUT_CDN_REGION: ${{ inputs.cdn-region }}
+    INPUT_CDN_ENDPOINT: ${{ inputs.cdn-endpoint }}
+    INPUT_CDN_FILE_NAME: ${{ inputs.cdn-file-name }}
+    INPUT_CDN_BUCKET_NAME: ${{ inputs.cdn-bucket-name }}
+    INPUT_CDN_FORCE_PATH_STYLE: ${{ inputs.cdn-force-path-style }}
+    INPUT_GIT_TOKEN: ${{ inputs.git-token }}
+    INPUT_GIT_BRANCH: ${{ inputs.git-branch }}
+    INPUT_GIT_REPOSITORY: ${{ inputs.git-repository }}
+    INPUT_GIT_FILE_NAME: ${{ inputs.git-file-name }}
