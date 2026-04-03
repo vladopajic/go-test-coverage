@@ -2,6 +2,7 @@ name: action-test (source version)
 on: [push]
 jobs:
   test:
+    name: source test steps
     uses: ./.github/workflows/action-test-steps.yml
     with:
       variant: source

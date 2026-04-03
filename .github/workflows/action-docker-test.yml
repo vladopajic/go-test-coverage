@@ -37,6 +37,7 @@ jobs:
         delete-only-untagged-versions: true
 
   test:
+    name: docker test steps
     needs: build-dev-image
     uses: ./.github/workflows/action-test-steps.yml
     with:
