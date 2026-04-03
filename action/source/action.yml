@@ -38,17 +38,17 @@ inputs:
   threshold-file:
     description: Minimum coverage percentage required for individual files. Overrides value from configuration.
     required: false
-    default: -1
+    default: ""
     type: number
   threshold-package:
     description: Minimum coverage percentage required for each package. Overrides value from configuration.
     required: false
-    default: -1
+    default: ""
     type: number
   threshold-total:
     description: Minimum overall project coverage percentage required. Overrides value from configuration.
     required: false
-    default: -1
+    default: ""
     type: number
 
   breakdown-file-name:
@@ -174,9 +174,9 @@ runs:
         ${{ inputs.source-dir && format('--source-dir={0}', inputs.source-dir) || '' }} \
         --debug=${{ inputs.debug }} \
         --github-action-output=true \
-        ${{ inputs.threshold-file != -1 && format('--threshold-file={0}', inputs.threshold-file) || '' }} \
-        ${{ inputs.threshold-package != -1 && format('--threshold-package={0}', inputs.threshold-package) || '' }} \
-        ${{ inputs.threshold-total != -1 && format('--threshold-total={0}', inputs.threshold-total) || '' }} \
+        ${{ inputs.threshold-file && format('--threshold-file={0}', inputs.threshold-file) || '' }} \
+        ${{ inputs.threshold-package && format('--threshold-package={0}', inputs.threshold-package) || '' }} \
+        ${{ inputs.threshold-total && format('--threshold-total={0}', inputs.threshold-total) || '' }} \
         ${{ inputs.breakdown-file-name && format('--breakdown-file-name={0}', inputs.breakdown-file-name) || '' }} \
         ${{ inputs.diff-base-breakdown-file-name && format('--diff-base-breakdown-file-name={0}', inputs.diff-base-breakdown-file-name) || '' }} \
         ${{ inputs.badge-file-name && format('--badge-file-name={0}', inputs.badge-file-name) || '' }} \
