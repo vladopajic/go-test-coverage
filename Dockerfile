@@ -23,5 +23,8 @@ WORKDIR /
 COPY --from=builder /workspace/docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=builder /workspace/go-test-coverage .
 COPY --from=builder /usr/local/go/bin/go /usr/local/go/bin/go
+RUN addgroup --system action && adduser --system --ingroup action --home /nonexistent --no-create-home action \
+    && chown action:action /docker-entrypoint.sh /go-test-coverage
 ENV PATH="${PATH}:/usr/local/go/bin"
+USER action
 ENTRYPOINT ["/docker-entrypoint.sh"]
