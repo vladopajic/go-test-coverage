@@ -13,8 +13,7 @@ COPY ./ ./
 ARG VERSION
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -o go-test-coverage .
-    
-COPY docker-entrypoint.sh docker-entrypoint.sh
+
 RUN chmod +x docker-entrypoint.sh
 
 # ===============================================================
