@@ -13,9 +13,9 @@ import (
 type args struct {
 	ConfigPath         *string `arg:"-c,--config"`
 	Profile            *string `arg:"-p,--profile"              help:"path to coverage profile"`
-	Debug              bool    `arg:"-d,--debug"`
+	Debug              *bool   `arg:"-d,--debug"`
 	SourceDir          *string `arg:"-s,--source-dir"`
-	GithubActionOutput bool    `arg:"-o,--github-action-output"`
+	GithubActionOutput *bool   `arg:"-o,--github-action-output"`
 	ThresholdFile      *int    `arg:"-f,--threshold-file"`
 	ThresholdPackage   *int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     *int    `arg:"-t,--threshold-total"`
@@ -31,7 +31,7 @@ type args struct {
 	CDNEndpoint       *string `arg:"--cdn-endpoint"`
 	CDNFileName       *string `arg:"--cdn-file-name"`
 	CDNBucketName     *string `arg:"--cdn-bucket-name"`
-	CDNForcePathStyle bool    `arg:"--cdn-force-path-style"`
+	CDNForcePathStyle *bool   `arg:"--cdn-force-path-style"`
 
 	GitToken      *string `arg:"--git-token"`
 	GitRepository *string `arg:"--git-repository"`
@@ -45,9 +45,9 @@ func (*args) Version() string {
 
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	setValue(&cfg.Profile, a.Profile)
-	setValue(&cfg.Debug, &a.Debug)
+	setValue(&cfg.Debug, a.Debug)
 	setValue(&cfg.SourceDir, a.SourceDir)
-	setValue(&cfg.GithubActionOutput, &a.GithubActionOutput)
+	setValue(&cfg.GithubActionOutput, a.GithubActionOutput)
 	setValue(&cfg.Threshold.File, a.ThresholdFile)
 	setValue(&cfg.Threshold.Package, a.ThresholdPackage)
 	setValue(&cfg.Threshold.Total, a.ThresholdTotal)
@@ -63,7 +63,7 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 		setValue(&cfg.Badge.CDN.Region, a.CDNRegion)
 		setValue(&cfg.Badge.CDN.FileName, a.CDNFileName)
 		setValue(&cfg.Badge.CDN.BucketName, a.CDNBucketName)
-		setValue(&cfg.Badge.CDN.ForcePathStyle, &a.CDNForcePathStyle)
+		setValue(&cfg.Badge.CDN.ForcePathStyle, a.CDNForcePathStyle)
 		setValue(&cfg.Badge.CDN.Endpoint, a.CDNEndpoint)
 	}
 

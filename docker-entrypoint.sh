@@ -13,9 +13,9 @@ cmd="/go-test-coverage"
 cmd="$cmd --github-action-output=true"
 
 # For numeric thresholds, only add if not -1 (the "not set" indicator)
-[ "$INPUT_THRESHOLD_FILE" ] && cmd="$cmd --threshold-file=$INPUT_THRESHOLD_FILE"
-[ "$INPUT_THRESHOLD_PACKAGE" ] && cmd="$cmd --threshold-package=$INPUT_THRESHOLD_PACKAGE"
-[ "$INPUT_THRESHOLD_TOTAL" ] && cmd="$cmd --threshold-total=$INPUT_THRESHOLD_TOTAL"
+[ "$INPUT_THRESHOLD_FILE" != "-1" ] && cmd="$cmd --threshold-file=$INPUT_THRESHOLD_FILE"
+[ "$INPUT_THRESHOLD_PACKAGE" != "-1" ] && cmd="$cmd --threshold-package=$INPUT_THRESHOLD_PACKAGE"
+[ "$INPUT_THRESHOLD_TOTAL" != "-1" ] && cmd="$cmd --threshold-total=$INPUT_THRESHOLD_TOTAL"
 
 # Badge and CDN/Git configs (only if specified)
 [ -n "$INPUT_BREAKDOWN_FILE_NAME" ] && cmd="$cmd --breakdown-file-name=$INPUT_BREAKDOWN_FILE_NAME"

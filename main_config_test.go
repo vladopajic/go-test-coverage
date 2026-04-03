@@ -12,7 +12,7 @@ import (
 
 func ptr[T any](v T) *T { return &v }
 
-//nolint:lll // realx
+//nolint:lll // relax
 func Test_args_overrideConfig(t *testing.T) {
 	t.Parallel()
 
@@ -36,7 +36,7 @@ func Test_args_overrideConfig(t *testing.T) {
 	t.Run("Debug", func(t *testing.T) {
 		t.Parallel()
 
-		result, err := (&args{Debug: true}).overrideConfig(testcoverage.Config{})
+		result, err := (&args{Debug: ptr(true)}).overrideConfig(testcoverage.Config{})
 		assert.NoError(t, err)
 		assert.True(t, result.Debug)
 	})
@@ -44,7 +44,7 @@ func Test_args_overrideConfig(t *testing.T) {
 	t.Run("GithubActionOutput", func(t *testing.T) {
 		t.Parallel()
 
-		result, err := (&args{GithubActionOutput: true}).overrideConfig(testcoverage.Config{})
+		result, err := (&args{GithubActionOutput: ptr(true)}).overrideConfig(testcoverage.Config{})
 		assert.NoError(t, err)
 		assert.True(t, result.GithubActionOutput)
 	})
@@ -115,7 +115,7 @@ func Test_args_overrideConfig(t *testing.T) {
 			CDNFileName:       ptr("badge.svg"),
 			CDNBucketName:     ptr("my-bucket"),
 			CDNEndpoint:       ptr("https://s3.example.com"),
-			CDNForcePathStyle: true,
+			CDNForcePathStyle: ptr(true),
 		}
 		result, err := a.overrideConfig(testcoverage.Config{})
 		assert.NoError(t, err)
@@ -232,11 +232,11 @@ func Test_args_Version(t *testing.T) {
 	assert.Equal(t, Name+" "+Version, (&args{}).Version())
 }
 
-//nolint:lll,paralleltest // realx
+//nolint:lll,paralleltest // relax
 func Test_readConfig(t *testing.T) {
 	// os.Args manipulation - tests must not run in parallel
 	origArgs := os.Args
-	t.Cleanup(func() { os.Args = origArgs }) //nolint:wsl_v5 // realax
+	t.Cleanup(func() { os.Args = origArgs }) //nolint:wsl_v5 // relax
 
 	t.Run("valid profile arg", func(t *testing.T) {
 		os.Args = []string{"cmd", "--profile", "cover.out"}
