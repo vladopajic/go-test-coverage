@@ -48,7 +48,7 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 	setValue(&cfg.Debug, a.Debug)
 	setValue(&cfg.SourceDir, a.SourceDir)
 	setValue(&cfg.GithubActionOutput, a.GithubActionOutput)
-	// setValue(&cfg.Threshold.File, a.ThresholdFile)
+	setValue(&cfg.Threshold.File, a.ThresholdFile)
 	setValue(&cfg.Threshold.Package, a.ThresholdPackage)
 	setValue(&cfg.Threshold.Total, a.ThresholdTotal)
 
