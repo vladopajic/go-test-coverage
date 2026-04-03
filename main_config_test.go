@@ -11,6 +11,7 @@ import (
 
 func ptr[T any](v T) *T { return &v }
 
+//nolint:lll // realx
 func Test_args_overrideConfig(t *testing.T) {
 	t.Parallel()
 

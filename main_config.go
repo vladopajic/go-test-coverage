@@ -43,7 +43,7 @@ func (*args) Version() string {
 	return Name + " " + Version
 }
 
-//nolint:cyclop,maintidx,mnd,funlen // relax
+//nolint:maintidx,mnd,funlen // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
 	setValue(&cfg.Profile, a.Profile)
 	setValue(&cfg.Debug, &a.Debug)
