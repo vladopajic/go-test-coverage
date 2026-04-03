@@ -130,10 +130,9 @@ inputs:
     type: string
 
   version:
-    description: Version of go-test-coverage source to run
+    description: Not used by docker action. Accepted for interface compatibility with source action.
     required: false
-    # TOOL_VERSION: when changing version update version in other places
-    default: v2.18.4
+    default: ''
     type: string
 
 outputs:
@@ -148,7 +147,8 @@ outputs:
 
 runs:
   using: docker
-  image: docker://ghcr.io/vladopajic/go-test-coverage:${{ inputs.version }}
+  # TOOL_VERSION: when changing version update version in other places
+  image: docker://ghcr.io/vladopajic/go-test-coverage:v2.18.4
   entrypoint: /docker-entrypoint.sh
   env:
     INPUT_CONFIG: ${{ inputs.config }}

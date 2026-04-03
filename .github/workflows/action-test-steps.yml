@@ -27,6 +27,13 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
 
+      - name: set action to docker image
+        if: inputs.variant == 'docker'
+        run: |
+          yq e -i '.runs.image = "docker://ghcr.io/vladopajic/go-test-coverage:${{ inputs.version }}"' action.yml
+          image=$(yq '.runs.image' action.yml)
+          echo "Image: $image"
+
       - name: set action to source
         if: inputs.variant == 'source'
         run: cp action/source/action.yml action.yml
