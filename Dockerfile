@@ -18,7 +18,7 @@ COPY docker-entrypoint.sh docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
 # ===============================================================
-FROM gcr.io/distroless/base:latest
+FROM debian:bookworm-slim
 WORKDIR /
 
 COPY --from=builder /workspace/docker-entrypoint.sh /docker-entrypoint.sh

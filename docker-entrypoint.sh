@@ -2,7 +2,7 @@
 set -e
 
 # Start building the command
-cmd="go-test-coverage"
+cmd="/go-test-coverage"
 
 # Only add arguments if they are specified (not empty/default)
 [ -n "$INPUT_CONFIG" ] && cmd="$cmd --config=$INPUT_CONFIG"
