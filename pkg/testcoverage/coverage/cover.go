@@ -426,7 +426,7 @@ func coverage(
 			continue
 		}
 
-		if b.StartLine < skip.EndLine || (b.EndLine == f.StartLine && b.StartCol <= skip.EndCol) {
+		if b.StartLine < skip.EndLine || (b.StartLine == skip.EndLine && b.StartCol <= skip.EndCol) {
 			// this block has comment annotation
 			continue
 		}
