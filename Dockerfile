@@ -18,6 +18,8 @@ RUN chmod +x docker-entrypoint.sh
 
 # ===============================================================
 FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /
 
 COPY --from=builder /workspace/docker-entrypoint.sh /docker-entrypoint.sh
