@@ -19,8 +19,12 @@ type Stats struct {
 	AnnotationsWithoutComments []int
 }
 
-func (s Stats) UncoveredLinesCount() int {
+func (s Stats) UncoveredStmtCount() int {
 	return int(s.Total - s.Covered)
+}
+
+func (s Stats) UncoveredLinesCount() int {
+	return len(s.UncoveredLines)
 }
 
 func (s Stats) CoveredPercentage() int {

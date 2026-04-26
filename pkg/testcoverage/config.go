@@ -86,7 +86,7 @@ func (c Config) Redacted() Config {
 
 func (c Config) Validate() error {
 	validateRegexp := func(s string) error {
-		_, err := regexp.Compile("(?i)" + s)
+		_, err := regexp.Compile(s)
 		return err //nolint:wrapcheck // error is wrapped at level above
 	}
 

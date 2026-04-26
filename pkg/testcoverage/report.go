@@ -146,7 +146,7 @@ func reportDiff(w io.Writer, result AnalyzeResult) {
 		}
 
 		c := d.Current
-		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", c.Name, c.UncoveredLinesCount(), c.Str(), baseStr)
+		fmt.Fprintf(tabber, "\n  %s\t%3d\t%s\t%s", c.Name, c.UncoveredStmtCount(), c.Str(), baseStr)
 	}
 
 	fmt.Fprintf(tabber, "\n")
