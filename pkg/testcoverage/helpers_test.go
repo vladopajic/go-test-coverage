@@ -33,6 +33,7 @@ func copyStats(s []coverage.Stats) []coverage.Stats {
 
 func makeStats(name string, total, covered int64) coverage.Stats {
 	uncovered := int(total - covered)
+
 	lines := make([]int, uncovered)
 	for i := range uncovered {
 		lines[i] = i + 1

@@ -89,7 +89,6 @@ func Test_ReportForHuman(t *testing.T) {
 	})
 }
 
-//nolint:dupl // relax
 func Test_ReportForHumanDiff(t *testing.T) {
 	t.Parallel()
 
