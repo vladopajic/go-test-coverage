@@ -31,6 +31,21 @@ func copyStats(s []coverage.Stats) []coverage.Stats {
 	return mergeStats(make([]coverage.Stats, 0), s)
 }
 
+func makeStats(name string, total, covered int64) coverage.Stats {
+	uncovered := int(total - covered)
+	lines := make([]int, uncovered)
+	for i := range uncovered {
+		lines[i] = i + 1
+	}
+
+	return coverage.Stats{
+		Name:           name,
+		Total:          total,
+		Covered:        covered,
+		UncoveredLines: lines,
+	}
+}
+
 func randStats(localPrefix string, minc, maxc int) []coverage.Stats {
 	const count = 100
 

@@ -114,10 +114,10 @@ func Test_ReportForHumanDiff(t *testing.T) {
 		stats := randStats(prefix, 10, 100)
 		base := copyStats(stats)
 
-		stats = append(stats, coverage.Stats{Name: "foo", Total: 9, Covered: 8})
-		stats = append(stats, coverage.Stats{Name: "foo-new", Total: 9, Covered: 8})
+		stats = append(stats, makeStats("foo", 9, 8))
+		stats = append(stats, makeStats("foo-new", 9, 8))
 
-		base = append(base, coverage.Stats{Name: "foo", Total: 10, Covered: 10})
+		base = append(base, makeStats("foo", 10, 10))
 
 		buf := &bytes.Buffer{}
 		cfg := Config{}
@@ -132,8 +132,8 @@ func Test_ReportForHumanDiff(t *testing.T) {
 	t.Run("diff - threshold failed", func(t *testing.T) {
 		t.Parallel()
 
-		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
-		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+		base := []coverage.Stats{makeStats("foo", 10, 1)}
+		stats := []coverage.Stats{makeStats("foo", 10, 8)}
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
@@ -150,8 +150,8 @@ func Test_ReportForHumanDiff(t *testing.T) {
 	t.Run("diff - threshold pass", func(t *testing.T) {
 		t.Parallel()
 
-		base := []coverage.Stats{{Name: "foo", Total: 10, Covered: 1}}
-		stats := []coverage.Stats{{Name: "foo", Total: 10, Covered: 8}}
+		base := []coverage.Stats{makeStats("foo", 10, 1)}
+		stats := []coverage.Stats{makeStats("foo", 10, 8)}
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
@@ -168,8 +168,8 @@ func Test_ReportForHumanDiff(t *testing.T) {
 	t.Run("diff - negative threshold pass", func(t *testing.T) {
 		t.Parallel()
 
-		base := []coverage.Stats{{Name: "foo", Total: 100, Covered: 100}}
-		stats := []coverage.Stats{{Name: "foo", Total: 100, Covered: 90}}
+		base := []coverage.Stats{makeStats("foo", 100, 100)}
+		stats := []coverage.Stats{makeStats("foo", 100, 90)}
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
