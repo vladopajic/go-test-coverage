@@ -61,6 +61,8 @@ func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
 
 	fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
 
+	coverage.SortStatsByName(coverageStats)
+
 	for _, stats := range coverageStats {
 		fmt.Fprintf(w, "\n  %s\t%s\t%d%%", stats.Name, stats.Str(), stats.Threshold)
 	}
@@ -78,6 +80,8 @@ func reportUncoveredLines(w io.Writer, result AnalyzeResult) {
 
 	fmt.Fprintf(tabber, "\nFiles with uncovered lines:")
 	fmt.Fprintf(tabber, "\n  file:\tcoverage:\tuncovered lines:")
+
+	coverage.SortStatsByName(result.FilesWithUncoveredLines)
 
 	for _, stats := range result.FilesWithUncoveredLines {
 		if len(stats.UncoveredLines) > 0 {
@@ -100,6 +104,8 @@ func reportMissingExplanations(w io.Writer, result AnalyzeResult) {
 
 	fmt.Fprintf(tabber, "\nFiles with missing explanation for coverage-ignore annotation:")
 	fmt.Fprintf(tabber, "\n  file:\tline numbers:")
+
+	coverage.SortStatsByName(result.FilesWithMissingExplanations)
 
 	for _, stats := range result.FilesWithMissingExplanations {
 		if len(stats.AnnotationsWithoutComments) == 0 { // coverage-ignore
@@ -162,6 +168,10 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 	reportError := func(title, msg string) {
 		fmt.Fprintf(out, "::error title=%s::%s\n", title, msg)
 	}
+
+	coverage.SortStatsByName(result.FilesBelowThreshold)
+	coverage.SortStatsByName(result.PackagesBelowThreshold)
+	coverage.SortStatsByName(result.FilesWithMissingExplanations)
 
 	for _, stats := range result.FilesBelowThreshold {
 		title := "File test coverage below threshold"

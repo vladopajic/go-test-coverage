@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -50,6 +51,12 @@ func (s Stats) Str() string {
 	}
 
 	return fmt.Sprintf("%.1f%% (%d/%d)", s.CoveredPercentageF(), s.Covered, s.Total)
+}
+
+func SortStatsByName(stats []Stats) {
+	slices.SortFunc(stats, func(a, b Stats) int {
+		return strings.Compare(a.Name, b.Name)
+	})
 }
 
 func StatsSearchMap(stats []Stats) map[string]Stats {
