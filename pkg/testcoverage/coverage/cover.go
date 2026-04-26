@@ -85,15 +85,13 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (St
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
 	}
 
-	funcs, blocks, err := findFuncsAndBlocks(source)
+	fset, node, err := parseSource(source)
 	if err != nil { // coverage-ignore
 		return Stats{}, err
 	}
 
-	annotations, withoutComment, err := findAnnotations(source, forceComment)
-	if err != nil { // coverage-ignore
-		return Stats{}, err
-	}
+	funcs, blocks := funcsAndBlocksFromAST(fset, node)
+	annotations, withoutComment := annotationsFromAST(fset, node, forceComment)
 
 	s := sumCoverage(profile, funcs, blocks, annotations)
 	s.Name = fi.name
@@ -255,15 +253,34 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	return path
 }
 
-// findAnnotations finds coverage-ignore annotations and checks for explanations
-func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, error) {
+func parseSource(source []byte) (*token.FileSet, *ast.File, error) {
 	fset := token.NewFileSet()
 
 	node, err := parser.ParseFile(fset, "", source, parser.ParseComments)
 	if err != nil {
-		return nil, nil, fmt.Errorf("can't parse comments: %w", err)
+		return nil, nil, fmt.Errorf("can't parse file: %w", err)
 	}
 
+	return fset, node, nil
+}
+
+// findAnnotations finds coverage-ignore annotations and checks for explanations
+func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, error) {
+	fset, node, err := parseSource(source)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	a, w := annotationsFromAST(fset, node, forceComment)
+
+	return a, w, nil
+}
+
+func annotationsFromAST(
+	fset *token.FileSet,
+	node *ast.File,
+	forceComment bool,
+) ([]extent, []extent) {
 	var validAnnotations, annotationsWithoutComment []extent
 
 	for _, c := range node.Comments {
@@ -278,7 +295,7 @@ func findAnnotations(source []byte, forceComment bool) ([]extent, []extent, erro
 		}
 	}
 
-	return validAnnotations, annotationsWithoutComment, nil
+	return validAnnotations, annotationsWithoutComment
 }
 
 // hasComment checks if the coverage-ignore annotation has an explanation comment
@@ -289,17 +306,21 @@ func hasComment(text string) bool {
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
-	fset := token.NewFileSet()
-
-	parsedFile, err := parser.ParseFile(fset, "", source, 0)
+	fset, node, err := parseSource(source)
 	if err != nil {
-		return nil, nil, fmt.Errorf("can't parse source: %w", err)
+		return nil, nil, err
 	}
 
-	v := &visitor{fset: fset}
-	ast.Walk(v, parsedFile)
+	f, b := funcsAndBlocksFromAST(fset, node)
 
-	return v.funcs, v.blocks, nil
+	return f, b, nil
+}
+
+func funcsAndBlocksFromAST(fset *token.FileSet, node *ast.File) ([]extent, []extent) {
+	v := &visitor{fset: fset}
+	ast.Walk(v, node)
+
+	return v.funcs, v.blocks
 }
 
 type visitor struct {
