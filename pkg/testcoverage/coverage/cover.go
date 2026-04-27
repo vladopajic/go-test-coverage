@@ -229,13 +229,20 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 				continue
 			}
 
+			if pos == 0 { // 100% match
+				return fIndex
+			}
+
+			// if not exact match, it must be preceded by "/"
+			// because "pkg/foo.go" should never match "test-pkg/foo.go"
+			if f.name[pos-1] != '/' {
+				continue
+			}
+
+			// save as the best match for this file
 			if searchPos > pos {
 				searchPos = pos
 				fIndex = i
-
-				if searchPos == 0 { // 100% match
-					return fIndex
-				}
 			}
 		}
 
