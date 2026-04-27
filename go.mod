@@ -8,7 +8,7 @@ require (
 	github.com/google/go-github/v82 v82.0.0
 	github.com/johannesboyne/gofakes3 v0.0.0-20230914150226-f005f5cc03aa
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
-	github.com/rs/zerolog v1.35.0
+	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/tools v0.26.0
 	gopkg.in/yaml.v3 v3.0.1
