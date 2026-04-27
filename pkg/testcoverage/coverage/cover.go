@@ -221,7 +221,7 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 	// matches files "bar/foo.go", "bar/baz/foo.go" and "foo.go", but it's the
 	// best match with "foo.go".
 	bestMatch := func() int {
-		fIndex, searchPos := -1, math.MaxInt64
+		bestIndex, bestSearchPos := -1, math.MaxInt64
 
 		for i, f := range *files {
 			pos := strings.LastIndex(f.name, search)
@@ -229,17 +229,24 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 				continue
 			}
 
-			if searchPos > pos {
-				searchPos = pos
-				fIndex = i
+			if pos == 0 { // 100% match
+				return bestIndex
+			}
 
-				if searchPos == 0 { // 100% match
-					return fIndex
-				}
+			// if not exact match, it must be preceded by "/"
+			// because "pkg/foo.go" should never match "test-pkg/foo.go"
+			if f.name[pos-1] != '/' {
+				continue
+			}
+
+			// save as the best match for this file
+			if bestSearchPos > pos {
+				bestSearchPos = pos
+				bestIndex = i
 			}
 		}
 
-		return fIndex
+		return bestIndex
 	}
 
 	i := bestMatch()

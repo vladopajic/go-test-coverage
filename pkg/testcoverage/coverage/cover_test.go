@@ -227,6 +227,14 @@ func Test_findFuncs(t *testing.T) {
 	}, blocks)
 }
 
+func Test_findFilePathMatchingSearch(t *testing.T) {
+	t.Parallel()
+
+	files := []FileInfo{NewFileInfo("test-pkg/foo.go")}
+	result := FindFilePathMatchingSearch(&files, "pkg/foo.go")
+	assert.Empty(t, result)
+}
+
 func Test_sumCoverage(t *testing.T) {
 	t.Parallel()
 
