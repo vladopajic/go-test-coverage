@@ -9,25 +9,30 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-func findModuleDirective(rootDir string) string {
+func findModuleDirective(rootDir string) (module string, dir string) {
+	logger.L.Debug().Str("root dir", rootDir).Msg("searching for go.mod")
+
 	goModFile := findGoModFile(rootDir)
 	if goModFile == "" {
 		logger.L.Warn().Str("dir", rootDir).
 			Msg("go.mod file not found in root directory (consider setting up source dir)")
 
-		return ""
+		return "", rootDir
 	}
 
 	logger.L.Debug().Str("file", goModFile).Msg("go.mod file found")
 
-	module := readModuleDirective(goModFile)
+	module = readModuleDirective(goModFile)
 	if module == "" { // coverage-ignore
 		logger.L.Warn().Msg("`module` directive not found")
 	}
 
-	logger.L.Debug().Str("module", module).Msg("using module directive")
+	dir = strings.TrimSuffix(goModFile, "go.mod")
 
-	return module
+	logger.L.Debug().Str("module", module).Msg("using module directive")
+	logger.L.Debug().Str("rootdir", dir).Msg("root dir")
+
+	return module, dir
 }
 
 func findGoModFile(rootDir string) string {

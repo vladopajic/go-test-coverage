@@ -124,7 +124,7 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	return result, nil
 }
 
-func findFileCreator(rootDir string) func(file string) (string, string, bool) {
+func findFileCreator(rootDirUser string) func(file string) (string, string, bool) {
 	cache := make(map[string]*build.Package)
 	findBuildImport := func(file string) (string, string, bool) {
 		dir, file := filepath.Split(file)
@@ -148,8 +148,8 @@ func findFileCreator(rootDir string) func(file string) (string, string, bool) {
 		return file, noPrefixName, err == nil
 	}
 
-	rootDir = defaultRootDir(rootDir)
-	prefix := findModuleDirective(rootDir)
+	prefix, rootDir := findModuleDirective(defaultRootDir(rootDirUser))
+
 	files := listAllFiles(rootDir)
 	findFsSearch := func(file string) (string, string, bool) {
 		noPrefixName := stripPrefix(file, prefix)
