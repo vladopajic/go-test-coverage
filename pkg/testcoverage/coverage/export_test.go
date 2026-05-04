@@ -17,5 +17,5 @@ type (
 )
 
 func NewFileInfo(name string) fileInfo {
-	return fileInfo{name: name}
+	return fileInfo{name: name, path: name}
 }

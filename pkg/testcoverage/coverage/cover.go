@@ -230,7 +230,7 @@ func findFilePathMatchingSearch(files *[]fileInfo, search string) string {
 			}
 
 			if pos == 0 { // 100% match
-				return bestIndex
+				return i
 			}
 
 			// if not exact match, it must be preceded by "/"

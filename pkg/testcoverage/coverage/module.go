@@ -9,6 +9,7 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
+//nolint:nonamedreturns // relax
 func findModuleDirective(rootDir string) (module string, dir string) {
 	logger.L.Debug().Str("root dir", rootDir).Msg("searching for go.mod")
 
@@ -27,7 +28,7 @@ func findModuleDirective(rootDir string) (module string, dir string) {
 		logger.L.Warn().Msg("`module` directive not found")
 	}
 
-	dir = strings.TrimSuffix(goModFile, "go.mod")
+	dir = filepath.Dir(goModFile)
 
 	logger.L.Debug().Str("module", module).Msg("using module directive")
 	logger.L.Debug().Str("rootdir", dir).Msg("root dir")
