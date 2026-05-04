@@ -9,6 +9,6 @@ override:
   threshold: 43
 - path: path/path.go$           ## requires windows to be tested
   threshold: 66
-# exclude:
-#   paths:
-#     - main\.go$
+exclude:
+  paths:
+    - main\.go$
