@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/google/go-github/v82/github"
+	"github.com/google/go-github/v88/github"
 	"github.com/stretchr/testify/assert"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badgestorer"
@@ -86,7 +86,8 @@ func getEnv(key string) string {
 func deleteFile(t *testing.T, cfg Git) {
 	t.Helper()
 
-	client := github.NewClient(nil).WithAuthToken(cfg.Token)
+	client, err := github.NewClient(github.WithAuthToken(cfg.Token))
+	assert.NoError(t, err)
 
 	fc, _, _, err := client.Repositories.GetContents(
 		t.Context(),
