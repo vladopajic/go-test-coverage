@@ -1,0 +1,1 @@
+# Badges from Integration Tests
