@@ -36,7 +36,7 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 	git := s.cfg
 
 	client, err := github.NewClient(github.WithAuthToken(git.Token))
-	if err != nil {
+	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("create github client: %w", err)
 	}
 
