@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/go-github/v82/github"
+	"github.com/google/go-github/v88/github"
 )
 
 type Git struct {
@@ -34,7 +34,10 @@ func NewGithub(cfg Git) Storer {
 //nolint:maintidx // relax
 func (s *githubStorer) Store(data []byte) (bool, error) {
 	git := s.cfg
-	client := github.NewClient(nil).WithAuthToken(git.Token)
+	client, err := github.NewClient(github.WithAuthToken(git.Token))
+	if err != nil {
+		return false, fmt.Errorf("create github client: %w", err)
+	}
 
 	updateBadge := func(sha *string) (bool, error) {
 		_, _, err := client.Repositories.UpdateFile(
