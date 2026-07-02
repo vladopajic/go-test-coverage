@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/google/go-github/v88/github"
 	"github.com/stretchr/testify/assert"
@@ -65,6 +66,9 @@ func Test_Github(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, updated)
 
+	//nolint:forbidigo // delay is needed so that store is propagated before getting data
+	time.Sleep(time.Second * 2)
+
 	// put badge again - no change
 	updated, err = s.Store(data)
 	assert.NoError(t, err)
@@ -74,6 +78,9 @@ func Test_Github(t *testing.T) {
 	updated, err = s.Store(append(data, byte(1)))
 	assert.NoError(t, err)
 	assert.True(t, updated)
+
+	//nolint:forbidigo // delay is needed so that store is propagated before getting data
+	time.Sleep(time.Second * 2)
 
 	deleteFile(t, cfg)
 }
