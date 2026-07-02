@@ -7,6 +7,7 @@ import (
 	"os"
 	"runtime"
 	"testing"
+	"time"
 
 	"github.com/google/go-github/v88/github"
 	"github.com/stretchr/testify/assert"
@@ -65,10 +66,14 @@ func Test_Github(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, updated)
 
+	time.Sleep(time.Second * 2)
+
 	// put badge again - no change
 	updated, err = s.Store(data)
 	assert.NoError(t, err)
 	assert.False(t, updated)
+
+	time.Sleep(time.Second * 2)
 
 	// put badge again - expect change
 	updated, err = s.Store(append(data, byte(1)))
