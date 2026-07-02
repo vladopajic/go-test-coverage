@@ -66,6 +66,7 @@ func Test_Github(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, updated)
 
+	//nolint:forbidigo // delay is needed so that store is propagated before getting data
 	time.Sleep(time.Second * 2)
 
 	// put badge again - no change
@@ -73,12 +74,13 @@ func Test_Github(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, updated)
 
-	time.Sleep(time.Second * 2)
-
 	// put badge again - expect change
 	updated, err = s.Store(append(data, byte(1)))
 	assert.NoError(t, err)
 	assert.True(t, updated)
+
+	//nolint:forbidigo // delay is needed so that store is propagated before getting data
+	time.Sleep(time.Second * 2)
 
 	deleteFile(t, cfg)
 }
