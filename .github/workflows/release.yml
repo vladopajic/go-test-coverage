@@ -29,6 +29,43 @@ jobs:
           echo "Release version: ${{ env.RELEASE_VERSION }}"
           echo "Major version: ${{ env.MAJOR_VERSION }}"
 
+      - name: build release binaries
+        run: |
+          mkdir -p dist
+
+          for target in \
+            "linux amd64" \
+            "linux arm64" \
+            "darwin amd64" \
+            "darwin arm64" \
+            "windows amd64" \
+            "windows arm64"
+          do
+            set -- $target
+            os=$1
+            arch=$2
+            asset_name="go-test-coverage_${RELEASE_VERSION}_${os}_${arch}"
+            binary_name="go-test-coverage"
+
+            if [ "$os" = "windows" ]; then
+              binary_name="${binary_name}.exe"
+            fi
+
+            mkdir -p "dist/${asset_name}"
+
+            GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
+              -trimpath \
+              -ldflags="-s -w" \
+              -o "dist/${asset_name}/${binary_name}" \
+              .
+
+            if [ "$os" = "windows" ]; then
+              (cd "dist/${asset_name}" && zip -q "../${asset_name}.zip" "${binary_name}")
+            else
+              tar -C "dist/${asset_name}" -czf "dist/${asset_name}.tar.gz" "${binary_name}"
+            fi
+          done
+
       - name: ensure image version is set to release version
         run: |
           image=$(yq '.runs.image' action.yml)
@@ -59,3 +96,8 @@ jobs:
         uses: actions/publish-action@v0.4.0
         with:
           source-tag: ${{ env.RELEASE_VERSION }}
+
+      - name: upload release binaries
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${RELEASE_VERSION}" dist/*.tar.gz dist/*.zip --clobber
