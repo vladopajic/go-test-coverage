@@ -29,6 +29,37 @@ jobs:
           echo "Release version: ${{ env.RELEASE_VERSION }}"
           echo "Major version: ${{ env.MAJOR_VERSION }}"
 
+      - name: ensure image version is set to release version
+        run: |
+          image=$(yq '.runs.image' action.yml)
+          echo "Image version: $image"
+          [[ "$image" == *"${{ env.RELEASE_VERSION }}" ]]
+
+      - name: login to GitHub container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: build and push docker image
+        uses: docker/build-push-action@v7
+        with:
+          push: true
+          build-args: |
+            VERSION=${{ env.RELEASE_VERSION }}
+          provenance: false
+          sbom: false
+          tags: |
+            ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
+            ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
+            ghcr.io/vladopajic/go-test-coverage:latest
+
+      - name: point major version tag latest release version
+        uses: actions/publish-action@v0.4.0
+        with:
+          source-tag: ${{ env.RELEASE_VERSION }}
+
       - name: build release binaries
         run: |
           mkdir -p dist
@@ -65,37 +96,6 @@ jobs:
               tar -C "dist/${asset_name}" -czf "dist/${asset_name}.tar.gz" "${binary_name}"
             fi
           done
-
-      - name: ensure image version is set to release version
-        run: |
-          image=$(yq '.runs.image' action.yml)
-          echo "Image version: $image"
-          [[ "$image" == *"${{ env.RELEASE_VERSION }}" ]]
-
-      - name: login to GitHub container registry
-        uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: build and push
-        uses: docker/build-push-action@v7
-        with:
-          push: true
-          build-args: |
-            VERSION=${{ env.RELEASE_VERSION }}
-          provenance: false
-          sbom: false
-          tags: |
-            ghcr.io/vladopajic/go-test-coverage:${{ env.RELEASE_VERSION }}
-            ghcr.io/vladopajic/go-test-coverage:${{ env.MAJOR_VERSION }}
-            ghcr.io/vladopajic/go-test-coverage:latest
-
-      - name: point major version tag latest release version
-        uses: actions/publish-action@v0.4.0
-        with:
-          source-tag: ${{ env.RELEASE_VERSION }}
 
       - name: upload release binaries
         env:
