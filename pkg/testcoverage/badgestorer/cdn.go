@@ -2,13 +2,13 @@ package badgestorer
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/credentials"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
 )
@@ -33,13 +33,16 @@ func NewCDN(cfg CDN) Storer {
 
 func (s *cdnStorer) Store(data []byte) (bool, error) {
 	s3Client := createS3Client(s.cfg)
+	ctx := context.Background()
 
 	// First get object and check if data differs that currently uploaded
-	result, err := s3Client.GetObject(&s3.GetObjectInput{
+	result, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.cfg.BucketName),
 		Key:    aws.String(s.cfg.FileName),
 	})
 	if err == nil {
+		defer result.Body.Close()
+
 		//nolint:errcheck // error is intentionally swallowed because if response (badge data)
 		// is not the same we will upload new badge anyway
 		resp, _ := io.ReadAll(result.Body)
@@ -50,7 +53,7 @@ func (s *cdnStorer) Store(data []byte) (bool, error) {
 
 	// Currently uploaded badge does not exists or has changed
 	// so it should be uploaded
-	_, err = s3Client.PutObject(&s3.PutObjectInput{
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket:        aws.String(s.cfg.BucketName),
 		Key:           aws.String(s.cfg.FileName),
 		Body:          bytes.NewReader(data),
@@ -64,18 +67,15 @@ func (s *cdnStorer) Store(data []byte) (bool, error) {
 	return true, nil // has changed
 }
 
-func createS3Client(cfg CDN) *s3.S3 {
-	s3Config := &aws.Config{
-		Credentials:      credentials.NewStaticCredentials(cfg.Key, cfg.Secret, ""),
-		Endpoint:         aws.String(cfg.Endpoint),
-		Region:           aws.String(cfg.Region),
-		S3ForcePathStyle: aws.Bool(cfg.ForcePathStyle),
+func createS3Client(cfg CDN) *s3.Client {
+	credentialsProvider := credentials.NewStaticCredentialsProvider(cfg.Key, cfg.Secret, "")
+	sdkConfig := aws.Config{
+		Credentials: aws.NewCredentialsCache(credentialsProvider),
+		Region:      cfg.Region,
 	}
 
-	// calling `session.Must` can potentially panic, which is not practice of this
-	// codebase to panic outside of main function. however it will never happen as
-	// this panic only happens when sessions could not be created using env variables.
-	newSession := session.Must(session.NewSession(s3Config))
-
-	return s3.New(newSession)
+	return s3.NewFromConfig(sdkConfig, func(options *s3.Options) {
+		options.BaseEndpoint = aws.String(cfg.Endpoint)
+		options.UsePathStyle = cfg.ForcePathStyle
+	})
 }

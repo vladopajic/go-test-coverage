@@ -1,11 +1,12 @@
 package badgestorer_test
 
 import (
+	"context"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/johannesboyne/gofakes3"
 	"github.com/johannesboyne/gofakes3/backend/s3mem"
 	"github.com/stretchr/testify/assert"
@@ -67,7 +68,7 @@ func Test_CDN(t *testing.T) {
 	// create bucket and assert again
 	s3Client := CreateS3Client(cfg)
 
-	_, err = s3Client.CreateBucket(&s3.CreateBucketInput{
+	_, err = s3Client.CreateBucket(context.Background(), &s3.CreateBucketInput{
 		Bucket: aws.String(cfg.BucketName),
 	})
 	assert.NoError(t, err)
