@@ -97,6 +97,14 @@ func Test_args_overrideConfig(t *testing.T) {
 		assert.Equal(t, "base.out", result.Diff.BaseBreakdownFileName)
 	})
 
+	t.Run("DiffThreshold", func(t *testing.T) {
+		t.Parallel()
+
+		result, err := (&args{DiffThreshold: ptr(-0.5)}).overrideConfig(testcoverage.Config{})
+		assert.NoError(t, err)
+		assert.Equal(t, ptr(-0.5), result.Diff.Threshold)
+	})
+
 	t.Run("BadgeFileName", func(t *testing.T) {
 		t.Parallel()
 
@@ -244,6 +252,14 @@ func Test_readConfig(t *testing.T) {
 		cfg, err := readConfig()
 		assert.NoError(t, err)
 		assert.Equal(t, "cover.out", cfg.Profile)
+	})
+
+	t.Run("valid diff threshold arg", func(t *testing.T) {
+		os.Args = []string{"cmd", "--profile", "cover.out", "--diff-threshold=-0.5"}
+
+		cfg, err := readConfig()
+		assert.NoError(t, err)
+		assert.Equal(t, ptr(-0.5), cfg.Diff.Threshold)
 	})
 
 	t.Run("no profile returns validation error", func(t *testing.T) {
