@@ -1,10 +1,12 @@
 version: "2"
 linters:
   enable:
+    - arangolint
     - asasalint
     - asciicheck
     - bidichk
     - bodyclose
+    - canonicalheader
     - containedctx
     - contextcheck
     - copyloopvar
@@ -40,6 +42,7 @@ linters:
     - gomodguard
     - goprintffuncname
     - gosec
+    - gosmopolitan
     - grouper
     - iface
     - importas
@@ -54,6 +57,7 @@ linters:
     - mirror
     - misspell
     - mnd
+    - musttag
     - nakedret
     - nestif
     - nilerr
@@ -73,17 +77,21 @@ linters:
     - reassign
     - recvcheck
     - revive
+    - rowserrcheck
     - sloglint
+    - spancheck
     - sqlclosecheck
     - staticcheck
     - tagalign
     - tagliatelle
+    - testableexamples
     - testifylint
     - testpackage
     - thelper
     - tparallel
     - unconvert
     - unparam
+    - unqueryvet
     - usestdlibvars
     - usetesting
     - wastedassign
@@ -144,8 +152,6 @@ linters:
       enable-all: true
     unparam:
       check-exported: true
-    wsl:
-      force-err-cuddling: true
   exclusions:
     generated: lax
     presets:
