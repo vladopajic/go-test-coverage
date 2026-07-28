@@ -207,9 +207,25 @@ jobs:
 
       ## Test 12
 
-      - name: "test: missing profile without debug"
+      - name: "test: diff threshold failure (inputs)"
         uses: ./
         id: test-12
+        continue-on-error: true
+        with:
+          version: ${{ inputs.version }}
+          config: ./.github/workflows/testdata/zero.yml
+          diff-base-breakdown-file-name: coverage.breakdown
+          diff-threshold: 100
+
+      - name: "check: diff threshold test should have failed"
+        if: steps.test-12.outcome != 'failure'
+        run: echo "Previous step should have failed" && exit 1
+
+      ## Test 13
+
+      - name: "test: missing profile without debug"
+        uses: ./
+        id: test-13
         continue-on-error: true
         with:
           version: ${{ inputs.version }}
@@ -219,5 +235,5 @@ jobs:
           threshold-total: 0
 
       - name: "check: test should have failed"
-        if: steps.test-12.outcome != 'failure'
+        if: steps.test-13.outcome != 'failure'
         run: echo "Previous step should have failed" && exit 1

@@ -20,6 +20,7 @@ args+=("--github-action-output=true")
 # Badge and CDN/Git configs (only if specified)
 [ -n "$INPUT_BREAKDOWN_FILE_NAME" ] && args+=("--breakdown-file-name=$INPUT_BREAKDOWN_FILE_NAME")
 [ -n "$INPUT_DIFF_BASE_BREAKDOWN_FILE_NAME" ] && args+=("--diff-base-breakdown-file-name=$INPUT_DIFF_BASE_BREAKDOWN_FILE_NAME")
+[ -n "$INPUT_DIFF_THRESHOLD" ] && [ "$INPUT_DIFF_THRESHOLD" != "-101" ] && args+=("--diff-threshold=$INPUT_DIFF_THRESHOLD")
 [ -n "$INPUT_BADGE_FILE_NAME" ] && args+=("--badge-file-name=$INPUT_BADGE_FILE_NAME")
 
 # CDN options

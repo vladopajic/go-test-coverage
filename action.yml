@@ -62,6 +62,11 @@ inputs:
     required: false
     default: ""
     type: string
+  diff-threshold:
+    description: Allowed coverage difference from the base, from -100 to 100. Overrides value from configuration.
+    required: false
+    default: -101
+    type: number
 
   # Badge (as file)
   badge-file-name:
@@ -160,6 +165,7 @@ runs:
     INPUT_THRESHOLD_TOTAL: ${{ inputs.threshold-total }}
     INPUT_BREAKDOWN_FILE_NAME: ${{ inputs.breakdown-file-name }}
     INPUT_DIFF_BASE_BREAKDOWN_FILE_NAME: ${{ inputs.diff-base-breakdown-file-name }}
+    INPUT_DIFF_THRESHOLD: ${{ inputs.diff-threshold }}
     INPUT_BADGE_FILE_NAME: ${{ inputs.badge-file-name }}
     INPUT_CDN_KEY: ${{ inputs.cdn-key }}
     INPUT_CDN_SECRET: ${{ inputs.cdn-secret }}
