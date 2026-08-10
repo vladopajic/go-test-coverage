@@ -5,7 +5,7 @@ go 1.26
 require (
 	github.com/alexflint/go-arg v1.6.0
 	github.com/aws/aws-sdk-go-v2 v1.43.4
-	github.com/aws/aws-sdk-go-v2/credentials v1.19.32
+	github.com/aws/aws-sdk-go-v2/credentials v1.19.34
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.107.0
 	github.com/google/go-github/v88 v88.0.0
 	github.com/johannesboyne/gofakes3 v1.2.0
