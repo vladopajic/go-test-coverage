@@ -6,7 +6,7 @@ require (
 	github.com/alexflint/go-arg v1.6.0
 	github.com/aws/aws-sdk-go-v2 v1.45.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.20.1
-	github.com/aws/aws-sdk-go-v2/service/s3 v1.109.1
+	github.com/aws/aws-sdk-go-v2/service/s3 v1.110.0
 	github.com/google/go-github/v88 v88.0.0
 	github.com/johannesboyne/gofakes3 v1.2.0
 	github.com/narqo/go-badge v0.0.0-20230821190521-c9a75c019a59
