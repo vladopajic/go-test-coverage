@@ -24,6 +24,10 @@ test:
 	go test -timeout=3s -race -count=10 -failfast -shuffle=on -short ./...
 	go test -timeout=20s -race -count=1 -failfast  -shuffle=on ./... -coverprofile=./cover.profile -covermode=atomic -coverpkg=./...
 
+.PHONY: test-entrypoint
+test-entrypoint:
+	bash scripts/test-entrypoint-args.sh
+
 # Runs test coverage check
 .PHONY: check-coverage
 check-coverage: test
