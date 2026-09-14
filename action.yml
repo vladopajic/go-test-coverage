@@ -155,26 +155,3 @@ runs:
   # TOOL_VERSION: when changing version update version in other places
   image: docker://ghcr.io/vladopajic/go-test-coverage:v2.19.0
   entrypoint: /docker-entrypoint.sh
-  env:
-    INPUT_CONFIG: ${{ inputs.config }}
-    INPUT_PROFILE: ${{ inputs.profile }}
-    INPUT_SOURCE_DIR: ${{ inputs.source-dir }}
-    INPUT_DEBUG: ${{ inputs.debug }}
-    INPUT_THRESHOLD_FILE: ${{ inputs.threshold-file }}
-    INPUT_THRESHOLD_PACKAGE: ${{ inputs.threshold-package }}
-    INPUT_THRESHOLD_TOTAL: ${{ inputs.threshold-total }}
-    INPUT_BREAKDOWN_FILE_NAME: ${{ inputs.breakdown-file-name }}
-    INPUT_DIFF_BASE_BREAKDOWN_FILE_NAME: ${{ inputs.diff-base-breakdown-file-name }}
-    INPUT_DIFF_THRESHOLD: ${{ inputs.diff-threshold }}
-    INPUT_BADGE_FILE_NAME: ${{ inputs.badge-file-name }}
-    INPUT_CDN_KEY: ${{ inputs.cdn-key }}
-    INPUT_CDN_SECRET: ${{ inputs.cdn-secret }}
-    INPUT_CDN_REGION: ${{ inputs.cdn-region }}
-    INPUT_CDN_ENDPOINT: ${{ inputs.cdn-endpoint }}
-    INPUT_CDN_FILE_NAME: ${{ inputs.cdn-file-name }}
-    INPUT_CDN_BUCKET_NAME: ${{ inputs.cdn-bucket-name }}
-    INPUT_CDN_FORCE_PATH_STYLE: ${{ inputs.cdn-force-path-style }}
-    INPUT_GIT_TOKEN: ${{ inputs.git-token }}
-    INPUT_GIT_BRANCH: ${{ inputs.git-branch }}
-    INPUT_GIT_REPOSITORY: ${{ inputs.git-repository }}
-    INPUT_GIT_FILE_NAME: ${{ inputs.git-file-name }}
