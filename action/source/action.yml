@@ -145,6 +145,12 @@ outputs:
   report:
     description: JSON-encoded string containing the detailed test coverage report.
     value: ${{steps.coverage.outputs.report}}
+  report-coverage:
+    description: JSON-encoded string containing coverage thresholds and the total coverage summary.
+    value: ${{steps.coverage.outputs.report-coverage}}
+  report-uncovered-lines:
+    description: JSON-encoded string containing files with uncovered lines, or an empty string when coverage thresholds pass.
+    value: ${{steps.coverage.outputs.report-uncovered-lines}}
   total-coverage:
     description: Integer value in the range [0-100], representing the overall project test coverage percentage.
     value: ${{steps.coverage.outputs.total-coverage}}

@@ -147,6 +147,10 @@ outputs:
     description: Color hex code for the badge  (e.g., `#44cc11`), representing the coverage status. 
   report:
     description: JSON-encoded string containing the detailed test coverage report.
+  report-coverage:
+    description: JSON-encoded string containing coverage thresholds and the total coverage summary.
+  report-uncovered-lines:
+    description: JSON-encoded string containing files with uncovered lines, or an empty string when coverage thresholds pass.
   badge-text:
     description: Deprecated! Text label for the badge.
 
