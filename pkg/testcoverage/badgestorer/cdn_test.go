@@ -46,8 +46,7 @@ func Test_CDN(t *testing.T) {
 	backend := s3mem.New()
 	faker := gofakes3.New(backend)
 	ts := httptest.NewServer(faker.Server())
-
-	defer ts.Close()
+	t.Cleanup(ts.Close)
 
 	cfg := CDN{
 		Key:            key,

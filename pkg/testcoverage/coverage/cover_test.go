@@ -227,6 +227,24 @@ func Test_findFuncs(t *testing.T) {
 	}, blocks)
 }
 
+func Test_findFuncsAndBlocks_CaseClause(t *testing.T) {
+	t.Parallel()
+
+	const source = `
+	package foo
+	func foo(v any) {
+		switch v.(type) {
+		case string: // coverage-ignore
+			return
+		}
+	}
+	`
+
+	_, blocks, err := FindFuncsAndBlocks([]byte(source))
+	assert.NoError(t, err)
+	assert.Contains(t, PluckStartLine(blocks), 5)
+}
+
 func Test_findFilePathMatchingSearch(t *testing.T) {
 	t.Parallel()
 
@@ -282,4 +300,28 @@ func Test_sumCoverage(t *testing.T) {
 		1, 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 	}}
 	assert.Equal(t, expected, s)
+
+	// Go 1.27 can start the profile block after the annotation line.
+	profile = &cover.Profile{Blocks: []cover.ProfileBlock{
+		{StartLine: 1, EndLine: 2, NumStmt: 1, Count: 1},
+		{StartLine: 4, EndLine: 5, NumStmt: 1},
+		{StartLine: 7, EndLine: 10, NumStmt: 1, Count: 1},
+	}}
+	funcs = []Extent{{StartLine: 1, EndLine: 10}}
+	blocks = []Extent{
+		{StartLine: 1, EndLine: 10},
+		{StartLine: 3, EndLine: 6},
+	}
+	annotations = []Extent{{StartLine: 3, EndLine: 3}}
+	s = SumCoverage(profile, funcs, blocks, annotations)
+	assert.Equal(t, Stats{Total: 2, Covered: 2}, s)
+
+	// An annotation can also apply directly to a non-block statement.
+	profile = &cover.Profile{Blocks: []cover.ProfileBlock{
+		{StartLine: 1, EndLine: 2, NumStmt: 1, Count: 1},
+		{StartLine: 3, EndLine: 3, NumStmt: 1},
+	}}
+	funcs = []Extent{{StartLine: 1, EndLine: 4}}
+	s = SumCoverage(profile, funcs, nil, []Extent{{StartLine: 3, EndLine: 3}})
+	assert.Equal(t, Stats{Total: 1, Covered: 1}, s)
 }

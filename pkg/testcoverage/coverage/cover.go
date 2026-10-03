@@ -348,6 +348,8 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 		v.addBlock(n.Body)
 	case *ast.TypeSwitchStmt:
 		v.addBlock(n.Body)
+	case *ast.CaseClause:
+		v.addBlock(n)
 	case *ast.SelectStmt: // coverage-ignore
 		v.addBlock(n.Body)
 	case *ast.ForStmt:
@@ -395,6 +397,17 @@ func findExtentWithStartLine(ee []extent, line int) (extent, bool) {
 func hasExtentWithStartLine(ee []extent, startLine int) bool {
 	_, found := findExtentWithStartLine(ee, startLine)
 	return found
+}
+
+func findAnnotatedBlock(blocks, annotations []extent, line int) (extent, bool) {
+	for _, block := range blocks {
+		if block.StartLine <= line && block.EndLine >= line &&
+			hasExtentWithStartLine(annotations, block.StartLine) {
+			return block, true
+		}
+	}
+
+	return extent{}, false
 }
 
 func pluckStartLine(extents []extent) []int {
@@ -459,12 +472,19 @@ func coverage(
 			continue
 		}
 
-		// add block to coverage statistics only if it was not ignored using comment annotations
+		// A direct annotation also supports statements that are not blocks.
 		if hasExtentWithStartLine(annotations, b.StartLine) {
 			if e, found := findExtentWithStartLine(blocks, b.StartLine); found {
 				skip = e
 			}
 
+			continue
+		}
+
+		// Go 1.27 can start a profile block on the first statement inside an
+		// annotated block instead of on the annotation line itself.
+		if e, found := findAnnotatedBlock(blocks, annotations, b.StartLine); found {
+			skip = e
 			continue
 		}
 

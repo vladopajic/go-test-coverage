@@ -143,6 +143,14 @@ linters:
       block-size: 5
     nolintlint:
       require-explanation: true
+    paralleltest:
+      check-cleanup: true
+    revive:
+      enable-default-rules: true
+      rules:
+        - name: marshal-receiver
+        - name: multiline-if-init
+        - name: use-slices-concat
     tagliatelle:
       case:
         rules:
@@ -162,6 +170,7 @@ linters:
     rules:
       - linters:
           - funlen            ## Function length is okay due to many tests cases
+          - goconst           ## Test data is intentionally repetitive
           - maintidx          ## No need to check wrapping errors in tests
           - wrapcheck         ## Test are okay to be long
         path: _test\.go
