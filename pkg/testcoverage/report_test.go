@@ -2,6 +2,8 @@ package testcoverage_test
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"io"
 	"os"
 	"strings"
@@ -397,8 +399,65 @@ func Test_SetGithubActionOutput(t *testing.T) {
 		assert.Equal(t, 1, strings.Count(content, GaOutputTotalCoverage))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeColor))
 		assert.Equal(t, 1, strings.Count(content, GaOutputBadgeText))
-		assert.Equal(t, 1, strings.Count(content, GaOutputReport))
+		assert.Equal(t, 1, strings.Count(content, GaOutputReport+"="))
 	})
+}
+
+func Test_SetGithubActionOutputSeparateReports(t *testing.T) {
+	for _, passing := range []bool{false, true} {
+		t.Run(fmt.Sprintf("passing=%t", passing), func(t *testing.T) {
+			result := AnalyzeResult{
+				Threshold:  Threshold{Total: 100},
+				TotalStats: coverage.Stats{Total: 2, Covered: 1},
+				FilesWithUncoveredLines: []coverage.Stats{
+					{Name: "quoted\"λ.go", Total: 2, Covered: 1, UncoveredLines: []int{2}},
+				},
+			}
+			if passing {
+				result.Threshold.Total = 0
+			}
+
+			full := &bytes.Buffer{}
+			ReportForHuman(full, result)
+
+			outputPath := t.TempDir() + "/ga.output"
+			t.Setenv(GaOutputFileEnv, outputPath)
+			assert.NoError(t, SetGithubActionOutput(result, full.String()))
+
+			data, err := os.ReadFile(outputPath)
+			assert.NoError(t, err)
+
+			outputs := map[string]string{}
+
+			for _, line := range strings.Split(strings.TrimSpace(string(data)), "\n") {
+				key, value, ok := strings.Cut(line, "=")
+				assert.True(t, ok)
+
+				if strings.HasPrefix(key, "report") {
+					var decoded string
+					assert.NoError(t, json.Unmarshal([]byte(value), &decoded))
+					outputs[key] = decoded
+				}
+			}
+
+			assert.Equal(t, full.String(), outputs["report"])
+			coverageReport, ok := outputs["report-coverage"]
+			assert.True(t, ok, "coverage output must be present")
+			assert.Contains(t, coverageReport, "Total test coverage:")
+			assert.NotContains(t, coverageReport, "Files with uncovered lines:")
+
+			linesReport, ok := outputs["report-uncovered-lines"]
+			assert.True(t, ok, "uncovered-lines output must be present")
+
+			if passing {
+				assert.Empty(t, linesReport)
+			} else {
+				assert.Contains(t, linesReport, "Files with uncovered lines:")
+				assert.Contains(t, linesReport, "quoted\"λ.go")
+				assert.NotContains(t, linesReport, "Total test coverage:")
+			}
+		})
+	}
 }
 
 func Test_ReportUncoveredLines(t *testing.T) {

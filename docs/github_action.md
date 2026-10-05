@@ -113,6 +113,16 @@ Example of report that includes coverage difference is [this PR](https://github.
 
 ## Post Coverage Report to PR
 
+The `report` output contains the full report and remains unchanged. To format
+the coverage summary and uncovered lines separately, use `report-coverage` and
+`report-uncovered-lines`. Like `report`, both are JSON-encoded strings and should
+be decoded with `fromJSON`. For example, use
+`${{ fromJSON(steps.coverage.outputs.report-coverage) }}` for a compact summary.
+The uncovered-lines output is an empty string when coverage thresholds pass or
+there are no files with uncovered lines. These outputs do not change console
+output, coverage checks, or the full report's annotation and diff sections.
+Use a tool version containing this feature with either action variant.
+
 Here is an example of how to post comments with the coverage report to your pull request. 
 
 The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
