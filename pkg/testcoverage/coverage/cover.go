@@ -21,10 +21,11 @@ import (
 const IgnoreText = "coverage-ignore"
 
 type Config struct {
-	Profiles               []string
-	ExcludePaths           []string
-	SourceDir              string
-	ForceAnnotationComment bool
+	Profiles                  []string
+	ExcludePaths              []string
+	SourceDir                 string
+	ForceAnnotationComment    bool
+	ExcludeTrivialErrorChecks bool
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -53,7 +54,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi, cfg.ForceAnnotationComment)
+		s, err := coverageForFile(profile, fi, cfg)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +80,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (Stats, error) {
+func coverageForFile(profile *cover.Profile, fi fileInfo, cfg Config) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
 	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
@@ -91,9 +92,14 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (St
 	}
 
 	funcs, blocks := funcsAndBlocksFromAST(fset, node)
-	annotations, withoutComment := annotationsFromAST(fset, node, forceComment)
+	annotations, withoutComment := annotationsFromAST(fset, node, cfg.ForceAnnotationComment)
 
-	s := sumCoverage(profile, funcs, blocks, annotations)
+	var excluded []extent
+	if cfg.ExcludeTrivialErrorChecks {
+		excluded = trivialErrorChecksFromAST(fset, node)
+	}
+
+	s := sumCoverage(profile, funcs, blocks, annotations, excluded)
 	s.Name = fi.name
 	s.AnnotationsWithoutComments = pluckStartLine(withoutComment)
 
@@ -312,6 +318,98 @@ func hasComment(text string) bool {
 	return len(trimmedComment) > len(IgnoreText)
 }
 
+func findTrivialErrorChecks(source []byte) ([]extent, error) {
+	fset, node, err := parseSource(source)
+	if err != nil {
+		return nil, err
+	}
+
+	return trivialErrorChecksFromAST(fset, node), nil
+}
+
+// trivialErrorChecksFromAST returns extents of bodies of trivial error checks,
+// that is `if err != nil { return ..., err }` statements where the body consists
+// solely of a return statement propagating (optionally wrapping) the checked error.
+func trivialErrorChecksFromAST(fset *token.FileSet, node *ast.File) []extent {
+	var result []extent
+
+	ast.Inspect(node, func(n ast.Node) bool {
+		if ifStmt, ok := n.(*ast.IfStmt); ok && isTrivialErrorCheck(ifStmt) {
+			result = append(result, newExtent(fset, ifStmt.Body))
+		}
+
+		return true
+	})
+
+	return result
+}
+
+func isTrivialErrorCheck(n *ast.IfStmt) bool {
+	errName, ok := nonNilCheckedErrName(n.Cond)
+	if !ok || len(n.Body.List) != 1 {
+		return false
+	}
+
+	ret, ok := n.Body.List[0].(*ast.ReturnStmt)
+	if !ok {
+		return false
+	}
+
+	for _, r := range ret.Results {
+		if referencesIdent(r, errName) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// nonNilCheckedErrName returns name of error variable when expression
+// has form `err != nil` (or `nil != err`).
+func nonNilCheckedErrName(expr ast.Expr) (string, bool) {
+	bin, ok := expr.(*ast.BinaryExpr)
+	if !ok || bin.Op != token.NEQ {
+		return "", false
+	}
+
+	x, y := bin.X, bin.Y
+	if isNilIdent(x) {
+		x, y = y, x
+	}
+
+	ident, ok := x.(*ast.Ident)
+	if !ok || !isNilIdent(y) || !isErrorName(ident.Name) {
+		return "", false
+	}
+
+	return ident.Name, true
+}
+
+func isNilIdent(expr ast.Expr) bool {
+	ident, ok := expr.(*ast.Ident)
+	return ok && ident.Name == "nil"
+}
+
+// isErrorName reports whether identifier name looks like error variable,
+// e.g. `err`, `errRead`, `readErr`.
+func isErrorName(name string) bool {
+	return strings.HasPrefix(name, "err") || strings.HasSuffix(name, "Err")
+}
+
+func referencesIdent(expr ast.Expr, name string) bool {
+	found := false
+
+	ast.Inspect(expr, func(n ast.Node) bool {
+		if ident, ok := n.(*ast.Ident); ok && ident.Name == name {
+			found = true
+		}
+
+		return !found
+	})
+
+	return found
+}
+
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
 	fset, node, err := parseSource(source)
 	if err != nil {
@@ -419,11 +517,11 @@ func pluckStartLine(extents []extent) []int {
 	return res
 }
 
-func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
+func sumCoverage(profile *cover.Profile, funcs, blocks, annotations, excluded []extent) Stats {
 	s := Stats{}
 
 	for _, f := range funcs {
-		c, t, ul := coverage(profile, f, blocks, annotations)
+		c, t, ul := coverage(profile, f, blocks, annotations, excluded)
 		s.Total += t
 		s.Covered += c
 		s.UncoveredLines = append(s.UncoveredLines, ul...)
@@ -441,7 +539,7 @@ func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) St
 func coverage(
 	profile *cover.Profile,
 	f extent,
-	blocks, annotations []extent,
+	blocks, annotations, excluded []extent,
 ) (int64, int64, []int) {
 	if hasExtentWithStartLine(annotations, f.StartLine) {
 		// case when entire function is ignored
@@ -473,6 +571,12 @@ func coverage(
 		}
 
 		// A direct annotation also supports statements that are not blocks.
+		if isBlockInsideAnyExtent(excluded, b) {
+			// this block is automatically excluded (eg. trivial error check)
+			continue
+		}
+
+		// A direct annotation also supports statements that are not blocks.
 		if hasExtentWithStartLine(annotations, b.StartLine) {
 			if e, found := findExtentWithStartLine(blocks, b.StartLine); found {
 				skip = e
@@ -500,6 +604,21 @@ func coverage(
 	}
 
 	return covered, total, uncoveredLines
+}
+
+func isBlockInsideAnyExtent(ee []extent, b cover.ProfileBlock) bool {
+	for _, e := range ee {
+		startsAfter := b.StartLine > e.StartLine ||
+			(b.StartLine == e.StartLine && b.StartCol >= e.StartCol)
+		endsBefore := b.EndLine < e.EndLine ||
+			(b.EndLine == e.EndLine && b.EndCol <= e.EndCol)
+
+		if startsAfter && endsBefore {
+			return true
+		}
+	}
+
+	return false
 }
 
 func dedup(ss []int) []int {

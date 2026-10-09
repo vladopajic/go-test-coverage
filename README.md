@@ -126,6 +126,12 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+  # (optional; default false)
+  # Exclude the body of trivial error checks from coverage statistics,
+  # e.g. `if err != nil { return ..., err }`.
+  # See "Exclude Trivial Error Checks" below.
+  trivial-error-checks: false
+
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
 force-annotation-comment: false
@@ -179,6 +185,32 @@ func bar() { // coverage-ignore
 ...
 }
 ```
+
+#### Exclude Trivial Error Checks
+
+Trivial error checks can be excluded automatically, without annotations, by setting `exclude.trivial-error-checks: true` in the configuration file. 
+An error check is considered trivial when its condition is `<err> != nil` (or `nil != <err>`), where `<err>` is a variable named like an error (`err`, `errFoo`, `fooErr`), and its body consists solely of a `return` statement that references that error.
+
+```go
+if err != nil {
+	return err // excluded
+}
+
+if err := foo(); err != nil {
+	return nil, fmt.Errorf("doing foo: %w", err) // excluded
+}
+
+if val == 0 {
+	return errors.New("invalid value") // not excluded
+}
+
+if err != nil {
+	log.Print(err)
+	return err // not excluded (body has more than a return statement)
+}
+```
+
+Note that only the body of the `if` statement is excluded; the `if` condition itself is still counted.
 
 ## Generate Coverage Badge
 

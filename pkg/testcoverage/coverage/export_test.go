@@ -4,6 +4,7 @@ var (
 	FindFileCreator            = findFileCreator
 	FindAnnotations            = findAnnotations
 	FindFuncsAndBlocks         = findFuncsAndBlocks
+	FindTrivialErrorChecks     = findTrivialErrorChecks
 	ParseProfiles              = parseProfiles
 	SumCoverage                = sumCoverage
 	FindGoModFile              = findGoModFile
