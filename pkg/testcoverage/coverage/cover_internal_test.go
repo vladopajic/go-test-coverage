@@ -69,6 +69,8 @@ example.com/test/ignored.go:2.1,3.1 1 0
 func TestGenerateCoverageStats_TrivialErrorsIgnored(t *testing.T) {
 	t.Parallel()
 
+	ResetPackagesCache()
+
 	dir := t.TempDir()
 	require.NoError(t, os.WriteFile(
 		filepath.Join(dir, "go.mod"),
@@ -92,6 +94,12 @@ func ignored() (interface{}, error) {
 		return nil, errors.New("...")
 	}
 	return nil, nil
+}
+func foo() error {
+	return nil
+}
+func bar() int {
+	return 0
 }
 `),
 		0o600))

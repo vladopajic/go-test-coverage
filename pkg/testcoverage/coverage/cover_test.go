@@ -1,10 +1,13 @@
 package coverage_test
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/cover"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
@@ -334,57 +337,73 @@ func Test_sumCoverage(t *testing.T) {
 	assert.Equal(t, Stats{Total: 1, Covered: 1}, s)
 }
 
+//nolint:paralleltest // This test is not parallel because it modifies the package cache.
 func Test_findTrivialErrorChecks(t *testing.T) {
-	t.Parallel()
+	ResetPackagesCache()
 
-	_, err := FindTrivialErrorChecks(nil)
-	assert.Error(t, err)
-
-	const source = `
-	package foo
-	func a() error {
-		err := foo()
-		if err != nil {
-			return err
-		}
-		if err := foo(); err != nil {
-			return nil, err
-		}
-		if nil != err {
-			return nil, fmt.Errorf("error doing foo: %w", err)
-		}
-		if readErr != nil {
-			return errors.Wrap(readErr, "read")
-		}
-		val := foo()
-		if val == 0 {
-			return errors.New("...")
-		}
-		if val != nil {
-			return val
-		}
-		if err != nil {
-			log(err)
-			return err
-		}
-		if err != nil {
-			return errors.New("other")
-		}
-		if err == nil {
-			return err
-		}
-		if err != nil {
-			panic(err)
-		}
-		if err != nil && val == 0 {
-			return err
-		}
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "go.mod"),
+		[]byte("module example.com/test\n"),
+		0o600,
+	))
+	srcFile := filepath.Join(dir, "trivial.go")
+	require.NoError(t, os.WriteFile(
+		srcFile,
+		[]byte(`package test
+import (
+	"errors"
+	"fmt"
+	"log"
+)
+func a() error {
+	err := foo()
+	if err != nil {
+		return err
+	}
+	if err := foo(); err != nil {
+		return err
+	}
+	if nil != err {
+		return fmt.Errorf("error doing foo: %w", err)
+	}
+	val := bar()
+	if *val == 0 {
+		return errors.New("...")
+	}
+	if val != nil {
 		return nil
 	}
-	`
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	if err != nil {
+		return errors.New("other")
+	}
+	if err == nil {
+		return err
+	}
+	if err != nil {
+		panic(err)
+	}
+	if err != nil && *val == 0 {
+		return err
+	}
+	return nil
+}
+func foo() error {
+	return nil
+}
+func bar() *int {
+	val := 0
+	return &val
+}
+`),
+		0o600))
 
-	extents, err := FindTrivialErrorChecks([]byte(source))
-	assert.NoError(t, err)
-	assert.Equal(t, []int{5, 8, 11, 14}, PluckStartLine(extents))
-	assert.Equal(t, Extent{StartLine: 5, StartCol: 17, EndLine: 7, EndCol: 4}, extents[0])
+	extents, err := FindTrivialErrorChecks(srcFile, dir)
+	require.NoError(t, err)
+	assert.Equal(t, []int{9, 12, 15}, PluckStartLine(extents))
+	assert.Equal(t, Extent{StartLine: 9, StartCol: 16, EndLine: 11, EndCol: 3}, extents[0])
 }

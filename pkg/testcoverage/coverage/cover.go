@@ -1,18 +1,23 @@
 package coverage
 
 import (
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/build"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"math"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"golang.org/x/tools/cover"
+	"golang.org/x/tools/go/packages"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
@@ -91,13 +96,21 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, cfg Config) (Stats, er
 		return Stats{}, err
 	}
 
+	var excluded []extent
+
+	if cfg.ExcludeTrivialErrorChecks {
+		var info *types.Info
+
+		fset, node, info, err = loadTypedFile(fi.path, cfg.SourceDir)
+		if err != nil {
+			return Stats{}, err
+		}
+
+		excluded = trivialErrorChecksFromAST(fset, node, info)
+	}
+
 	funcs, blocks := funcsAndBlocksFromAST(fset, node)
 	annotations, withoutComment := annotationsFromAST(fset, node, cfg.ForceAnnotationComment)
-
-	var excluded []extent
-	if cfg.ExcludeTrivialErrorChecks {
-		excluded = trivialErrorChecksFromAST(fset, node)
-	}
 
 	s := sumCoverage(profile, funcs, blocks, annotations, excluded)
 	s.Name = fi.name
@@ -318,23 +331,28 @@ func hasComment(text string) bool {
 	return len(trimmedComment) > len(IgnoreText)
 }
 
-func findTrivialErrorChecks(source []byte) ([]extent, error) {
-	fset, node, err := parseSource(source)
+func findTrivialErrorChecks(path string, sourceDir string) ([]extent, error) {
+	fset, node, info, err := loadTypedFile(path, sourceDir)
 	if err != nil {
 		return nil, err
 	}
 
-	return trivialErrorChecksFromAST(fset, node), nil
+	return trivialErrorChecksFromAST(fset, node, info), nil
 }
 
 // trivialErrorChecksFromAST returns extents of bodies of trivial error checks,
 // that is `if err != nil { return ..., err }` statements where the body consists
 // solely of a return statement propagating (optionally wrapping) the checked error.
-func trivialErrorChecksFromAST(fset *token.FileSet, node *ast.File) []extent {
+func trivialErrorChecksFromAST(
+	fset *token.FileSet,
+	node *ast.File,
+	info *types.Info,
+) []extent {
 	var result []extent
 
 	ast.Inspect(node, func(n ast.Node) bool {
-		if ifStmt, ok := n.(*ast.IfStmt); ok && isTrivialErrorCheck(ifStmt) {
+		if ifStmt, ok := n.(*ast.IfStmt); ok &&
+			isTrivialErrorCheck(ifStmt, info) {
 			result = append(result, newExtent(fset, ifStmt.Body))
 		}
 
@@ -344,9 +362,19 @@ func trivialErrorChecksFromAST(fset *token.FileSet, node *ast.File) []extent {
 	return result
 }
 
-func isTrivialErrorCheck(n *ast.IfStmt) bool {
-	errName, ok := nonNilCheckedErrName(n.Cond)
+func isTrivialErrorCheck(n *ast.IfStmt, info *types.Info) bool {
+	ident, ok := nonNilCheckedErrIdent(n.Cond)
 	if !ok || len(n.Body.List) != 1 {
+		return false
+	}
+
+	variable, ok := info.Uses[ident].(*types.Var)
+	if !ok {
+		return false
+	}
+
+	errorType, ok := types.Universe.Lookup("error").Type().Underlying().(*types.Interface)
+	if !ok || !types.Implements(variable.Type(), errorType) {
 		return false
 	}
 
@@ -356,7 +384,7 @@ func isTrivialErrorCheck(n *ast.IfStmt) bool {
 	}
 
 	for _, r := range ret.Results {
-		if referencesIdent(r, errName) {
+		if referencesVar(r, variable, info) {
 			return true
 		}
 	}
@@ -366,10 +394,10 @@ func isTrivialErrorCheck(n *ast.IfStmt) bool {
 
 // nonNilCheckedErrName returns name of error variable when expression
 // has form `err != nil` (or `nil != err`).
-func nonNilCheckedErrName(expr ast.Expr) (string, bool) {
+func nonNilCheckedErrIdent(expr ast.Expr) (*ast.Ident, bool) {
 	bin, ok := expr.(*ast.BinaryExpr)
 	if !ok || bin.Op != token.NEQ {
-		return "", false
+		return nil, false
 	}
 
 	x, y := bin.X, bin.Y
@@ -378,29 +406,18 @@ func nonNilCheckedErrName(expr ast.Expr) (string, bool) {
 	}
 
 	ident, ok := x.(*ast.Ident)
-	if !ok || !isNilIdent(y) || !isErrorName(ident.Name) {
-		return "", false
+	if !ok || !isNilIdent(y) {
+		return nil, false
 	}
 
-	return ident.Name, true
+	return ident, true
 }
 
-func isNilIdent(expr ast.Expr) bool {
-	ident, ok := expr.(*ast.Ident)
-	return ok && ident.Name == "nil"
-}
-
-// isErrorName reports whether identifier name looks like error variable,
-// e.g. `err`, `errRead`, `readErr`.
-func isErrorName(name string) bool {
-	return strings.HasPrefix(name, "err") || strings.HasSuffix(name, "Err")
-}
-
-func referencesIdent(expr ast.Expr, name string) bool {
+func referencesVar(expr ast.Expr, variable *types.Var, info *types.Info) bool {
 	found := false
 
 	ast.Inspect(expr, func(n ast.Node) bool {
-		if ident, ok := n.(*ast.Ident); ok && ident.Name == name {
+		if ident, ok := n.(*ast.Ident); ok && info.Uses[ident] == variable {
 			found = true
 		}
 
@@ -408,6 +425,95 @@ func referencesIdent(expr ast.Expr, name string) bool {
 	})
 
 	return found
+}
+
+func isNilIdent(expr ast.Expr) bool {
+	ident, ok := expr.(*ast.Ident)
+	return ok && ident.Name == "nil"
+}
+
+//nolint:gochecknoglobals // need to cache packages for performance
+var (
+	pkgs     []*packages.Package
+	pkgsOnce sync.Once
+)
+
+func loadTypedFile(
+	filename string, sourceDir string,
+) (*token.FileSet, *ast.File, *types.Info, error) {
+	abs, err := filepath.Abs(filename)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("error getting absolute path for file: %s: %w", filename, err)
+	}
+
+	pkgsOnce.Do(func() {
+		pkgs, err = loadPackages(sourceDir)
+	})
+
+	if err != nil {
+		//nolint:lll // relax
+		return nil, nil, nil, fmt.Errorf("error loading packages for source directory: %s: %w", sourceDir, err)
+	}
+
+	for _, pkg := range pkgs {
+		for i, file := range pkg.CompiledGoFiles {
+			if filepath.Clean(file) == abs && i < len(pkg.Syntax) {
+				return pkg.Fset, pkg.Syntax[i], pkg.TypesInfo, nil
+			}
+		}
+	}
+
+	return nil, nil, nil, fmt.Errorf("file not found in package: %s", abs)
+}
+
+func loadPackages(sourceDir string) ([]*packages.Package, error) {
+	abs, err := filepath.Abs(sourceDir)
+	if err != nil {
+		return nil, fmt.Errorf("error getting absolute path for source directory: %s: %w", sourceDir, err)
+	}
+
+	log := logger.L.With().Str("sourceDir", sourceDir).Logger()
+	log.Debug().Msg("Loading packages")
+
+	s := time.Now()
+
+	cfg := &packages.Config{
+		Mode: packages.NeedName |
+			packages.NeedFiles |
+			packages.NeedCompiledGoFiles |
+			packages.NeedImports |
+			packages.NeedDeps |
+			packages.NeedTypes |
+			packages.NeedSyntax |
+			packages.NeedTypesInfo |
+			packages.NeedTypesSizes,
+		Dir: abs,
+	}
+
+	var srcPackages []*packages.Package
+
+	srcPackages, err = packages.Load(cfg, "./...")
+	if err != nil {
+		return nil, fmt.Errorf("error loading packages: %s: %w", abs, err)
+	}
+
+	log.Debug().Dur("delay", time.Since(s)).Msg("Loaded packages successfully")
+
+	if len(srcPackages) == 0 {
+		return nil, fmt.Errorf("expected at least one package for %s", abs)
+	}
+
+	for _, pkg := range srcPackages {
+		for _, e := range pkg.Errors {
+			err = errors.Join(err, e)
+		}
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("error loading packages: %s: %w", abs, err)
+	}
+
+	return srcPackages, nil
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
