@@ -41,6 +41,11 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+  # (optional; default false)
+  # Exclude the body of trivial error checks from coverage statistics,
+  # e.g. `if err != nil { return ..., err }`. See README for details.
+  trivial-error-checks: false
+
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
 force-annotation-comment: false

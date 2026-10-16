@@ -85,10 +85,11 @@ func reportForHuman(w io.Writer, result AnalyzeResult) string {
 
 func GenerateCoverageStats(cfg Config) ([]coverage.Stats, error) {
 	return coverage.GenerateCoverageStats(coverage.Config{ //nolint:wrapcheck // err wrapped above
-		Profiles:               strings.Split(cfg.Profile, ","),
-		ExcludePaths:           cfg.Exclude.Paths,
-		SourceDir:              cfg.SourceDir,
-		ForceAnnotationComment: cfg.ForceAnnotationComment,
+		Profiles:                  strings.Split(cfg.Profile, ","),
+		ExcludePaths:              cfg.Exclude.Paths,
+		SourceDir:                 cfg.SourceDir,
+		ForceAnnotationComment:    cfg.ForceAnnotationComment,
+		ExcludeTrivialErrorChecks: cfg.Exclude.TrivialErrorChecks,
 	})
 }
 

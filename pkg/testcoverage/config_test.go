@@ -244,7 +244,8 @@ func nonZeroConfig() Config {
 		Threshold: Threshold{100, 100, 100},
 		Override:  []Override{{Path: "pathToFile", Threshold: 99}},
 		Exclude: Exclude{
-			Paths: []string{"path1", "path2"},
+			Paths:              []string{"path1", "path2"},
+			TrivialErrorChecks: true,
 		},
 		BreakdownFileName: "breakdown.testcoverage",
 		Diff: Diff{
@@ -271,6 +272,7 @@ exclude:
   paths:
     - path1
     - path2
+  trivial-error-checks: true
 breakdown-file-name: 'breakdown.testcoverage'
 diff:
   base-breakdown-file-name: 'breakdown.testcoverage'

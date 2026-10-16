@@ -1,10 +1,13 @@
 package coverage_test
 
 import (
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/tools/cover"
 
 	. "github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
@@ -282,22 +285,30 @@ func Test_sumCoverage(t *testing.T) {
 		{StartLine: 12, EndLine: 20, NumStmt: 5},
 	}}
 
-	s := SumCoverage(profile, funcs, nil, nil)
+	s := SumCoverage(profile, funcs, nil, nil, nil)
 	expected := Stats{Total: 10, Covered: 0, UncoveredLines: []int{
 		1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 	}}
 	assert.Equal(t, expected, s)
 
 	// Coverage should be empty when every function is excluded
-	s = SumCoverage(profile, funcs, nil, funcs)
+	s = SumCoverage(profile, funcs, nil, funcs, nil)
 	assert.Equal(t, Stats{Total: 0, Covered: 0}, s)
 
 	// Case when annotations is set on block (it should ignore whole block)
 	annotations := []Extent{{StartLine: 4, EndLine: 4}}
 	blocks := []Extent{{StartLine: 4, EndLine: 10}}
-	s = SumCoverage(profile, funcs, blocks, annotations)
+	s = SumCoverage(profile, funcs, blocks, annotations, nil)
 	expected = Stats{Total: 7, Covered: 0, UncoveredLines: []int{
 		1, 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+	}}
+	assert.Equal(t, expected, s)
+
+	// Case when block is automatically excluded (it should ignore blocks inside extent)
+	excluded := []Extent{{StartLine: 4, EndLine: 6}}
+	s = SumCoverage(profile, funcs, nil, nil, excluded)
+	expected = Stats{Total: 8, Covered: 0, UncoveredLines: []int{
+		1, 2, 3, 6, 7, 8, 9, 10, 12, 13, 14, 15, 16, 17, 18, 19, 20,
 	}}
 	assert.Equal(t, expected, s)
 
@@ -313,7 +324,7 @@ func Test_sumCoverage(t *testing.T) {
 		{StartLine: 3, EndLine: 6},
 	}
 	annotations = []Extent{{StartLine: 3, EndLine: 3}}
-	s = SumCoverage(profile, funcs, blocks, annotations)
+	s = SumCoverage(profile, funcs, blocks, annotations, nil)
 	assert.Equal(t, Stats{Total: 2, Covered: 2}, s)
 
 	// An annotation can also apply directly to a non-block statement.
@@ -322,6 +333,77 @@ func Test_sumCoverage(t *testing.T) {
 		{StartLine: 3, EndLine: 3, NumStmt: 1},
 	}}
 	funcs = []Extent{{StartLine: 1, EndLine: 4}}
-	s = SumCoverage(profile, funcs, nil, []Extent{{StartLine: 3, EndLine: 3}})
+	s = SumCoverage(profile, funcs, nil, []Extent{{StartLine: 3, EndLine: 3}}, nil)
 	assert.Equal(t, Stats{Total: 1, Covered: 1}, s)
+}
+
+//nolint:paralleltest // This test is not parallel because it modifies the package cache.
+func Test_findTrivialErrorChecks(t *testing.T) {
+	ResetPackagesCache()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "go.mod"),
+		[]byte("module example.com/test\n"),
+		0o600,
+	))
+	srcFile := filepath.Join(dir, "trivial.go")
+	require.NoError(t, os.WriteFile(
+		srcFile,
+		[]byte(`package test
+import (
+	"errors"
+	"fmt"
+	"log"
+)
+func a() error {
+	err := foo()
+	if err != nil {
+		return err
+	}
+	if err := foo(); err != nil {
+		return err
+	}
+	if nil != err {
+		return fmt.Errorf("error doing foo: %w", err)
+	}
+	val := bar()
+	if *val == 0 {
+		return errors.New("...")
+	}
+	if val != nil {
+		return nil
+	}
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+	if err != nil {
+		return errors.New("other")
+	}
+	if err == nil {
+		return err
+	}
+	if err != nil {
+		panic(err)
+	}
+	if err != nil && *val == 0 {
+		return err
+	}
+	return nil
+}
+func foo() error {
+	return nil
+}
+func bar() *int {
+	val := 0
+	return &val
+}
+`),
+		0o600))
+
+	extents, err := FindTrivialErrorChecks(srcFile, dir)
+	require.NoError(t, err)
+	assert.Equal(t, []int{9, 12, 15}, PluckStartLine(extents))
+	assert.Equal(t, Extent{StartLine: 9, StartCol: 16, EndLine: 11, EndCol: 3}, extents[0])
 }
