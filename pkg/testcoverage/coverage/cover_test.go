@@ -227,6 +227,21 @@ func Test_findFuncs(t *testing.T) {
 	}, blocks)
 }
 
+func Test_findFuncsAndBlocks_FunctionDeclarationWithoutBody(t *testing.T) {
+	t.Parallel()
+
+	const source = `
+	package foo
+	func implementedElsewhere()
+	func foo() {}
+	`
+
+	funcs, blocks, err := FindFuncsAndBlocks([]byte(source))
+	assert.NoError(t, err)
+	assert.Equal(t, []int{4}, PluckStartLine(funcs))
+	assert.Empty(t, blocks)
+}
+
 func Test_findFuncsAndBlocks_CaseClause(t *testing.T) {
 	t.Parallel()
 

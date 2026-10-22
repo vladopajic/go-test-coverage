@@ -340,6 +340,10 @@ type visitor struct {
 func (v *visitor) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.FuncDecl:
+		if n.Body == nil {
+			return v
+		}
+
 		v.funcs = append(v.funcs, newExtent(v.fset, n.Body))
 
 	case *ast.IfStmt:
