@@ -67,6 +67,10 @@ example.com/test/ignored.go:2.1,3.1 1 0
 }
 
 func TestGenerateCoverageStats_TrivialErrorsIgnored(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
 	t.Parallel()
 
 	ResetPackagesCache()
@@ -135,4 +139,41 @@ example.com/test/trivial.go:15.2,15.17 1 1
 		AnnotationsWithoutComments: []int{},
 	}
 	assert.Equal(t, expected, stats[0])
+}
+
+//nolint:paralleltest // This test is not parallel because it modifies the package cache.
+func TestGenerateCoverageStats_TrivialErrorsLoadFailure(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	ResetPackagesCache()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "go.mod"),
+		[]byte("module example.com/test\n"),
+		0o600,
+	))
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "typeerror.go"),
+		[]byte(`package test
+var x int = "not an int"
+`),
+		0o600))
+
+	profile := filepath.Join(dir, "cover.profile")
+	require.NoError(t, os.WriteFile(
+		profile,
+		[]byte(`mode: atomic
+example.com/test/typeerror.go:2.1,2.25 1 0
+`),
+		0o600))
+
+	_, err := GenerateCoverageStats(Config{
+		Profiles:                  []string{profile},
+		SourceDir:                 dir,
+		ExcludeTrivialErrorChecks: true,
+	})
+	require.ErrorContains(t, err, "error loading packages for source directory")
 }

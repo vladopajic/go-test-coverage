@@ -7,6 +7,7 @@ var (
 	FindAnnotations            = findAnnotations
 	FindFuncsAndBlocks         = findFuncsAndBlocks
 	FindTrivialErrorChecks     = findTrivialErrorChecks
+	LoadTypedFile              = loadTypedFile
 	ParseProfiles              = parseProfiles
 	SumCoverage                = sumCoverage
 	FindGoModFile              = findGoModFile

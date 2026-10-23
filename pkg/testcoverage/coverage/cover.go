@@ -370,7 +370,7 @@ func isTrivialErrorCheck(n *ast.IfStmt, info *types.Info) bool {
 
 	variable, ok := info.Uses[ident].(*types.Var)
 	if !ok {
-		return false
+		return false // coverage-ignore: Can't force this case
 	}
 
 	errorType, ok := types.Universe.Lookup("error").Type().Underlying().(*types.Interface)
@@ -442,7 +442,7 @@ func loadTypedFile(
 	filename string, sourceDir string,
 ) (*token.FileSet, *ast.File, *types.Info, error) {
 	abs, err := filepath.Abs(filename)
-	if err != nil {
+	if err != nil { // coverage-ignore
 		return nil, nil, nil, fmt.Errorf("error getting absolute path for file: %s: %w", filename, err)
 	}
 
@@ -468,7 +468,7 @@ func loadTypedFile(
 
 func loadPackages(sourceDir string) ([]*packages.Package, error) {
 	abs, err := filepath.Abs(sourceDir)
-	if err != nil {
+	if err != nil { // coverage-ignore
 		return nil, fmt.Errorf("error getting absolute path for source directory: %s: %w", sourceDir, err)
 	}
 

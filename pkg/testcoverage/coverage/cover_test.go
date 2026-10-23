@@ -339,6 +339,10 @@ func Test_sumCoverage(t *testing.T) {
 
 //nolint:paralleltest // This test is not parallel because it modifies the package cache.
 func Test_findTrivialErrorChecks(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
 	ResetPackagesCache()
 
 	dir := t.TempDir()
@@ -390,8 +394,15 @@ func a() error {
 	if err != nil && *val == 0 {
 		return err
 	}
+	if foo() != nil {
+		return err
+	}
+	if err != errOther {
+		return err
+	}
 	return nil
 }
+var errOther = errors.New("other")
 func foo() error {
 	return nil
 }
@@ -406,4 +417,78 @@ func bar() *int {
 	require.NoError(t, err)
 	assert.Equal(t, []int{9, 12, 15}, PluckStartLine(extents))
 	assert.Equal(t, Extent{StartLine: 9, StartCol: 16, EndLine: 11, EndCol: 3}, extents[0])
+
+	// Package loading failure should be returned
+	ResetPackagesCache()
+
+	_, err = FindTrivialErrorChecks(srcFile, filepath.Join(dir, "does-not-exist"))
+	require.ErrorContains(t, err, "error loading packages")
+}
+
+//nolint:paralleltest // This test is not parallel because it modifies the package cache.
+func Test_loadTypedFile(t *testing.T) {
+	if testing.Short() {
+		return
+	}
+
+	ResetPackagesCache()
+
+	dir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "go.mod"),
+		[]byte("module example.com/test\n"),
+		0o600,
+	))
+	fName := "example.go"
+	srcFile := filepath.Join(dir, fName)
+	require.NoError(t, os.WriteFile(
+		srcFile,
+		[]byte(`package test
+func foo() error {
+	return nil
+}
+`),
+		0o600))
+
+	fset, node, info, err := LoadTypedFile(srcFile, dir)
+	require.NoError(t, err)
+	assert.NotNil(t, fset)
+	assert.NotNil(t, node)
+	assert.NotNil(t, info)
+
+	// File not in package should return an error
+	invalidFile := filepath.Join(dir, "invalid.go")
+	_, _, _, err = LoadTypedFile(invalidFile, dir)
+	require.ErrorContains(t, err, "file not found in package")
+
+	// Add an invalid file to the package
+	require.NoError(t, os.WriteFile(
+		filepath.Join(dir, "invalid.go"),
+		[]byte(`package test
+x = 2
+`),
+		0o600))
+
+	ResetPackagesCache()
+	_, _, _, err = LoadTypedFile(srcFile, dir)
+	require.ErrorContains(t, err, "error loading packages for source directory")
+
+	// Loading packages from a non-existent directory should fail
+	ResetPackagesCache()
+
+	missingDir := filepath.Join(dir, "does-not-exist")
+	_, _, _, err = LoadTypedFile(srcFile, missingDir) //nolint:dogsled // only error matters
+	require.ErrorContains(t, err, "error loading packages: ")
+
+	// Loading packages from a module without any package should fail
+	emptyDir := t.TempDir()
+	require.NoError(t, os.WriteFile(
+		filepath.Join(emptyDir, "go.mod"),
+		[]byte("module example.com/empty\n"),
+		0o600,
+	))
+	ResetPackagesCache()
+
+	_, _, _, err = LoadTypedFile(srcFile, emptyDir) //nolint:dogsled // only error matters
+	require.ErrorContains(t, err, "expected at least one package")
 }
