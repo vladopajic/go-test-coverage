@@ -228,9 +228,6 @@ go tool cover -html=cover.out -o=cover.html
 
 ## Support the Project
 
-`go-test-coverage` is freely available for all users. If your organization benefits from this tool, especially if you’ve transitioned from a paid coverage service, consider [sponsoring the project](https://github.com/sponsors/vladopajic). 
-Your sponsorship will help sustain development, introduce new features, and maintain high-quality support. Every contribution directly impacts the future growth and stability of this project.
-
 ⭐ Love this project? Star it!
 
 This tool is still not widely known, and giving the repository a ⭐️ is a simple, cost-free way to help it gain visibility. It’s a win-win for everyone: new users discover a useful tool they might have otherwise missed, and existing users benefit from a larger community where issues get identified sooner, improvements happen faster and new contributions help the project grow.
