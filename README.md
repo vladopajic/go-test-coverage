@@ -127,7 +127,8 @@ exclude:
     - ^pkg/bar     # exclude package `pkg/bar`
 
   # (optional; default false)
-  # Exclude the body of single return error checks from coverage statistics,
+  # Exclude error checks with a single return statement referencing the error.
+  # Only the body is excluded; the condition is still counted.
   # e.g. `if err != nil { return ..., err }`.
   # See "Exclude Single Return Error Checks" below.
   single-return-error-checks: false
@@ -188,8 +189,10 @@ func bar() { // coverage-ignore
 
 #### Exclude Single Return Error Checks
 
-Single return error checks can be excluded automatically, without annotations, by setting `exclude.single-return-error-checks: true` in the configuration file. 
-An error check is considered a single return error check when its condition is `<err> != nil` (or `nil != <err>`), where `<err>` is a variable named like an error (`err`, `errFoo`, `fooErr`), and its body consists solely of a `return` statement that references that error.
+Set `exclude.single-return-error-checks: true` to automatically exclude error checks whose condition is `<err> != nil` (or `nil != <err>`),
+where `<err>` is a variable implementing `error`, and whose body contains only a single return statement referencing that error.
+
+Only the body of the if statement is excluded; the condition itself is still counted.
 
 ```go
 if err != nil {
@@ -201,16 +204,14 @@ if err := foo(); err != nil {
 }
 
 if val == 0 {
-	return errors.New("invalid value") // not excluded
+	return errors.New("invalid value") // not excluded: not an error check
 }
 
 if err != nil {
 	log.Print(err)
-	return err // not excluded (body has more than a return statement)
+	return err // not excluded: body contains multiple statements
 }
 ```
-
-Note that only the body of the `if` statement is excluded; the `if` condition itself is still counted.
 
 ## Generate Coverage Badge
 

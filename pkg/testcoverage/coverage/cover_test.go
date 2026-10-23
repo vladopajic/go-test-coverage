@@ -454,6 +454,7 @@ func Test_loadTypedFile(t *testing.T) {
 		[]byte("module example.com/test\n"),
 		0o600,
 	))
+
 	fName := "example.go"
 	srcFile := filepath.Join(dir, fName)
 	require.NoError(t, os.WriteFile(
@@ -473,7 +474,7 @@ func foo() error {
 
 	// File not in package should return an error
 	invalidFile := filepath.Join(dir, "invalid.go")
-	_, _, _, err = LoadTypedFile(invalidFile, dir)
+	_, _, _, err = LoadTypedFile(invalidFile, dir) //nolint:dogsled // only error matters
 	require.ErrorContains(t, err, "file not found in package")
 
 	// Add an invalid file to the package
@@ -485,7 +486,8 @@ x = 2
 		0o600))
 
 	ResetPackagesCache()
-	_, _, _, err = LoadTypedFile(srcFile, dir)
+
+	_, _, _, err = LoadTypedFile(srcFile, dir) //nolint:dogsled // only error matters
 	require.ErrorContains(t, err, "error loading packages for source directory")
 
 	// Loading packages from a non-existent directory should fail

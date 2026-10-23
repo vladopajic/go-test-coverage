@@ -42,9 +42,10 @@ exclude:
     - ^pkg/bar     # exclude package `pkg/bar`
 
   # (optional; default false)
-  # Exclude the body of trivial error checks from coverage statistics,
-  # e.g. `if err != nil { return ..., err }`. See README for details.
-  trivial-error-checks: false
+  # Exclude error checks with a single return statement referencing the error.
+  # Only the body is excluded; the condition is still counted.
+  # e.g. `if err != nil { return ..., err }`.
+  single-return-error-checks: false
 
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
