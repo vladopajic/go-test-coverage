@@ -26,11 +26,11 @@ import (
 const IgnoreText = "coverage-ignore"
 
 type Config struct {
-	Profiles                  []string
-	ExcludePaths              []string
-	SourceDir                 string
-	ForceAnnotationComment    bool
-	ExcludeTrivialErrorChecks bool
+	Profiles                       []string
+	ExcludePaths                   []string
+	SourceDir                      string
+	ForceAnnotationComment         bool
+	ExcludeSingleReturnErrorChecks bool
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -98,7 +98,7 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, cfg Config) (Stats, er
 
 	var excluded []extent
 
-	if cfg.ExcludeTrivialErrorChecks {
+	if cfg.ExcludeSingleReturnErrorChecks {
 		var info *types.Info
 
 		fset, node, info, err = loadTypedFile(fi.path, cfg.SourceDir)
@@ -106,7 +106,7 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, cfg Config) (Stats, er
 			return Stats{}, err
 		}
 
-		excluded = trivialErrorChecksFromAST(fset, node, info)
+		excluded = singleReturnErrorChecksFromAST(fset, node, info)
 	}
 
 	funcs, blocks := funcsAndBlocksFromAST(fset, node)
@@ -331,19 +331,19 @@ func hasComment(text string) bool {
 	return len(trimmedComment) > len(IgnoreText)
 }
 
-func findTrivialErrorChecks(path string, sourceDir string) ([]extent, error) {
+func findSingleReturnErrorChecks(path string, sourceDir string) ([]extent, error) {
 	fset, node, info, err := loadTypedFile(path, sourceDir)
 	if err != nil {
 		return nil, err
 	}
 
-	return trivialErrorChecksFromAST(fset, node, info), nil
+	return singleReturnErrorChecksFromAST(fset, node, info), nil
 }
 
-// trivialErrorChecksFromAST returns extents of bodies of trivial error checks,
+// singleReturnErrorChecksFromAST returns extents of bodies of single return error checks,
 // that is `if err != nil { return ..., err }` statements where the body consists
 // solely of a return statement propagating (optionally wrapping) the checked error.
-func trivialErrorChecksFromAST(
+func singleReturnErrorChecksFromAST(
 	fset *token.FileSet,
 	node *ast.File,
 	info *types.Info,
@@ -352,7 +352,7 @@ func trivialErrorChecksFromAST(
 
 	ast.Inspect(node, func(n ast.Node) bool {
 		if ifStmt, ok := n.(*ast.IfStmt); ok &&
-			isTrivialErrorCheck(ifStmt, info) {
+			isSingleReturnErrorCheck(ifStmt, info) {
 			result = append(result, newExtent(fset, ifStmt.Body))
 		}
 
@@ -362,7 +362,7 @@ func trivialErrorChecksFromAST(
 	return result
 }
 
-func isTrivialErrorCheck(n *ast.IfStmt, info *types.Info) bool {
+func isSingleReturnErrorCheck(n *ast.IfStmt, info *types.Info) bool {
 	ident, ok := nonNilCheckedErrIdent(n.Cond)
 	if !ok || len(n.Body.List) != 1 {
 		return false
@@ -682,7 +682,7 @@ func coverage(
 
 		// A direct annotation also supports statements that are not blocks.
 		if isBlockInsideAnyExtent(excluded, b) {
-			// this block is automatically excluded (eg. trivial error check)
+			// this block is automatically excluded (eg. single return error check)
 			continue
 		}
 

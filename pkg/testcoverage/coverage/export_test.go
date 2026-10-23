@@ -3,16 +3,16 @@ package coverage
 import "sync"
 
 var (
-	FindFileCreator            = findFileCreator
-	FindAnnotations            = findAnnotations
-	FindFuncsAndBlocks         = findFuncsAndBlocks
-	FindTrivialErrorChecks     = findTrivialErrorChecks
-	LoadTypedFile              = loadTypedFile
-	ParseProfiles              = parseProfiles
-	SumCoverage                = sumCoverage
-	FindGoModFile              = findGoModFile
-	PluckStartLine             = pluckStartLine
-	FindFilePathMatchingSearch = findFilePathMatchingSearch
+	FindFileCreator             = findFileCreator
+	FindAnnotations             = findAnnotations
+	FindFuncsAndBlocks          = findFuncsAndBlocks
+	FindSingleReturnErrorChecks = findSingleReturnErrorChecks
+	LoadTypedFile               = loadTypedFile
+	ParseProfiles               = parseProfiles
+	SumCoverage                 = sumCoverage
+	FindGoModFile               = findGoModFile
+	PluckStartLine              = pluckStartLine
+	FindFilePathMatchingSearch  = findFilePathMatchingSearch
 )
 
 type (

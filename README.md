@@ -127,10 +127,10 @@ exclude:
     - ^pkg/bar     # exclude package `pkg/bar`
 
   # (optional; default false)
-  # Exclude the body of trivial error checks from coverage statistics,
+  # Exclude the body of single return error checks from coverage statistics,
   # e.g. `if err != nil { return ..., err }`.
-  # See "Exclude Trivial Error Checks" below.
-  trivial-error-checks: false
+  # See "Exclude Single Return Error Checks" below.
+  single-return-error-checks: false
 
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
@@ -186,10 +186,10 @@ func bar() { // coverage-ignore
 }
 ```
 
-#### Exclude Trivial Error Checks
+#### Exclude Single Return Error Checks
 
-Trivial error checks can be excluded automatically, without annotations, by setting `exclude.trivial-error-checks: true` in the configuration file. 
-An error check is considered trivial when its condition is `<err> != nil` (or `nil != <err>`), where `<err>` is a variable named like an error (`err`, `errFoo`, `fooErr`), and its body consists solely of a `return` statement that references that error.
+Single return error checks can be excluded automatically, without annotations, by setting `exclude.single-return-error-checks: true` in the configuration file. 
+An error check is considered a single return error check when its condition is `<err> != nil` (or `nil != <err>`), where `<err>` is a variable named like an error (`err`, `errFoo`, `fooErr`), and its body consists solely of a `return` statement that references that error.
 
 ```go
 if err != nil {

@@ -353,7 +353,7 @@ func Test_sumCoverage(t *testing.T) {
 }
 
 //nolint:paralleltest // This test is not parallel because it modifies the package cache.
-func Test_findTrivialErrorChecks(t *testing.T) {
+func Test_findSingleReturnErrorChecks(t *testing.T) {
 	if testing.Short() {
 		return
 	}
@@ -366,7 +366,7 @@ func Test_findTrivialErrorChecks(t *testing.T) {
 		[]byte("module example.com/test\n"),
 		0o600,
 	))
-	srcFile := filepath.Join(dir, "trivial.go")
+	srcFile := filepath.Join(dir, "singleerror.go")
 	require.NoError(t, os.WriteFile(
 		srcFile,
 		[]byte(`package test
@@ -428,7 +428,7 @@ func bar() *int {
 `),
 		0o600))
 
-	extents, err := FindTrivialErrorChecks(srcFile, dir)
+	extents, err := FindSingleReturnErrorChecks(srcFile, dir)
 	require.NoError(t, err)
 	assert.Equal(t, []int{9, 12, 15}, PluckStartLine(extents))
 	assert.Equal(t, Extent{StartLine: 9, StartCol: 16, EndLine: 11, EndCol: 3}, extents[0])
@@ -436,7 +436,7 @@ func bar() *int {
 	// Package loading failure should be returned
 	ResetPackagesCache()
 
-	_, err = FindTrivialErrorChecks(srcFile, filepath.Join(dir, "does-not-exist"))
+	_, err = FindSingleReturnErrorChecks(srcFile, filepath.Join(dir, "does-not-exist"))
 	require.ErrorContains(t, err, "error loading packages")
 }
 
