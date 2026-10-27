@@ -49,7 +49,8 @@ type Override struct {
 }
 
 type Exclude struct {
-	Paths []string `yaml:"paths,omitempty"`
+	Paths                   []string `yaml:"paths,omitempty"`
+	SingleReturnErrorChecks bool     `yaml:"single-return-error-checks,omitempty"`
 }
 
 type Diff struct {

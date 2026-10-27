@@ -126,6 +126,13 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+  # (optional; default false)
+  # Exclude error checks with a single return statement referencing the error.
+  # Only the body is excluded; the condition is still counted.
+  # e.g. `if err != nil { return ..., err }`.
+  # See "Exclude Single Return Error Checks" below.
+  single-return-error-checks: false
+
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
 force-annotation-comment: false
@@ -177,6 +184,32 @@ Similarly, the entire function can be excluded from coverage statistics when a c
 ```go
 func bar() { // coverage-ignore
 ...
+}
+```
+
+#### Exclude Single Return Error Checks
+
+Set `exclude.single-return-error-checks: true` to automatically exclude error checks whose condition is `<err> != nil` (or `nil != <err>`),
+where `<err>` is a variable implementing `error`, and whose body contains only a single return statement referencing that error.
+
+Only the body of the if statement is excluded; the condition itself is still counted.
+
+```go
+if err != nil {
+	return err // excluded
+}
+
+if err := foo(); err != nil {
+	return nil, fmt.Errorf("doing foo: %w", err) // excluded
+}
+
+if val == 0 {
+	return errors.New("invalid value") // not excluded: not an error check
+}
+
+if err != nil {
+	log.Print(err)
+	return err // not excluded: body contains multiple statements
 }
 ```
 
