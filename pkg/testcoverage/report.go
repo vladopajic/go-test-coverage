@@ -211,11 +211,13 @@ func ReportForGithubAction(w io.Writer, result AnalyzeResult) {
 }
 
 const (
-	gaOutputFileEnv       = "GITHUB_OUTPUT"
-	gaOutputTotalCoverage = "total-coverage"
-	gaOutputBadgeColor    = "badge-color"
-	gaOutputBadgeText     = "badge-text"
-	gaOutputReport        = "report"
+	gaOutputFileEnv              = "GITHUB_OUTPUT"
+	gaOutputTotalCoverage        = "total-coverage"
+	gaOutputBadgeColor           = "badge-color"
+	gaOutputBadgeText            = "badge-text"
+	gaOutputReport               = "report"
+	gaOutputCoverageReport       = "report-coverage"
+	gaOutputUncoveredLinesReport = "report-uncovered-lines"
 )
 
 func SetGithubActionOutput(result AnalyzeResult, report string) error {
@@ -226,11 +228,18 @@ func SetGithubActionOutput(result AnalyzeResult, report string) error {
 
 	totalStr := strconv.Itoa(result.TotalStats.CoveredPercentage())
 
+	var coverageReport, uncoveredLinesReport strings.Builder
+	reportCoverage(&coverageReport, result)
+	reportUncoveredLines(&uncoveredLinesReport, result)
+
 	return errors.Join(
 		setOutputValue(file, gaOutputTotalCoverage, totalStr),
 		setOutputValue(file, gaOutputBadgeColor, badge.Color(result.TotalStats.CoveredPercentage())),
 		setOutputValue(file, gaOutputBadgeText, totalStr+"%"),
 		setOutputValue(file, gaOutputReport, marshalReportValue(report)),
+		setOutputValue(file, gaOutputCoverageReport, marshalReportValue(coverageReport.String())),
+		setOutputValue(file, gaOutputUncoveredLinesReport,
+			marshalReportValue(uncoveredLinesReport.String())),
 		file.Close(),
 	)
 }

@@ -1,11 +1,13 @@
 package testcoverage
 
 const (
-	GaOutputFileEnv       = gaOutputFileEnv
-	GaOutputTotalCoverage = gaOutputTotalCoverage
-	GaOutputBadgeColor    = gaOutputBadgeColor
-	GaOutputBadgeText     = gaOutputBadgeText
-	GaOutputReport        = gaOutputReport
+	GaOutputFileEnv              = gaOutputFileEnv
+	GaOutputTotalCoverage        = gaOutputTotalCoverage
+	GaOutputBadgeColor           = gaOutputBadgeColor
+	GaOutputBadgeText            = gaOutputBadgeText
+	GaOutputReport               = gaOutputReport
+	GaOutputCoverageReport       = gaOutputCoverageReport
+	GaOutputUncoveredLinesReport = gaOutputUncoveredLinesReport
 )
 
 var (
