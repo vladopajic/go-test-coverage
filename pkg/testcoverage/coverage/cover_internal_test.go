@@ -320,3 +320,33 @@ example.com/dep/a.go:2.57,2.67 1 1
 	require.Len(t, stats, 1)
 	assert.EqualValues(t, 2, stats[0].Total)
 }
+
+func TestTypedLoader_MissingPackageDirectory(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("loads Go packages")
+	}
+
+	missingDir := filepath.Join(t.TempDir(), "missing")
+	_, _, found := findDependencyFile("example.com/dep/file.go", missingDir)
+	assert.False(t, found)
+
+	_, err := findSingleReturnErrorChecks(filepath.Join(missingDir, "file.go"))
+	require.ErrorContains(t, err, "loading package")
+}
+
+func TestTypedLoader_FileNotInPackage(t *testing.T) {
+	t.Parallel()
+
+	if testing.Short() {
+		t.Skip("loads Go packages")
+	}
+
+	// Load this package successfully, but ask for a file it does not contain.
+	dir, err := os.Getwd()
+	require.NoError(t, err)
+
+	_, err = findSingleReturnErrorChecks(filepath.Join(dir, "missing.go"))
+	require.ErrorContains(t, err, "file not found in package")
+}

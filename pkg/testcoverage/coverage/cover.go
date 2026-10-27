@@ -469,7 +469,7 @@ func newTypedLoader() *typedLoader {
 //nolint:lll // relax
 func (l *typedLoader) loadFile(filename string) (*token.FileSet, *ast.File, *types.Info, error) {
 	abs, err := filepath.Abs(filename)
-	if err != nil {
+	if err != nil { // coverage-ignore: requires the current directory to be inaccessible
 		return nil, nil, nil, fmt.Errorf("absolute path for %s: %w", filename, err)
 	}
 
