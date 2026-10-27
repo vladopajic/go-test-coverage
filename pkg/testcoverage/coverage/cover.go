@@ -13,8 +13,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-	"sync"
-	"time"
 
 	"golang.org/x/tools/cover"
 	"golang.org/x/tools/go/packages"
@@ -46,6 +44,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 
 	fileStats := make([]Stats, 0, len(profiles))
 	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
+	loader := newTypedLoader()
 
 	for _, profile := range profiles {
 		fi, ok := files[profile.FileName]
@@ -59,7 +58,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi, cfg)
+		s, err := coverageForFile(profile, fi, cfg, loader)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +84,9 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func coverageForFile(profile *cover.Profile, fi fileInfo, cfg Config) (Stats, error) {
+func coverageForFile(
+	profile *cover.Profile, fi fileInfo, cfg Config, loader *typedLoader,
+) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
 	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
@@ -101,7 +102,7 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, cfg Config) (Stats, er
 	if cfg.ExcludeSingleReturnErrorChecks {
 		var info *types.Info
 
-		fset, node, info, err = loadTypedFile(fi.path, cfg.SourceDir)
+		fset, node, info, err = loader.loadFile(fi.path)
 		if err != nil {
 			return Stats{}, err
 		}
@@ -131,7 +132,11 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	for _, profile := range profiles {
 		path, noPrefixName, found := findFile(profile.FileName)
 		if !found {
-			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
+			path, noPrefixName, found = findDependencyFile(profile.FileName, rootDir)
+
+			if !found {
+				return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
+			}
 		}
 
 		result[profile.FileName] = fileInfo{
@@ -141,6 +146,26 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	}
 
 	return result, nil
+}
+
+func findDependencyFile(filename, rootDir string) (string, string, bool) {
+	dir, name := filepath.Split(filename)
+	cfg := &packages.Config{Mode: packages.NeedFiles, Dir: defaultRootDir(rootDir)}
+
+	pkgs, err := packages.Load(cfg, strings.TrimSuffix(filepath.ToSlash(dir), "/"))
+	if err != nil {
+		return "", "", false
+	}
+
+	for _, pkg := range pkgs {
+		for _, file := range pkg.GoFiles {
+			if filepath.Base(file) == name {
+				return file, filename, true
+			}
+		}
+	}
+
+	return "", "", false
 }
 
 func findFileCreator(rootDirUser string) func(file string) (string, string, bool) {
@@ -331,8 +356,8 @@ func hasComment(text string) bool {
 	return len(trimmedComment) > len(IgnoreText)
 }
 
-func findSingleReturnErrorChecks(path string, sourceDir string) ([]extent, error) {
-	fset, node, info, err := loadTypedFile(path, sourceDir)
+func findSingleReturnErrorChecks(path string) ([]extent, error) {
+	fset, node, info, err := newTypedLoader().loadFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -432,27 +457,41 @@ func isNilIdent(expr ast.Expr) bool {
 	return ok && ident.Name == "nil"
 }
 
-//nolint:gochecknoglobals // need to cache packages for performance
-var (
-	pkgs     []*packages.Package
-	pkgsOnce sync.Once
-)
+// typedLoader caches packages only for the duration of a single analysis.
+type typedLoader struct {
+	packages map[string][]*packages.Package
+}
 
-func loadTypedFile(
-	filename string, sourceDir string,
-) (*token.FileSet, *ast.File, *types.Info, error) {
+func newTypedLoader() *typedLoader {
+	return &typedLoader{packages: make(map[string][]*packages.Package)}
+}
+
+//nolint:lll // relax
+func (l *typedLoader) loadFile(filename string) (*token.FileSet, *ast.File, *types.Info, error) {
 	abs, err := filepath.Abs(filename)
-	if err != nil { // coverage-ignore
-		return nil, nil, nil, fmt.Errorf("error getting absolute path for file: %s: %w", filename, err)
+	if err != nil { // coverage-ignore: requires the current directory to be inaccessible
+		return nil, nil, nil, fmt.Errorf("absolute path for %s: %w", filename, err)
 	}
 
-	pkgsOnce.Do(func() {
-		pkgs, err = loadPackages(sourceDir)
-	})
+	dir := filepath.Dir(abs)
 
-	if err != nil {
-		//nolint:lll // relax
-		return nil, nil, nil, fmt.Errorf("error loading packages for source directory: %s: %w", sourceDir, err)
+	pkgs, found := l.packages[dir]
+	if !found {
+		cfg := &packages.Config{Dir: dir, Mode: packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles |
+			packages.NeedImports | packages.NeedDeps | packages.NeedTypes |
+			packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes}
+
+		pkgs, err = packages.Load(cfg, ".")
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("loading package for %s (ensure build tags, GOOS and GOARCH match the coverage profile): %w", abs, err)
+		}
+
+		err = packageErrors(pkgs)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("loading package for %s (ensure build tags, GOOS and GOARCH match the coverage profile): %w", abs, err)
+		}
+
+		l.packages[dir] = pkgs
 	}
 
 	for _, pkg := range pkgs {
@@ -463,57 +502,19 @@ func loadTypedFile(
 		}
 	}
 
-	return nil, nil, nil, fmt.Errorf("file not found in package: %s", abs)
+	return nil, nil, nil, fmt.Errorf("file not found in package: %s; ensure build tags, GOOS and GOARCH match the coverage profile", abs)
 }
 
-func loadPackages(sourceDir string) ([]*packages.Package, error) {
-	abs, err := filepath.Abs(sourceDir)
-	if err != nil { // coverage-ignore
-		return nil, fmt.Errorf("error getting absolute path for source directory: %s: %w", sourceDir, err)
-	}
+func packageErrors(pkgs []*packages.Package) error {
+	var err error
 
-	log := logger.L.With().Str("sourceDir", sourceDir).Logger()
-	log.Debug().Msg("Loading packages")
-
-	s := time.Now()
-
-	cfg := &packages.Config{
-		Mode: packages.NeedName |
-			packages.NeedFiles |
-			packages.NeedCompiledGoFiles |
-			packages.NeedImports |
-			packages.NeedDeps |
-			packages.NeedTypes |
-			packages.NeedSyntax |
-			packages.NeedTypesInfo |
-			packages.NeedTypesSizes,
-		Dir: abs,
-	}
-
-	var srcPackages []*packages.Package
-
-	srcPackages, err = packages.Load(cfg, "./...")
-	if err != nil {
-		return nil, fmt.Errorf("error loading packages: %s: %w", abs, err)
-	}
-
-	log.Debug().Dur("delay", time.Since(s)).Msg("Loaded packages successfully")
-
-	if len(srcPackages) == 0 {
-		return nil, fmt.Errorf("expected at least one package for %s", abs)
-	}
-
-	for _, pkg := range srcPackages {
+	for _, pkg := range pkgs {
 		for _, e := range pkg.Errors {
 			err = errors.Join(err, e)
 		}
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("error loading packages: %s: %w", abs, err)
-	}
-
-	return srcPackages, nil
+	return err
 }
 
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {

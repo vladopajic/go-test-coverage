@@ -1,13 +1,10 @@
 package coverage
 
-import "sync"
-
 var (
 	FindFileCreator             = findFileCreator
 	FindAnnotations             = findAnnotations
 	FindFuncsAndBlocks          = findFuncsAndBlocks
 	FindSingleReturnErrorChecks = findSingleReturnErrorChecks
-	LoadTypedFile               = loadTypedFile
 	ParseProfiles               = parseProfiles
 	SumCoverage                 = sumCoverage
 	FindGoModFile               = findGoModFile
@@ -22,9 +19,4 @@ type (
 
 func NewFileInfo(name string) fileInfo {
 	return fileInfo{name: name, path: name}
-}
-
-func ResetPackagesCache() {
-	pkgs = nil
-	pkgsOnce = sync.Once{}
 }
