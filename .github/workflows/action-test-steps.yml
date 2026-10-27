@@ -27,6 +27,9 @@ jobs:
       - name: generate test coverage
         run: go test ./... -coverprofile=./cover.out -covermode=atomic
 
+      - name: "test: entrypoint args"
+        run: make test-entrypoint
+
       - name: set action to docker image
         if: inputs.variant == 'docker'
         run: |
