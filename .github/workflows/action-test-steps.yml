@@ -7,9 +7,9 @@ on:
         type: string
         required: true
       version:
-        description: 'Docker image tag (docker variant) or git sha (source variant)'
+        description: 'Docker image tag (docker variant only)'
         type: string
-        required: true
+        required: false
 
 jobs:
   test:
@@ -36,7 +36,9 @@ jobs:
 
       - name: set action to source
         if: inputs.variant == 'source'
-        run: cp action/source/action.yml action.yml
+        run: |
+          # Run the checkout directly: fork PR commits cannot be resolved through the upstream Go module.
+          sed 's|go run github.com/vladopajic/go-test-coverage/v2@.*|go run . \\|' action/source/action.yml > action.yml
 
       ## Test 1
 
