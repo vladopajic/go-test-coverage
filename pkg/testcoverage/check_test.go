@@ -37,7 +37,7 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		pass, err := Check(buf, Config{})
+		pass, err := Check(buf, Config{Format: ShowDefault})
 		assert.False(t, pass)
 		assert.Error(t, err)
 		assertGithubActionErrorsCount(t, buf.String(), 0)
@@ -49,7 +49,7 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}}
+		cfg := Config{Profile: profileNOK, Threshold: Threshold{Total: 65}, Format: ShowDefault}
 		pass, err := Check(buf, cfg)
 		assert.False(t, pass)
 		assert.Error(t, err)
@@ -62,7 +62,12 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 65}, SourceDir: sourceDir}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{Total: 65},
+			SourceDir: sourceDir,
+			Format:    ShowDefault,
+		}
 		pass, err := Check(buf, cfg)
 		assert.True(t, pass)
 		assert.NoError(t, err)
@@ -83,6 +88,7 @@ func TestCheck(t *testing.T) {
 				Paths: []string{`cdn\.go$`, `github\.go$`, `cover\.go$`, `check\.go$`, `path\.go$`},
 			},
 			SourceDir: sourceDir,
+			Format:    ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.True(t, pass)
@@ -96,7 +102,12 @@ func TestCheck(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Profile: profileOK, Threshold: Threshold{Total: 100}, SourceDir: sourceDir}
+		cfg := Config{
+			Profile:   profileOK,
+			Threshold: Threshold{Total: 100},
+			SourceDir: sourceDir,
+			Format:    ShowDefault,
+		}
 		pass, err := Check(buf, cfg)
 		assert.False(t, pass)
 		assert.NoError(t, err)
@@ -119,6 +130,7 @@ func TestCheck(t *testing.T) {
 			Threshold: Threshold{File: 100},
 			Override:  []Override{{Threshold: 10, Path: "^pkg"}},
 			SourceDir: sourceDir,
+			Format:    ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.True(t, pass)
@@ -138,6 +150,7 @@ func TestCheck(t *testing.T) {
 			Threshold: Threshold{File: 10},
 			Override:  []Override{{Threshold: 100, Path: "^pkg"}},
 			SourceDir: sourceDir,
+			Format:    ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.False(t, pass)
@@ -161,6 +174,7 @@ func TestCheck(t *testing.T) {
 			Threshold: Threshold{File: 70},
 			Override:  []Override{{Threshold: 50, Path: "pkg/testcoverage/badgestorer/github.go"}},
 			SourceDir: sourceDir,
+			Format:    ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.True(t, pass)
@@ -180,6 +194,7 @@ func TestCheck(t *testing.T) {
 			Threshold: Threshold{File: 70},
 			Override:  []Override{{Threshold: 80, Path: "pkg/testcoverage/badgestorer/github.go"}},
 			SourceDir: sourceDir,
+			Format:    ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.False(t, pass)
@@ -274,6 +289,7 @@ func TestCheck(t *testing.T) {
 			Profile:                profileOK,
 			SourceDir:              sourceDir,
 			ForceAnnotationComment: true,
+			Format:                 ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.False(t, pass)
@@ -327,6 +343,7 @@ func TestCheckDiff(t *testing.T) {
 			BaseBreakdownFileName: brakedownFile,
 			Threshold:             ptr(0.0),
 		},
+		Format: ShowDefault,
 	}
 	buf = &bytes.Buffer{}
 	pass, err = Check(buf, cfg)
@@ -344,6 +361,7 @@ func TestCheckDiff(t *testing.T) {
 			BaseBreakdownFileName: brakedownFile,
 			Threshold:             ptr(-0.001),
 		},
+		Format: ShowDefault,
 	}
 	buf = &bytes.Buffer{}
 	pass, err = Check(buf, cfg)
@@ -361,6 +379,7 @@ func TestCheckDiff(t *testing.T) {
 			BaseBreakdownFileName: brakedownFile,
 			Threshold:             ptr(0.1),
 		},
+		Format: ShowDefault,
 	}
 	buf = &bytes.Buffer{}
 	pass, err = Check(buf, cfg)
@@ -389,6 +408,7 @@ func TestCheckDiff(t *testing.T) {
 			BaseBreakdownFileName: tmpFile.Name(),
 			Threshold:             ptr(1.0),
 		},
+		Format: ShowDefault,
 	}
 	buf = &bytes.Buffer{}
 	pass, err = Check(buf, cfg)
@@ -451,6 +471,7 @@ func TestCheckNoParallel(t *testing.T) {
 			GithubActionOutput: true,
 			Threshold:          Threshold{Total: 100},
 			SourceDir:          sourceDir,
+			Format:             ShowDefault,
 		}
 		pass, err := Check(buf, cfg)
 		assert.False(t, pass)

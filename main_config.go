@@ -20,6 +20,8 @@ type args struct {
 	ThresholdPackage   *int    `arg:"-k,--threshold-package"`
 	ThresholdTotal     *int    `arg:"-t,--threshold-total"`
 
+	Format *string `arg:"--format"`
+
 	BreakdownFileName         *string  `arg:"--breakdown-file-name"`
 	DiffBaseBreakdownFileName *string  `arg:"--diff-base-breakdown-file-name"`
 	DiffThreshold             *float64 `arg:"--diff-threshold"`
@@ -52,6 +54,13 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 	setValue(&cfg.Threshold.File, a.ThresholdFile)
 	setValue(&cfg.Threshold.Package, a.ThresholdPackage)
 	setValue(&cfg.Threshold.Total, a.ThresholdTotal)
+
+	format, err := formatFromStr(a.Format)
+	if err != nil {
+		return cfg, err
+	}
+
+	setValue(&cfg.Format, &format)
 
 	setValue(&cfg.BreakdownFileName, a.BreakdownFileName)
 	setValue(&cfg.Diff.BaseBreakdownFileName, a.DiffBaseBreakdownFileName)
@@ -129,4 +138,35 @@ func setPointer[T any](dest **T, source *T) {
 	if source != nil {
 		*dest = source
 	}
+}
+
+// Converts format string into bitflag
+func formatFromStr(format *string) (testcoverage.Format, error) {
+	if format == nil {
+		return testcoverage.ShowDefault, nil
+	}
+
+	res := testcoverage.Invalid
+
+	mapping := map[string]testcoverage.Format{
+		"files-above":          testcoverage.ShowFilesAboveThreshold,
+		"files-below":          testcoverage.ShowFilesBelowThreshold,
+		"packages-above":       testcoverage.ShowPackagesAboveThreshold,
+		"packages-below":       testcoverage.ShowPackagesBelowThreshold,
+		"uncovered-lines":      testcoverage.ShowUncoveredLines,
+		"missing-explanations": testcoverage.ShowMissingExplanations,
+		"diff":                 testcoverage.ShowDiff,
+	}
+
+	for _, entry := range strings.Split(*format, ",") {
+		flag, ok := mapping[entry]
+
+		if !ok {
+			return 0, fmt.Errorf("unexpected format option: %s", entry)
+		}
+
+		res |= flag
+	}
+
+	return res, nil
 }

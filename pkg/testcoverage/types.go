@@ -12,7 +12,9 @@ import (
 type AnalyzeResult struct {
 	Threshold                    Threshold
 	DiffThreshold                *float64
+	FilesAboveThreshold          []coverage.Stats
 	FilesBelowThreshold          []coverage.Stats
+	PackagesAboveThreshold       []coverage.Stats
 	PackagesBelowThreshold       []coverage.Stats
 	FilesWithUncoveredLines      []coverage.Stats
 	FilesWithMissingExplanations []coverage.Stats
@@ -58,12 +60,15 @@ func packageForFile(filename string) string {
 	return filename[:i]
 }
 
-func checkCoverageStatsBelowThreshold(
+func splitCoverageStatsThreshold(
 	coverageStats []coverage.Stats,
 	threshold int,
 	overrideRules []regRule,
-) []coverage.Stats {
-	var belowThreshold []coverage.Stats
+) ([]coverage.Stats, []coverage.Stats) {
+	var (
+		aboveThreshold []coverage.Stats
+		belowThreshold []coverage.Stats
+	)
 
 	for _, s := range coverageStats {
 		thr := threshold
@@ -71,13 +76,15 @@ func checkCoverageStatsBelowThreshold(
 			thr = override
 		}
 
+		s.Threshold = thr
 		if s.CoveredPercentage() < thr {
-			s.Threshold = thr
 			belowThreshold = append(belowThreshold, s)
+		} else {
+			aboveThreshold = append(aboveThreshold, s)
 		}
 	}
 
-	return belowThreshold
+	return aboveThreshold, belowThreshold
 }
 
 func makePackageStats(coverageStats []coverage.Stats) []coverage.Stats {

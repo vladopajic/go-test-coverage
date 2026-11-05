@@ -15,17 +15,26 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/coverage"
 )
 
-func ReportForHuman(w io.Writer, result AnalyzeResult) {
+func ReportForHuman(w io.Writer, result AnalyzeResult, cfg Config) {
 	out := bufio.NewWriter(w)
 	defer out.Flush()
 
-	reportCoverage(out, result)
-	reportUncoveredLines(out, result)
-	reportMissingExplanations(out, result)
-	reportDiff(out, result)
+	reportCoverage(out, result, cfg.Format)
+
+	if cfg.Format&ShowUncoveredLines != 0 {
+		reportUncoveredLines(out, result)
+	}
+
+	if cfg.Format&ShowMissingExplanations != 0 {
+		reportMissingExplanations(out, result)
+	}
+
+	if cfg.Format&ShowDiff != 0 {
+		reportDiff(out, result)
+	}
 }
 
-func reportCoverage(w io.Writer, result AnalyzeResult) {
+func reportCoverage(w io.Writer, result AnalyzeResult, format Format) {
 	tabber := tabwriter.NewWriter(w, 1, 8, 2, '\t', 0) //nolint:mnd // relax
 	defer tabber.Flush()
 
@@ -34,14 +43,22 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	if thr.File > 0 || result.HasFileOverrides { // File threshold report
 		fmt.Fprintf(tabber, "File coverage threshold (%d%%) satisfied:\t", thr.File)
 		fmt.Fprint(tabber, statusStr(len(result.FilesBelowThreshold) == 0))
-		reportIssuesForHuman(tabber, result.FilesBelowThreshold)
+
+		reportIssuesForHuman(tabber,
+			selectStats(result.FilesAboveThreshold, format, ShowFilesAboveThreshold),
+			selectStats(result.FilesBelowThreshold, format, ShowFilesBelowThreshold),
+		)
 		fmt.Fprint(tabber, "\n")
 	}
 
 	if thr.Package > 0 || result.HasPackageOverrides { // Package threshold report
 		fmt.Fprintf(tabber, "Package coverage threshold (%d%%) satisfied:\t", thr.Package)
 		fmt.Fprint(tabber, statusStr(len(result.PackagesBelowThreshold) == 0))
-		reportIssuesForHuman(tabber, result.PackagesBelowThreshold)
+
+		reportIssuesForHuman(tabber,
+			selectStats(result.PackagesAboveThreshold, format, ShowPackagesAboveThreshold),
+			selectStats(result.PackagesBelowThreshold, format, ShowPackagesBelowThreshold),
+		)
 		fmt.Fprint(tabber, "\n")
 	}
 
@@ -54,16 +71,24 @@ func reportCoverage(w io.Writer, result AnalyzeResult) {
 	fmt.Fprintf(tabber, "Total test coverage: %s\n", result.TotalStats.Str())
 }
 
-func reportIssuesForHuman(w io.Writer, coverageStats []coverage.Stats) {
-	if len(coverageStats) == 0 {
+func reportIssuesForHuman(w io.Writer, above, below []coverage.Stats) {
+	switch {
+	case len(above) > 0 && len(below) > 0:
+		fmt.Fprintf(w, "\n  \tcoverage:\tthreshold:")
+	case len(above) > 0:
+		fmt.Fprintf(w, "\n  above threshold:\tcoverage:\tthreshold:")
+	case len(below) > 0:
+		fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
+	default:
 		return
 	}
 
-	fmt.Fprintf(w, "\n  below threshold:\tcoverage:\tthreshold:")
+	stats := make([]coverage.Stats, 0, len(above)+len(below))
+	stats = append(stats, above...)
+	stats = append(stats, below...)
+	coverage.SortStatsByName(stats)
 
-	coverage.SortStatsByName(coverageStats)
-
-	for _, stats := range coverageStats {
+	for _, stats := range stats {
 		fmt.Fprintf(w, "\n  %s\t%s\t%d%%", stats.Name, stats.Str(), stats.Threshold)
 	}
 
@@ -298,4 +323,13 @@ func sliceIntsStr(s []int, sep string) string {
 	}
 
 	return strings.Join(strs, sep)
+}
+
+func selectStats(stats []coverage.Stats, format, option Format) []coverage.Stats {
+	var res []coverage.Stats
+	if format&option != 0 {
+		res = stats
+	}
+
+	return res
 }

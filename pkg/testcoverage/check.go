@@ -52,7 +52,7 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 
 	result := Analyze(cfg, currentStats, baseStats)
 
-	report := reportForHuman(w, result)
+	report := reportForHuman(w, result, cfg)
 
 	if cfg.GithubActionOutput {
 		ReportForGithubAction(w, result)
@@ -71,11 +71,11 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 	return result.Pass(), nil
 }
 
-func reportForHuman(w io.Writer, result AnalyzeResult) string {
+func reportForHuman(w io.Writer, result AnalyzeResult, cfg Config) string {
 	buffer := &bytes.Buffer{}
 	out := bufio.NewWriter(buffer)
 
-	ReportForHuman(out, result)
+	ReportForHuman(out, result, cfg)
 	out.Flush()
 
 	w.Write(buffer.Bytes()) //nolint:errcheck // relax
@@ -103,15 +103,19 @@ func Analyze(cfg Config, current, base []coverage.Stats) AnalyzeResult {
 		filesWithMissingExplanations = coverage.StatsFilterWithMissingExplanations(current)
 	}
 
+	filesAbove, filesBelow := splitCoverageStatsThreshold(current, thr.File, overrideRules)
+	packages := makePackageStats(current)
+	packagesAbove, packagesBelow := splitCoverageStatsThreshold(packages, thr.Package, overrideRules)
+
 	return AnalyzeResult{
-		Threshold:           thr,
-		DiffThreshold:       cfg.Diff.Threshold,
-		HasFileOverrides:    hasFileOverrides,
-		HasPackageOverrides: hasPackageOverrides,
-		FilesBelowThreshold: checkCoverageStatsBelowThreshold(current, thr.File, overrideRules),
-		PackagesBelowThreshold: checkCoverageStatsBelowThreshold(
-			makePackageStats(current), thr.Package, overrideRules,
-		),
+		Threshold:                    thr,
+		DiffThreshold:                cfg.Diff.Threshold,
+		HasFileOverrides:             hasFileOverrides,
+		HasPackageOverrides:          hasPackageOverrides,
+		FilesAboveThreshold:          filesAbove,
+		FilesBelowThreshold:          filesBelow,
+		PackagesAboveThreshold:       packagesAbove,
+		PackagesBelowThreshold:       packagesBelow,
 		FilesWithUncoveredLines:      coverage.StatsFilterWithUncoveredLines(current),
 		FilesWithMissingExplanations: filesWithMissingExplanations,
 		TotalStats:                   coverage.StatsCalcTotal(current),
