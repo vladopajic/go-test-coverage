@@ -3,8 +3,7 @@ on:
   push:
   pull_request:
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 jobs:
   test:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
@@ -16,14 +15,14 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: setup go
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       
       - name: test
-        env:
-          GITHUB_TOKEN: ${{ matrix.os == 'ubuntu-latest' && secrets.GITHUB_TOKEN || '' }} # Needed for GitHub badge storer integration test
         run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
@@ -36,10 +35,50 @@ jobs:
   check-coverage:
     runs-on: ubuntu-latest
     needs: test
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: check repository write access
+        id: write-access
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.setOutput('allowed', 'false');
+            // Fork PRs and Dependabot runs receive a read-only token.
+            if ((context.eventName === 'pull_request' &&
+                 context.payload.pull_request.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) ||
+                context.actor === 'dependabot[bot]') {
+              return;
+            }
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                ...context.repo,
+                username: context.actor,
+              });
+              core.setOutput('allowed', ['write', 'admin'].includes(data.permission));
+            } catch (error) {
+              if (![403, 404].includes(error.status)) throw error;
+              core.info('Write access could not be verified; skipping integration tests.');
+            }
+
+      - name: setup go
+        if: steps.write-access.outputs.allowed == 'true'
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: test with GitHub integration
+        if: steps.write-access.outputs.allowed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
+        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=integration-profile -covermode=atomic -coverpkg=./... ./...
 
       - name: download ubuntu-latest-profile
         uses: actions/download-artifact@v8
@@ -68,10 +107,10 @@ jobs:
         uses: vladopajic/go-test-coverage@v2
         continue-on-error: true # Should fail after coverage comment is posted
         with:
-          config: ./.github/.testcoverage.yml
-          profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
+          config: ${{ steps.write-access.outputs.allowed == 'true' && './.github/.testcoverage.yml' || './.github/.testcoverage-local.yml' }}
+          profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile${{ steps.write-access.outputs.allowed == 'true' && ',integration-profile' || '' }}
           git-branch: badges
-          git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
+          git-token: ${{ steps.write-access.outputs.allowed == 'true' && github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
           diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
  
@@ -84,6 +123,7 @@ jobs:
           if-no-files-found: error
 
       - name: find pull request ID
+        if: steps.write-access.outputs.allowed == 'true'
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
             echo "pull_request_id=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
@@ -98,7 +138,7 @@ jobs:
             fi
           fi
       - name: post coverage report
-        if: env.pull_request_id
+        if: steps.write-access.outputs.allowed == 'true' && env.pull_request_id
         uses: thollander/actions-comment-pull-request@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
