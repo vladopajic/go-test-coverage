@@ -24,7 +24,8 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{}})
+		cfg := Config{Format: ShowDefault}
+		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{}}, cfg)
 
 		assertHumanReport(t, buf.String(), 3, 0)
 		assertNoUncoveredLinesInfo(t, buf.String())
@@ -34,7 +35,9 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{Total: 1}})
+		cfg := Config{Format: ShowDefault}
+
+		ReportForHuman(buf, AnalyzeResult{Threshold: thr, TotalStats: coverage.Stats{Total: 1}}, cfg)
 
 		assertHumanReport(t, buf.String(), 2, 1)
 		assertNoUncoveredLinesInfo(t, buf.String())
@@ -44,12 +47,12 @@ func Test_ReportForHuman(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Threshold: Threshold{File: 10}}
+		cfg := Config{Threshold: Threshold{File: 10}, Format: ShowDefault}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
@@ -63,16 +66,53 @@ func Test_ReportForHuman(t *testing.T) {
 		)
 	})
 
-	t.Run("package coverage - fail", func(t *testing.T) {
+	t.Run("file coverage - show pass", func(t *testing.T) {
 		t.Parallel()
 
 		buf := &bytes.Buffer{}
-		cfg := Config{Threshold: Threshold{Package: 10}}
+		cfg := Config{Threshold: Threshold{File: 10}, Format: ShowFilesAboveThreshold}
 		statsWithError := randStats(prefix, 0, 9)
 		statsNoError := randStats(prefix, 10, 100)
 		allStats := mergeStats(statsWithError, statsNoError)
 		result := Analyze(cfg, allStats, nil)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
+
+		headReport, _ := splitReport(t, buf.String())
+		assertHumanReport(t, headReport, 0, 1)
+		assertNotContainStats(t, headReport, statsWithError)
+		assertContainStats(t, headReport, statsNoError)
+	})
+
+	t.Run("file coverage - show pass/fail", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Threshold: Threshold{File: 10},
+			Format:    ShowFilesAboveThreshold | ShowFilesBelowThreshold,
+		}
+		statsWithError := randStats(prefix, 0, 9)
+		statsNoError := randStats(prefix, 10, 100)
+		allStats := mergeStats(statsWithError, statsNoError)
+		result := Analyze(cfg, allStats, nil)
+		ReportForHuman(buf, result, cfg)
+
+		headReport, _ := splitReport(t, buf.String())
+		assertHumanReport(t, headReport, 0, 1)
+		assertContainStats(t, headReport, statsWithError)
+		assertContainStats(t, headReport, statsNoError)
+	})
+
+	t.Run("package coverage - fail", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{Threshold: Threshold{Package: 10}, Format: ShowDefault}
+		statsWithError := randStats(prefix, 0, 9)
+		statsNoError := randStats(prefix, 10, 100)
+		allStats := mergeStats(statsWithError, statsNoError)
+		result := Analyze(cfg, allStats, nil)
+		ReportForHuman(buf, result, cfg)
 
 		headReport, uncoveredReport := splitReport(t, buf.String())
 		assertHumanReport(t, headReport, 0, 1)
@@ -87,6 +127,46 @@ func Test_ReportForHuman(t *testing.T) {
 			coverage.StatsPluckName(coverage.StatsFilterWithCoveredLines(allStats)),
 		)
 	})
+	t.Run("package coverage - pass", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{Threshold: Threshold{Package: 10}, Format: ShowPackagesAboveThreshold}
+		statsWithError := randStats(prefix, 0, 9)
+		statsNoError := randStats(prefix, 10, 100)
+		allStats := mergeStats(statsWithError, statsNoError)
+		result := Analyze(cfg, allStats, nil)
+		ReportForHuman(buf, result, cfg)
+
+		headReport, _ := splitReport(t, buf.String())
+		assertHumanReport(t, headReport, 0, 1)
+		assertNotContainStats(t, headReport, MakePackageStats(statsWithError))
+		assertContainStats(t, headReport, MakePackageStats(statsNoError))
+		assertNotContainStats(t, headReport, statsWithError)
+		assertNotContainStats(t, headReport, statsNoError)
+	})
+
+	t.Run("package coverage - pass/fail", func(t *testing.T) {
+		t.Parallel()
+
+		buf := &bytes.Buffer{}
+		cfg := Config{
+			Threshold: Threshold{Package: 10},
+			Format:    ShowPackagesAboveThreshold | ShowPackagesBelowThreshold,
+		}
+		statsWithError := randStats(prefix, 0, 9)
+		statsNoError := randStats(prefix, 10, 100)
+		allStats := mergeStats(statsWithError, statsNoError)
+		result := Analyze(cfg, allStats, nil)
+		ReportForHuman(buf, result, cfg)
+
+		headReport, _ := splitReport(t, buf.String())
+		assertHumanReport(t, headReport, 0, 1)
+		assertContainStats(t, headReport, MakePackageStats(statsWithError))
+		assertContainStats(t, headReport, MakePackageStats(statsNoError))
+		assertNotContainStats(t, headReport, statsWithError)
+		assertNotContainStats(t, headReport, statsNoError)
+	})
 }
 
 func Test_ReportForHumanDiff(t *testing.T) {
@@ -100,9 +180,9 @@ func Test_ReportForHumanDiff(t *testing.T) {
 		stats := randStats(prefix, 10, 100)
 
 		buf := &bytes.Buffer{}
-		cfg := Config{}
+		cfg := Config{Format: ShowDefault}
 		result := Analyze(cfg, stats, stats)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		assertDiffNoChange(t, buf.String())
 	})
@@ -119,9 +199,9 @@ func Test_ReportForHumanDiff(t *testing.T) {
 		base = append(base, makeStats("foo", 10, 10))
 
 		buf := &bytes.Buffer{}
-		cfg := Config{}
+		cfg := Config{Format: ShowDefault}
 		result := Analyze(cfg, stats, base)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		assertDiffChange(t, buf.String(), 2)
 		assert.Contains(t, buf.String(), "foo\t\t  1\t\t88.9% (8/9)\t\t100% (10/10)")
@@ -136,10 +216,11 @@ func Test_ReportForHumanDiff(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
-			Diff: Diff{Threshold: ptr(999.0)},
+			Diff:   Diff{Threshold: ptr(999.0)},
+			Format: ShowDefault,
 		}
 		result := Analyze(cfg, stats, base)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, false)
 		assertDiffPercentage(t, buf.String(), 70)
@@ -154,10 +235,11 @@ func Test_ReportForHumanDiff(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
-			Diff: Diff{Threshold: ptr(70.0)},
+			Diff:   Diff{Threshold: ptr(70.0)},
+			Format: ShowDefault,
 		}
 		result := Analyze(cfg, stats, base)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
 		assertDiffPercentage(t, buf.String(), 70)
@@ -172,10 +254,11 @@ func Test_ReportForHumanDiff(t *testing.T) {
 
 		buf := &bytes.Buffer{}
 		cfg := Config{
-			Diff: Diff{Threshold: ptr(-11.0)},
+			Diff:   Diff{Threshold: ptr(-11.0)},
+			Format: ShowDefault,
 		}
 		result := Analyze(cfg, stats, base)
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		assertDiffThreshold(t, buf.String(), *cfg.Diff.Threshold, true)
 		assertDiffPercentage(t, buf.String(), -10)
@@ -339,8 +422,9 @@ func Test_ReportMissingExplanations(t *testing.T) {
 				},
 			},
 		}
+		cfg := Config{Format: ShowDefault}
 
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		output := buf.String()
 		assert.Contains(t, output, "Files with missing explanation for coverage-ignore annotation:")
@@ -355,8 +439,11 @@ func Test_ReportMissingExplanations(t *testing.T) {
 		result := AnalyzeResult{
 			FilesWithMissingExplanations: []coverage.Stats{},
 		}
+		cfg := Config{
+			Format: ShowDefault,
+		}
 
-		ReportForHuman(buf, result)
+		ReportForHuman(buf, result, cfg)
 
 		output := buf.String()
 		assert.NotContains(t, output, "Files with missing explanations for coverage-ignore annotations:")

@@ -15,6 +15,22 @@ import (
 
 const HiddenValue = "***"
 
+type Format int
+
+const (
+	Invalid                 Format = 0
+	ShowFilesAboveThreshold Format = 1 << iota
+	ShowFilesBelowThreshold
+	ShowPackagesAboveThreshold
+	ShowPackagesBelowThreshold
+	ShowUncoveredLines
+	ShowMissingExplanations
+	ShowDiff
+)
+
+const ShowDefault = ShowFilesBelowThreshold | ShowPackagesBelowThreshold |
+	ShowUncoveredLines | ShowMissingExplanations | ShowDiff
+
 var (
 	ErrThresholdNotInRange         = errors.New("threshold must be in range [0 - 100]")
 	ErrCoverageProfileNotSpecified = errors.New("coverage profile file not specified")
@@ -35,8 +51,8 @@ type Config struct {
 	Diff                   Diff       `yaml:"diff"`
 	Badge                  Badge      `yaml:"-"`
 	ForceAnnotationComment bool       `yaml:"force-annotation-comment"`
+	Format                 Format     `yaml:"-"`
 }
-
 type Threshold struct {
 	File    int `yaml:"file"`
 	Package int `yaml:"package"`
