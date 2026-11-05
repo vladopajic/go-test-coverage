@@ -1,6 +1,19 @@
 #!/bin/bash
 set -e
 
+# Normalize runner-provided INPUT_* env var names: some runners (or invocations)
+# expose inputs with hyphens (e.g. INPUT_THRESHOLD-FILE) which are not valid
+# shell identifiers and thus not visible via $VAR. Convert any `INPUT_*` env
+# variable that contains `-` to a duplicate name with `_` so the script can
+# reference `INPUT_THRESHOLD_FILE` etc. This preserves existing behavior and
+# improves compatibility with runners that don't normalise names.
+while IFS='=' read -r name value; do
+	if [[ $name == INPUT_* && $name == *-* ]]; then
+		newname=${name//-/_}
+		export "$newname"="$value"
+	fi
+done < <(env)
+
 # Start building the command
 args=(/go-test-coverage)
 
