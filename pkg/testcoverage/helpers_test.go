@@ -290,14 +290,16 @@ func assertGithubOutputValues(t *testing.T, file string) {
 
 	content := string(contentBytes)
 
-	// There should be exactly 4 variables
-	assert.Equal(t, 4, strings.Count(content, "="))
+	// There should be exactly 6 variables
+	assert.Equal(t, 6, strings.Count(content, "="))
 
 	// Variables should have non empty values
 	assertNonEmptyValue(t, content, GaOutputTotalCoverage)
 	assertNonEmptyValue(t, content, GaOutputBadgeColor)
 	assertNonEmptyValue(t, content, GaOutputBadgeText)
 	assertNonEmptyValue(t, content, GaOutputReport)
+	assertNonEmptyValue(t, content, GaOutputCoverageReport)
+	assertNonEmptyValue(t, content, GaOutputUncoveredLinesReport)
 }
 
 func readStats(t *testing.T, file string) []coverage.Stats {
