@@ -169,7 +169,7 @@ runs:
   entrypoint: /docker-entrypoint.sh
   env:
     INPUT_COMMENT: ${{ inputs.comment }}
-    INPUT_GITHUB_TOKEN: ${{ inputs.github-token }}
+    INPUT_GITHUB_TOKEN: ${{ inputs.comment == 'true' && inputs.github-token || '' }}
     INPUT_CONFIG: ${{ inputs.config }}
     INPUT_PROFILE: ${{ inputs.profile }}
     INPUT_SOURCE_DIR: ${{ inputs.source-dir }}

@@ -184,9 +184,10 @@ runs:
   - name: run go-test-coverage
     id: coverage
     env:
-      GITHUB_TOKEN: ${{ inputs.github-token }}
+      INPUT_GITHUB_TOKEN: ${{ inputs.comment == 'true' && inputs.github-token || '' }}
     shell: bash
     run: |
+      [ -n "${INPUT_GITHUB_TOKEN:-}" ] && export GITHUB_TOKEN="$INPUT_GITHUB_TOKEN"
       go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} \
         ${{ inputs.config && format('--config={0}', inputs.config) || '' }} \
         ${{ inputs.profile && format('--profile={0}', inputs.profile) || '' }} \

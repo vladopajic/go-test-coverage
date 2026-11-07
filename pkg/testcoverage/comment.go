@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/google/go-github/v88/github"
 
@@ -16,14 +17,17 @@ import (
 )
 
 const (
-	githubCommentPageSize = 100
-	githubCommentTimeout  = 30 * time.Second
+	githubCommentPageSize  = 100
+	githubCommentTimeout   = 30 * time.Second
+	githubCommentBodyLimit = 65536
 )
 const coverageCommentMarker = `<!-- go-test-coverage "report" -->`
 
 func postCoverageComment(w io.Writer, token, report string) error {
 	options := []github.ClientOptionsFunc{github.WithAuthToken(token)}
+
 	if apiURL := os.Getenv("GITHUB_API_URL"); apiURL != "" {
+		apiURL = strings.TrimRight(apiURL, "/") + "/"
 		options = append(options, github.WithURLs(&apiURL, nil))
 	}
 
@@ -62,7 +66,7 @@ func postCoverageCommentWithClient(
 		return err
 	}
 
-	body := "go-test-coverage report:\n```\n" + report + "```\n" + coverageCommentMarker
+	body := coverageCommentBody(report)
 
 	comment := &github.IssueComment{Body: &body}
 	if id != 0 {
@@ -76,6 +80,24 @@ func postCoverageCommentWithClient(
 	}
 
 	return nil
+}
+
+func coverageCommentBody(report string) string {
+	const (
+		prefix          = "go-test-coverage report:\n```\n"
+		suffix          = "```\n" + coverageCommentMarker
+		truncatedSuffix = "\n```\nReport truncated; see the full report in the workflow logs.\n" +
+			coverageCommentMarker
+	)
+
+	body := prefix + report + suffix
+	if utf8.RuneCountInString(body) <= githubCommentBodyLimit {
+		return body
+	}
+
+	limit := githubCommentBodyLimit - utf8.RuneCountInString(prefix+truncatedSuffix)
+
+	return prefix + string([]rune(report)[:limit]) + truncatedSuffix
 }
 
 func findCoverageComment(

@@ -8,7 +8,9 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -40,9 +42,17 @@ func TestCoverageComment(t *testing.T) {
 		wantWrites    int
 		foreign       bool
 		missingAuthor bool
+		apiPath       string
+		apiSlash      bool
 	}{
 		{name: "create on pull request", event: "pull_request", wantWrites: 1},
 		{name: "create on branch push", event: "push", refType: "branch", wantWrites: 1},
+		{name: "API URL with trailing slash", event: "pull_request", apiSlash: true, wantWrites: 1},
+		{name: "enterprise API URL", event: "pull_request", apiPath: "/api/v3", wantWrites: 1},
+		{
+			name: "enterprise branch push", event: "push", refType: "branch",
+			apiPath: "/api/v3", wantWrites: 1,
+		},
 		{name: "update existing report", event: "pull_request", update: true, wantWrites: 1},
 		{
 			name: "find report on second page", event: "pull_request",
@@ -76,6 +86,11 @@ func TestCoverageComment(t *testing.T) {
 
 				assert.Equal(t, "Bearer test-token", r.Header.Get("Authorization"))
 				w.Header().Set("Content-Type", "application/json")
+
+				if tc.apiPath != "" && r.URL.Path != "/graphql" {
+					assert.True(t, strings.HasPrefix(r.URL.Path, tc.apiPath+"/"))
+					r.URL.Path = strings.TrimPrefix(r.URL.Path, tc.apiPath)
+				}
 
 				switch {
 				case r.URL.Path == "/graphql":
@@ -182,10 +197,16 @@ func TestCoverageComment(t *testing.T) {
 
 			eventFile := filepath.Join(t.TempDir(), "event.json")
 			require.NoError(t, os.WriteFile(eventFile, []byte(`{"pull_request":{"number":42}}`), 0o600))
-			t.Setenv("GITHUB_API_URL", server.URL+"/")
+
+			apiURL := server.URL + tc.apiPath
+			if tc.apiSlash {
+				apiURL += "/"
+			}
+
+			t.Setenv("GITHUB_API_URL", apiURL)
 
 			graphqlURL := ""
-			if tc.event == "push" {
+			if tc.event == "push" || tc.apiPath != "" {
 				graphqlURL = server.URL + "/graphql"
 			}
 
@@ -200,12 +221,15 @@ func TestCoverageComment(t *testing.T) {
 			t.Setenv("GITHUB_REF_TYPE", tc.refType)
 			t.Setenv("GITHUB_REF_NAME", "feature/test")
 
+			badgeFile := filepath.Join(t.TempDir(), "coverage.svg")
+
 			var out bytes.Buffer
 
 			pass, err := Check(&out, Config{
 				Profile: profileOK, SourceDir: sourceDir, Format: ShowDefault,
 				GithubComment: !tc.disabled, GithubToken: "test-token",
 				Threshold: Threshold{Total: tc.threshold},
+				Badge:     Badge{FileName: badgeFile},
 			})
 			if tc.failStage != "" && tc.failStage != "lookup" {
 				require.Error(t, err)
@@ -215,6 +239,7 @@ func TestCoverageComment(t *testing.T) {
 
 			assert.Equal(t, tc.threshold == 0 && (tc.failStage == "" || tc.failStage == "lookup"), pass)
 			assert.Equal(t, tc.wantWrites, writes)
+			assert.FileExists(t, badgeFile)
 
 			if tc.disabled || tc.refType == "tag" || tc.event == "workflow_dispatch" {
 				assert.Zero(t, calls)
@@ -313,4 +338,49 @@ func TestCommentConfig(t *testing.T) {
 	assert.NoError(t, cfg.Validate())
 	assert.Equal(t, HiddenValue, cfg.Redacted().GithubToken)
 	assert.Equal(t, "secret", cfg.GithubToken)
+}
+
+func TestCoverageCommentBody(t *testing.T) {
+	t.Parallel()
+
+	const (
+		limit  = 65536
+		prefix = "go-test-coverage report:\n```\n"
+		suffix = "```\n" + `<!-- go-test-coverage "report" -->`
+		notice = "Report truncated; see the full report in the workflow logs."
+	)
+
+	overhead := utf8.RuneCountInString(prefix + suffix)
+
+	for _, tc := range []struct {
+		name      string
+		report    string
+		truncated bool
+	}{
+		{name: "empty"},
+		{name: "short", report: "Total test coverage: 100%\n"},
+		{name: "below limit", report: strings.Repeat("x", limit-overhead-1)},
+		{name: "at limit", report: strings.Repeat("x", limit-overhead)},
+		{name: "over limit", report: strings.Repeat("x", limit-overhead+1), truncated: true},
+		{name: "large ASCII", report: strings.Repeat("x", limit*2), truncated: true},
+		{name: "Unicode at limit", report: strings.Repeat("\u754c", limit-overhead)},
+		{name: "large Unicode", report: strings.Repeat("\u754c\U0001f439", limit), truncated: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			body := CoverageCommentBody(tc.report)
+			assert.True(t, utf8.ValidString(body))
+			assert.LessOrEqual(t, utf8.RuneCountInString(body), limit)
+			assert.True(t, strings.HasPrefix(body, prefix))
+			assert.True(t, strings.HasSuffix(body, `<!-- go-test-coverage "report" -->`))
+
+			if tc.truncated {
+				assert.Equal(t, limit, utf8.RuneCountInString(body))
+				assert.Contains(t, body, "\n```\n"+notice+"\n")
+			} else {
+				assert.Equal(t, prefix+tc.report+suffix, body)
+			}
+		})
+	}
 }
