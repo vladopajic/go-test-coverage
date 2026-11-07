@@ -28,16 +28,18 @@ func TestCoverageComment(t *testing.T) {
 	const marker = `<!-- go-test-coverage "report" -->`
 
 	for _, tc := range []struct {
-		name       string
-		event      string
-		refType    string
-		disabled   bool
-		noPR       bool
-		update     bool
-		paginate   bool
-		failStage  string
-		threshold  int
-		wantWrites int
+		name          string
+		event         string
+		refType       string
+		disabled      bool
+		noPR          bool
+		update        bool
+		paginate      bool
+		failStage     string
+		threshold     int
+		wantWrites    int
+		foreign       bool
+		missingAuthor bool
 	}{
 		{name: "create on pull request", event: "pull_request", wantWrites: 1},
 		{name: "create on branch push", event: "push", refType: "branch", wantWrites: 1},
@@ -46,6 +48,14 @@ func TestCoverageComment(t *testing.T) {
 			name: "find report on second page", event: "pull_request",
 			update: true, paginate: true, wantWrites: 1,
 		},
+		{name: "ignore foreign report", event: "pull_request", foreign: true, wantWrites: 1},
+		{name: "ignore report without author", event: "pull_request", missingAuthor: true, wantWrites: 1},
+		{name: "skip foreign report before own report", event: "pull_request", foreign: true,
+			update: true, wantWrites: 1},
+		{name: "identity request error", event: "pull_request", failStage: "identity-request"},
+		{name: "identity HTTP error", event: "pull_request", failStage: "identity"},
+		{name: "identity GraphQL error", event: "pull_request", failStage: "graphql"},
+		{name: "identity missing", event: "pull_request", failStage: "missing-identity"},
 		{name: "post failing coverage", event: "pull_request", threshold: 100, wantWrites: 1},
 		{name: "disabled", event: "pull_request", disabled: true},
 		{name: "no open pull request", event: "push", refType: "branch", noPR: true},
@@ -66,6 +76,18 @@ func TestCoverageComment(t *testing.T) {
 				w.Header().Set("Content-Type", "application/json")
 
 				switch {
+				case r.URL.Path == "/graphql":
+					assert.Equal(t, http.MethodPost, r.Method)
+					switch tc.failStage {
+					case "identity":
+						http.Error(w, `{}`, http.StatusForbidden)
+					case "graphql":
+						fmt.Fprint(w, `{"data":{"viewer":{"id":"poster-id"}},"errors":[{"message":"denied"}]}`)
+					case "missing-identity":
+						fmt.Fprint(w, `{"data":{"viewer":null}}`)
+					default:
+						fmt.Fprint(w, `{"data":{"viewer":{"id":"poster-id"}}}`)
+					}
 				case r.URL.Path == "/repos/owner/repo/pulls":
 					assert.Equal(t, "open", r.URL.Query().Get("state"))
 					assert.Equal(t, "owner:feature/test", r.URL.Query().Get("head"))
@@ -82,17 +104,40 @@ func TestCoverageComment(t *testing.T) {
 					switch {
 					case tc.failStage == "list":
 						http.Error(w, `{}`, http.StatusForbidden)
-					case tc.paginate && r.URL.Query().Get("page") == "":
-						w.Header().Set("Link", fmt.Sprintf(`<http://%s%s?page=2>; rel="next"`, r.Host, r.URL.Path))
-						fmt.Fprint(w, `[{"id":1,"body":"unrelated"}]`)
-					case tc.update:
-						data, err := json.Marshal([]map[string]any{{"id": 99, "body": "old report\n" + marker}})
+					default:
+						comments := []map[string]any{{
+							"id": 3, "body": "unrelated comment", "user": map[string]string{"node_id": "poster-id"},
+						}}
+						if tc.foreign || tc.paginate {
+							comments = append(comments, map[string]any{
+								"id": 1, "body": marker,
+								"user": map[string]string{"node_id": "other-id", "login": "github-actions[bot]", "type": "Bot"},
+							})
+							comments = append(comments, map[string]any{
+								"id": 4, "body": marker,
+								"user": map[string]string{"node_id": "participant-id", "login": "participant", "type": "User"},
+							})
+						}
+
+						if tc.missingAuthor {
+							comments = append(comments, map[string]any{"id": 2, "body": marker})
+						}
+
+						if tc.paginate && r.URL.Query().Get("page") == "" {
+							w.Header().Set("Link", fmt.Sprintf(`<http://%s%s?page=2>; rel="next"`, r.Host, r.URL.Path))
+						} else if tc.update {
+							comments = append(comments, map[string]any{
+								"id": 99, "body": "old report\n" + marker,
+								"user": map[string]string{"node_id": "poster-id"},
+							})
+						}
+
+						data, err := json.Marshal(comments)
 						assert.NoError(t, err)
 						_, err = w.Write(data)
 						assert.NoError(t, err)
-					default:
-						fmt.Fprint(w, `[]`)
 					}
+
 				case r.Method == http.MethodPost || r.Method == http.MethodPatch:
 					writes++
 
@@ -131,6 +176,14 @@ func TestCoverageComment(t *testing.T) {
 			eventFile := filepath.Join(t.TempDir(), "event.json")
 			require.NoError(t, os.WriteFile(eventFile, []byte(`{"pull_request":{"number":42}}`), 0o600))
 			t.Setenv("GITHUB_API_URL", server.URL+"/")
+			graphqlURL := ""
+			if tc.event == "push" {
+				graphqlURL = server.URL + "/graphql"
+			}
+			if tc.failStage == "identity-request" {
+				graphqlURL = ":"
+			}
+			t.Setenv("GITHUB_GRAPHQL_URL", graphqlURL)
 			t.Setenv("GITHUB_REPOSITORY", "owner/repo")
 			t.Setenv("GITHUB_EVENT_NAME", tc.event)
 			t.Setenv("GITHUB_EVENT_PATH", eventFile)

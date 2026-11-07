@@ -81,6 +81,11 @@ func postCoverageCommentWithClient(
 func findCoverageComment(
 	ctx context.Context, client *github.Client, owner, repo string, number int,
 ) (int64, error) {
+	authorID, err := coverageCommentAuthor(ctx, client)
+	if err != nil {
+		return 0, err
+	}
+
 	opts := &github.IssueListCommentsOptions{
 		ListOptions: github.ListOptions{PerPage: githubCommentPageSize},
 	}
@@ -91,7 +96,8 @@ func findCoverageComment(
 		}
 
 		for _, existing := range comments {
-			if strings.Contains(existing.GetBody(), coverageCommentMarker) {
+			if existing.GetUser().GetNodeID() == authorID &&
+				strings.Contains(existing.GetBody(), coverageCommentMarker) {
 				return existing.GetID(), nil
 			}
 		}
@@ -102,6 +108,38 @@ func findCoverageComment(
 
 		opts.Page = response.NextPage
 	}
+}
+
+// GraphQL viewer supports installation tokens as well as personal access tokens.
+func coverageCommentAuthor(ctx context.Context, client *github.Client) (string, error) {
+	endpoint := os.Getenv("GITHUB_GRAPHQL_URL")
+	if endpoint == "" {
+		endpoint = "graphql"
+	}
+
+	req, err := client.NewRequest(ctx, "POST", endpoint,
+		map[string]string{"query": "query { viewer { id } }"})
+	if err != nil {
+		return "", fmt.Errorf("create posting identity request: %w", err)
+	}
+
+	var result struct {
+		Data struct {
+			Viewer struct {
+				ID string `json:"id"`
+			} `json:"viewer"`
+		} `json:"data"`
+		Errors []json.RawMessage `json:"errors"`
+	}
+	if _, err = client.Do(req, &result); err != nil {
+		return "", fmt.Errorf("get posting identity: %w", err)
+	}
+
+	if len(result.Errors) != 0 || result.Data.Viewer.ID == "" {
+		return "", errors.New("could not verify coverage comment posting identity")
+	}
+
+	return result.Data.Viewer.ID, nil
 }
 
 func coveragePullRequest(
