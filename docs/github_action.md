@@ -113,48 +113,34 @@ Example of report that includes coverage difference is [this PR](https://github.
 
 ## Post Coverage Report to PR
 
-Here is an example of how to post comments with the coverage report to your pull request. 
-
-The same logic is used in workflow in [this repo](/.github/workflows/test.yml).
-Example of report is in [this PR](https://github.com/vladopajic/go-test-coverage/pull/129).
+Enable `comment-report` to post the coverage report directly from either the Docker or source-based action:
 
 ```yml
-- name: check test coverage
-  id: coverage
-  uses: vladopajic/go-test-coverage@v2
-  continue-on-error: true # Should fail after coverage comment is posted
-  with:
-    config: ./.github/.testcoverage.yml
+permissions:
+  contents: read
+  pull-requests: write
 
-# Post coverage report as comment (in 2 steps)
-- name: find pull request ID
-  run: |
-      PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-        "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
-      PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
-      
-      if [ "$PR_ID" != "null" ]; then
-        echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
-      else
-        echo "No open pull request found for this branch."
-      fi
-- name: post coverage report
-  if: env.pull_request_id
-  uses: thollander/actions-comment-pull-request@v3
-  with:
-    github-token: ${{ secrets.GITHUB_TOKEN }}
-    comment-tag: coverage-report
-    pr-number: ${{ env.pull_request_id }}
-    message: |
-      go-test-coverage report:
-      ```
-      ${{ fromJSON(steps.coverage.outputs.report) }}```
-
-- name: "finally check coverage"
-  if: steps.coverage.outcome == 'failure'
-  shell: bash
-  run: echo "coverage check failed" && exit 1
+steps:
+  - name: check test coverage
+    uses: vladopajic/go-test-coverage@v2
+    with:
+      config: ./.github/.testcoverage.yml
+      comment-report: true
+      # Optional: defaults to github.token.
+      github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+The action uses the pull request number from pull request events. For branch pushes, it finds the first open pull request for that branch. It skips commenting when there is no open pull request or the event is not a pull request or branch push.
+
+Each run updates the existing `coverage-report` comment, including comments created by the previous workflow. The comment contains the same report as the `report` output, including coverage differences when configured. Reports are posted even when coverage thresholds fail; the action then fails normally, so no separate final coverage check is needed.
+Only report comments authored by the account associated with the posting token are updated. The action verifies that identity before selecting a comment; comments from other authors are ignored even when they contain the report marker.
+
+`comment-report` defaults to `false`. The token needs `pull-requests: write` permission.
+For fork pull requests and other runs with read-only tokens, leave commenting disabled, for example with `comment-report: ${{ github.event_name == 'push' }}`.
+Comment API errors fail the action. Pull request lookup failures print a warning and skip commenting, preserving the coverage check result.
+
+For CLI use in a GitHub Actions environment, pass `--comment=true` and provide
+`GITHUB_TOKEN` (or `--github-token`). These settings are separate from the badge upload options `git-token` and `git-repository`.
 
 
 ---

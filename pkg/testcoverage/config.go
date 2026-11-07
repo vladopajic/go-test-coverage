@@ -42,6 +42,8 @@ var (
 )
 
 type Config struct {
+	GithubCommentReport    bool       `yaml:"-"`
+	GithubToken            string     `yaml:"-"`
 	Profile                string     `yaml:"profile"`
 	Debug                  bool       `yaml:"-"`
 	SourceDir              string     `yaml:"-"`
@@ -85,6 +87,10 @@ type Badge struct {
 // Redacted returns a copy of Config with sensitive credentials obscured.
 func (c Config) Redacted() Config {
 	r := c
+
+	if r.GithubToken != "" {
+		r.GithubToken = HiddenValue
+	}
 
 	if r.Badge.CDN.Key != "" {
 		r.Badge.CDN.Key = HiddenValue
@@ -137,6 +143,14 @@ func (c Config) Validate() error {
 
 	if err := c.validateGit(); err != nil {
 		return fmt.Errorf("%w: %s", ErrGitOptionNotSet, err.Error())
+	}
+
+	return c.validateComment()
+}
+
+func (c Config) validateComment() error {
+	if c.GithubCommentReport && c.GithubToken == "" {
+		return errors.New("github-token is required when comment is enabled")
 	}
 
 	return nil

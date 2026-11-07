@@ -23,6 +23,18 @@ inputs:
     default: false
     type: boolean
 
+  # Pull request comment
+  comment-report:
+    description: Post or update a coverage report comment on the pull request. Requires pull-requests write permission.
+    required: false
+    default: false
+    type: boolean
+  github-token:
+    description: GitHub token used for posting coverage comments.
+    required: false
+    default: ${{ github.token }}
+    type: string
+
   # Individual properties
   profile:
     description: Path to the coverage profile file. Overrides value from configuration.
@@ -171,12 +183,16 @@ runs:
 
   - name: run go-test-coverage
     id: coverage
+    env:
+      INPUT_GITHUB_TOKEN: ${{ inputs.comment-report == 'true' && inputs.github-token || '' }}
     shell: bash
     run: |
+      [ -n "${INPUT_GITHUB_TOKEN:-}" ] && export GITHUB_TOKEN="$INPUT_GITHUB_TOKEN"
       go run github.com/vladopajic/go-test-coverage/v2@${{ inputs.version }} \
         ${{ inputs.config && format('--config={0}', inputs.config) || '' }} \
         ${{ inputs.profile && format('--profile={0}', inputs.profile) || '' }} \
         ${{ inputs.source-dir && format('--source-dir={0}', inputs.source-dir) || '' }} \
+        ${{ inputs.comment-report == 'true' && '--comment=true' || '' }} \
         --debug=${{ inputs.debug }} \
         --github-action-output=true \
         ${{ inputs.threshold-file != -1 && format('--threshold-file={0}', inputs.threshold-file) || '' }} \
