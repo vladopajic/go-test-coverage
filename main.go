@@ -28,13 +28,13 @@ func main() {
 
 	pass, err := testcoverage.Check(os.Stdout, cfg)
 	if err != nil {
-		fmt.Println("Running coverage check failed.")
-		fmt.Printf("Error: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Running coverage check failed.")
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 
 		if cfg.GithubActionOutput {
-			fmt.Println("Please set `debug: true` input to see detailed output.")
+			fmt.Fprintln(os.Stderr, "Please set `debug: true` input to see detailed output.")
 		} else {
-			fmt.Println("Please use `--debug=true` flag to see detailed output.")
+			fmt.Fprintln(os.Stderr, "Please use `--debug=true` flag to see detailed output.")
 		}
 	}
 

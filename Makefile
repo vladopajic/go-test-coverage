@@ -44,7 +44,7 @@ new-branch-badges-integration-test:
 		original_ref=$$(git symbolic-ref --quiet --short HEAD || git rev-parse --verify HEAD); \
 		test "$$original_ref" != "badges-integration-test" || { echo "cannot recreate the currently checked-out badges-integration-test branch"; exit 1; }; \
 		test -z "$$(git status --porcelain)" || { echo "working tree is dirty - commit, stash, or remove untracked files first"; exit 1; }; \
-		trap 'git checkout "$$original_ref"' EXIT; \
+		trap 'git checkout -f "$$original_ref"' EXIT; \
 		git branch -D badges-integration-test 2>/dev/null || true; \
 		git checkout --orphan badges-integration-test; \
 		git rm -rf .; \

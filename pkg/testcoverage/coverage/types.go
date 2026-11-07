@@ -213,7 +213,7 @@ func StatsDeserialize(b []byte) ([]Stats, error) {
 
 		c, err := strconv.ParseInt(strings.TrimSpace(string(fields[2])), 10, 64)
 		if err != nil {
-			return Stats{}, ErrInvalidFormat
+			return Stats{}, fmt.Errorf("%w: covered field in line [%s]: %w", ErrInvalidFormat, bl, err)
 		}
 
 		return Stats{
