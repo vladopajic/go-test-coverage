@@ -143,7 +143,7 @@ func setPointer[T any](dest **T, source *T) {
 
 // Converts format string into bitflag
 func formatFromStr(format *string) (testcoverage.Format, error) {
-	if format == nil || *format == "" {
+	if format == nil || strings.TrimSpace(*format) == "" {
 		return testcoverage.ShowDefault, nil
 	}
 
