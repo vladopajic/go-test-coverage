@@ -33,7 +33,7 @@ func Test_Config_Redacted(t *testing.T) {
 	// redacted should have hidden values
 	assert.Equal(t, HiddenValue, r.Badge.Git.Token)
 	assert.Equal(t, HiddenValue, r.Badge.CDN.Secret)
-	assert.Equal(t, nonEmptyStr+HiddenValue, r.Badge.CDN.Key)
+	assert.Equal(t, HiddenValue, r.Badge.CDN.Key)
 
 	// redacted config of empty field should not do anything
 	r = Config{}.Redacted()
@@ -195,6 +195,19 @@ func Test_ConfigFromFile(t *testing.T) {
 		cfg := Config{}
 		err := ConfigFromFile(&cfg, fileName)
 		assert.Error(t, err)
+		assert.Equal(t, Config{}, cfg)
+	})
+
+	//nolint:misspell // testing misspells in configuration
+	t.Run("unknown field", func(t *testing.T) {
+		t.Parallel()
+
+		fileName := t.TempDir() + "file.yml"
+		setFileWithContent(fileName, []byte("threshhold: 100\n"))
+
+		cfg := Config{}
+		err := ConfigFromFile(&cfg, fileName)
+		assert.ErrorContains(t, err, "field threshhold not found")
 		assert.Equal(t, Config{}, cfg)
 	})
 

@@ -88,8 +88,8 @@ func coveredPercentageF(total, covered int64, round bool) float64 {
 		return p
 	}
 
-	// round to %.1f
-	return float64(int(math.Round(p*10))) / 10
+	// round to %.1f, but never report 100% unless coverage is complete
+	return math.Min(float64(int(math.Round(p*10)))/10, 99.9)
 }
 
 func stripPrefix(name, prefix string) string {
@@ -101,7 +101,7 @@ func stripPrefix(name, prefix string) string {
 		prefix += "/"
 	}
 
-	return strings.Replace(name, prefix, "", 1)
+	return strings.TrimPrefix(name, prefix)
 }
 
 func matches(regexps []*regexp.Regexp, str string) bool {
@@ -208,12 +208,12 @@ func StatsDeserialize(b []byte) ([]Stats, error) {
 
 		t, err := strconv.ParseInt(strings.TrimSpace(string(fields[1])), 10, 64)
 		if err != nil {
-			return Stats{}, ErrInvalidFormat
+			return Stats{}, fmt.Errorf("%w: total field in line [%s]: %w", ErrInvalidFormat, bl, err)
 		}
 
 		c, err := strconv.ParseInt(strings.TrimSpace(string(fields[2])), 10, 64)
 		if err != nil {
-			return Stats{}, ErrInvalidFormat
+			return Stats{}, fmt.Errorf("%w: covered field in line [%s]: %w", ErrInvalidFormat, bl, err)
 		}
 
 		return Stats{

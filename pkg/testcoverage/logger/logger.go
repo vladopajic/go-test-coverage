@@ -14,6 +14,7 @@ var (
 
 func Init() { // coverage-ignore
 	L = zerolog.New(&buffer).With().Logger()
+	buffer.Reset()
 }
 
 func Destruct() {
@@ -22,5 +23,5 @@ func Destruct() {
 }
 
 func Bytes() []byte {
-	return buffer.Bytes()
+	return bytes.Clone(buffer.Bytes())
 }

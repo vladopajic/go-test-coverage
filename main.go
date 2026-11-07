@@ -8,17 +8,19 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-const (
-	// TOOL_VERSION: when changing version update version in other places
-	Version = "v2.22.0"
-	Name    = "go-test-coverage"
-)
+const Name = "go-test-coverage"
+
+// TOOL_VERSION: when changing version update version in other places
+// Version is overridden at image build time with -ldflags.
+//
+//nolint:gochecknoglobals // realx
+var Version = "v2.22.0"
 
 //nolint:forbidigo,wsl // relax
 func main() {
 	cfg, err := readConfig()
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -26,13 +28,13 @@ func main() {
 
 	pass, err := testcoverage.Check(os.Stdout, cfg)
 	if err != nil {
-		fmt.Println("Running coverage check failed.")
-		fmt.Printf("Error: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Running coverage check failed.")
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 
 		if cfg.GithubActionOutput {
-			fmt.Printf("Please set `debug: true` input to see detailed output.")
+			fmt.Fprintln(os.Stderr, "Please set `debug: true` input to see detailed output.")
 		} else {
-			fmt.Println("Please use `--debug=true` flag to see detailed output.")
+			fmt.Fprintln(os.Stderr, "Please use `--debug=true` flag to see detailed output.")
 		}
 	}
 
