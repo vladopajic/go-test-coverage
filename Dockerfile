@@ -27,4 +27,6 @@ WORKDIR /
 
 COPY --from=builder /workspace/docker-entrypoint.sh /docker-entrypoint.sh
 COPY --from=builder /workspace/go-test-coverage /go-test-coverage
+COPY --from=builder /usr/local/go /usr/local/go
+ENV PATH="${PATH}:/usr/local/go/bin"
 ENTRYPOINT ["/docker-entrypoint.sh"]
