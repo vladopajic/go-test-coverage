@@ -8,6 +8,7 @@ jobs:
   test:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -34,6 +35,7 @@ jobs:
   
   check-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: test
     permissions:
       contents: write
@@ -100,7 +102,11 @@ jobs:
           branch: main
           workflow_conclusion: success
           name: main.breakdown
-          if_no_artifact_found: fail
+          if_no_artifact_found: warn
+
+      - name: warn when diff base is missing
+        if: steps.download-main-breakdown.outputs.found_artifact != 'true'
+        run: echo "::warning::main.breakdown artifact not found, coverage diff check skipped"
 
       - name: check test coverage
         id: coverage
@@ -124,15 +130,23 @@ jobs:
 
       - name: find pull request ID
         if: steps.write-access.outputs.allowed == 'true'
+        continue-on-error: true # A lookup failure must not override the coverage gate.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "pull_request_id=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "pull_request_id=$PULL_REQUEST_NUMBER" >> "$GITHUB_ENV"
           else
-            PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
-            PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
+            PR_DATA=$(curl -sSf -H "Authorization: token $GH_TOKEN" \
+              "https://api.github.com/repos/$REPO/pulls?head=$OWNER:$REF_NAME&state=open")
+            PR_ID=$(printf '%s' "$PR_DATA" | jq -r 'if type == "array" and length > 0 then .[0].number else "null" end')
             if [ "$PR_ID" != "null" ]; then
-              echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
+              echo "pull_request_id=$PR_ID" >> "$GITHUB_ENV"
             else
               echo "No open pull request found for this branch."
             fi

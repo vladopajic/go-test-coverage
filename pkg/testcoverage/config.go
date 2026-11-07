@@ -1,8 +1,10 @@
 package testcoverage
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"regexp"
@@ -81,13 +83,11 @@ type Badge struct {
 }
 
 // Redacted returns a copy of Config with sensitive credentials obscured.
-//
-//nolint:wsl,mnd // relax
 func (c Config) Redacted() Config {
 	r := c
 
 	if r.Badge.CDN.Key != "" {
-		r.Badge.CDN.Key = r.Badge.CDN.Key[0:min(len(r.Badge.CDN.Key), 5)] + HiddenValue
+		r.Badge.CDN.Key = HiddenValue
 	}
 
 	if r.Badge.CDN.Secret != "" {
@@ -203,8 +203,10 @@ func ConfigFromFile(cfg *Config, filename string) error {
 		return fmt.Errorf("failed reading file: %w", err)
 	}
 
-	err = yaml.Unmarshal(source, cfg)
-	if err != nil {
+	decoder := yaml.NewDecoder(bytes.NewReader(source))
+	decoder.KnownFields(true)
+
+	if err = decoder.Decode(cfg); err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("failed parsing config file: %w", err)
 	}
 

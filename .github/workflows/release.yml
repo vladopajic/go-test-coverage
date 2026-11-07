@@ -9,6 +9,7 @@ jobs:
       contents: write
       packages: write
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v7
 
@@ -17,11 +18,11 @@ jobs:
           go-version-file: go.mod
 
       - name: set RELEASE_VERSION env
-        run: echo "RELEASE_VERSION=${GITHUB_REF:10}" >> $GITHUB_ENV
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_ENV
       
       - name: set MAJOR_VERSION env
         run: |
-          MAJOR_VERSION="${RELEASE_VERSION:0:2}"
+          MAJOR_VERSION="${RELEASE_VERSION%%.*}"
           echo "MAJOR_VERSION=$MAJOR_VERSION" >> $GITHUB_ENV
 
       - name: echo env var
@@ -86,7 +87,7 @@ jobs:
 
             GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
               -trimpath \
-              -ldflags="-s -w" \
+              -ldflags="-s -w -X main.Version=${RELEASE_VERSION}" \
               -o "dist/${asset_name}/${binary_name}" \
               .
 
@@ -97,7 +98,13 @@ jobs:
             fi
           done
 
+          ./dist/go-test-coverage_${RELEASE_VERSION}_linux_amd64/go-test-coverage --version | \
+            grep -Fx "go-test-coverage ${RELEASE_VERSION}"
+
       - name: upload release binaries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload "${RELEASE_VERSION}" dist/*.tar.gz dist/*.zip --clobber
+        run: |
+          gh release view "${RELEASE_VERSION}" >/dev/null 2>&1 || \
+            gh release create "${RELEASE_VERSION}" --title "${RELEASE_VERSION}" --generate-notes
+          gh release upload "${RELEASE_VERSION}" dist/*.tar.gz dist/*.zip --clobber

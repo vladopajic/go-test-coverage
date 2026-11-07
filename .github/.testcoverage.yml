@@ -6,4 +6,4 @@ threshold:
   total: 100
 exclude:
   paths:
-    - main\.go$
+    - (^|/)main\.go$
