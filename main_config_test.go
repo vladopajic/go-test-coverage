@@ -353,3 +353,17 @@ func Test_readConfig(t *testing.T) {
 		assert.ErrorContains(t, err, "failed loading config from file")
 	})
 }
+
+func TestCommentArgs(t *testing.T) {
+	t.Parallel()
+
+	a := &args{Comment: ptr(true), GithubToken: ptr("secret")}
+	cfg, err := a.overrideConfig(testcoverage.Config{})
+	assert.NoError(t, err)
+	assert.True(t, cfg.Comment)
+	assert.Equal(t, "secret", cfg.GithubToken)
+
+	cfg, err = (&args{Comment: ptr(false)}).overrideConfig(cfg)
+	assert.NoError(t, err)
+	assert.False(t, cfg.Comment)
+}

@@ -11,6 +11,8 @@ args=(/go-test-coverage)
 [ "$INPUT_DEBUG" = "true" ] && args+=("--debug=true")
 
 args+=("--github-action-output=true")
+args+=("--comment=${INPUT_COMMENT:-false}")
+export GITHUB_TOKEN="${INPUT_GITHUB_TOKEN:-}"
 
 # For numeric thresholds, only add if explicitly set and not -1 (the "not set" indicator)
 [ -n "$INPUT_THRESHOLD_FILE" ] && [ "$INPUT_THRESHOLD_FILE" != "-1" ] && args+=("--threshold-file=$INPUT_THRESHOLD_FILE")

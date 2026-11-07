@@ -11,8 +11,10 @@ import (
 )
 
 type args struct {
+	Comment            *bool   `arg:"--comment"                       help:"post PR report"`
+	GithubToken        *string `arg:"--github-token,env:GITHUB_TOKEN"`
 	ConfigPath         *string `arg:"-c,--config"`
-	Profile            *string `arg:"-p,--profile"              help:"path to coverage profile"`
+	Profile            *string `arg:"-p,--profile"                    help:"path to coverage profile"`
 	Debug              *bool   `arg:"-d,--debug"`
 	SourceDir          *string `arg:"-s,--source-dir"`
 	GithubActionOutput *bool   `arg:"-o,--github-action-output"`
@@ -48,6 +50,8 @@ func (*args) Version() string {
 
 //nolint:maintidx // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
+	setValue(&cfg.Comment, a.Comment)
+	setValue(&cfg.GithubToken, a.GithubToken)
 	setValue(&cfg.Profile, a.Profile)
 	setValue(&cfg.Debug, a.Debug)
 	setValue(&cfg.SourceDir, a.SourceDir)

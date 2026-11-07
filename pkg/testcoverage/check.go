@@ -63,6 +63,12 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 		}
 	}
 
+	if cfg.Comment {
+		if err = postCoverageComment(w, cfg.GithubToken, report); err != nil {
+			return handleErr(err, "failed to post coverage comment")
+		}
+	}
+
 	err = generateAndSaveBadge(w, cfg, result.TotalStats.CoveredPercentage())
 	if err != nil {
 		return handleErr(err, "failed to generate and save badge")
