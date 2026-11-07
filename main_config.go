@@ -162,7 +162,7 @@ func formatFromStr(format *string) (testcoverage.Format, error) {
 	for _, entry := range strings.Split(*format, ",") {
 		entry = strings.TrimSpace(entry)
 		if entry == "" {
-			return 0, fmt.Errorf("format option should not be empty")
+			return 0, errors.New("format option should not be empty")
 		}
 
 		flag, ok := mapping[entry]
