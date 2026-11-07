@@ -79,6 +79,13 @@ func (s *githubStorer) Store(data []byte) (bool, error) {
 		return false, fmt.Errorf("get badge content: %w", err)
 	}
 
+	if fc == nil { // coverage-ignore
+		// path exists but is not a file (e.g. a directory)
+		return false, fmt.Errorf("badge path %q in %s/%s (branch %s) is not a file",
+			git.FileName, git.Owner, git.Repository, git.Branch,
+		)
+	}
+
 	content, err := fc.GetContent()
 	if err != nil { // coverage-ignore
 		return false, fmt.Errorf("decode badge content: %w", err)

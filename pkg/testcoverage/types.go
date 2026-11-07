@@ -105,7 +105,10 @@ func makePackageStats(coverageStats []coverage.Stats) []coverage.Stats {
 		packageStats[pkg] = pkgStats
 	}
 
-	return slices.Collect(maps.Values(packageStats))
+	result := slices.Collect(maps.Values(packageStats))
+	coverage.SortStatsByName(result)
+
+	return result
 }
 
 type FileCoverageDiff struct {

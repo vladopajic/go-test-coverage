@@ -269,8 +269,8 @@ func Test_Format(t *testing.T) {
 		format := ""
 
 		result, err := formatFromStr(&format)
-		assert.Error(t, err)
-		assert.Equal(t, testcoverage.Invalid, result)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowDefault, result)
 	})
 
 	t.Run("Files", func(t *testing.T) {
@@ -326,7 +326,7 @@ func Test_readConfig(t *testing.T) {
 		os.Args = []string{"cmd"}
 
 		_, err := readConfig()
-		assert.ErrorContains(t, err, "config file is not valid")
+		assert.ErrorContains(t, err, "coverage profile file not specified")
 	})
 
 	t.Run("invalid git repository returns override error", func(t *testing.T) {

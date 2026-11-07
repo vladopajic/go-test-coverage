@@ -18,7 +18,7 @@ const (
 func main() {
 	cfg, err := readConfig()
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 
@@ -30,7 +30,7 @@ func main() {
 		fmt.Printf("Error: %v\n", err)
 
 		if cfg.GithubActionOutput {
-			fmt.Printf("Please set `debug: true` input to see detailed output.")
+			fmt.Println("Please set `debug: true` input to see detailed output.")
 		} else {
 			fmt.Println("Please use `--debug=true` flag to see detailed output.")
 		}

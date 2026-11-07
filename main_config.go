@@ -120,7 +120,7 @@ func readConfig() (testcoverage.Config, error) {
 
 	// Validate config
 	if err := cfg.Validate(); err != nil {
-		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
+		return testcoverage.Config{}, fmt.Errorf("configuration is not valid: %w", err)
 	}
 
 	return cfg, nil
@@ -143,7 +143,7 @@ func setPointer[T any](dest **T, source *T) {
 
 // Converts format string into bitflag
 func formatFromStr(format *string) (testcoverage.Format, error) {
-	if format == nil {
+	if format == nil || *format == "" {
 		return testcoverage.ShowDefault, nil
 	}
 
@@ -160,6 +160,11 @@ func formatFromStr(format *string) (testcoverage.Format, error) {
 	}
 
 	for _, entry := range strings.Split(*format, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			continue
+		}
+
 		flag, ok := mapping[entry]
 
 		if !ok {
