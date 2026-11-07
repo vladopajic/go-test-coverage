@@ -15,7 +15,7 @@ ARG VERSION=v2.22.0
 ARG TARGETOS
 ARG TARGETARCH
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
-    go build -trimpath -ldflags "-X main.Version=${VERSION}" -o go-test-coverage .
+    go build -trimpath -ldflags "-s -w -X main.Version=${VERSION}" -o go-test-coverage .
 
 RUN chmod +x docker-entrypoint.sh
 

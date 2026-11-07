@@ -11,6 +11,8 @@ dist/
 
 .env
 .env.*
+**/.env
+**/.env.*
 *.key
 **/*.key
 *.pem

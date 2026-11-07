@@ -130,6 +130,7 @@ jobs:
 
       - name: find pull request ID
         if: steps.write-access.outputs.allowed == 'true'
+        continue-on-error: true # A lookup failure must not override the coverage gate.
         env:
           EVENT_NAME: ${{ github.event_name }}
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
@@ -141,7 +142,7 @@ jobs:
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "pull_request_id=$PULL_REQUEST_NUMBER" >> "$GITHUB_ENV"
           else
-            PR_DATA=$(curl -sf -H "Authorization: token $GH_TOKEN" \
+            PR_DATA=$(curl -sSf -H "Authorization: token $GH_TOKEN" \
               "https://api.github.com/repos/$REPO/pulls?head=$OWNER:$REF_NAME&state=open")
             PR_ID=$(printf '%s' "$PR_DATA" | jq -r 'if type == "array" and length > 0 then .[0].number else "null" end')
             if [ "$PR_ID" != "null" ]; then

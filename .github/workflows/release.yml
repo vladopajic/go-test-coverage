@@ -98,6 +98,9 @@ jobs:
             fi
           done
 
+          ./dist/go-test-coverage_${RELEASE_VERSION}_linux_amd64/go-test-coverage --version | \
+            grep -Fx "go-test-coverage ${RELEASE_VERSION}"
+
       - name: upload release binaries
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
