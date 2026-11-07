@@ -50,8 +50,10 @@ func TestCoverageComment(t *testing.T) {
 		},
 		{name: "ignore foreign report", event: "pull_request", foreign: true, wantWrites: 1},
 		{name: "ignore report without author", event: "pull_request", missingAuthor: true, wantWrites: 1},
-		{name: "skip foreign report before own report", event: "pull_request", foreign: true,
-			update: true, wantWrites: 1},
+		{
+			name: "skip foreign report before own report", event: "pull_request", foreign: true,
+			update: true, wantWrites: 1,
+		},
 		{name: "identity request error", event: "pull_request", failStage: "identity-request"},
 		{name: "identity HTTP error", event: "pull_request", failStage: "identity"},
 		{name: "identity GraphQL error", event: "pull_request", failStage: "graphql"},
@@ -78,6 +80,7 @@ func TestCoverageComment(t *testing.T) {
 				switch {
 				case r.URL.Path == "/graphql":
 					assert.Equal(t, http.MethodPost, r.Method)
+
 					switch tc.failStage {
 					case "identity":
 						http.Error(w, `{}`, http.StatusForbidden)
@@ -101,8 +104,8 @@ func TestCoverageComment(t *testing.T) {
 						fmt.Fprint(w, `[{"number":42}]`)
 					}
 				case r.Method == http.MethodGet && r.URL.Path == "/repos/owner/repo/issues/42/comments":
-					switch {
-					case tc.failStage == "list":
+					switch tc.failStage {
+					case "list":
 						http.Error(w, `{}`, http.StatusForbidden)
 					default:
 						comments := []map[string]any{{
@@ -111,11 +114,15 @@ func TestCoverageComment(t *testing.T) {
 						if tc.foreign || tc.paginate {
 							comments = append(comments, map[string]any{
 								"id": 1, "body": marker,
-								"user": map[string]string{"node_id": "other-id", "login": "github-actions[bot]", "type": "Bot"},
+								"user": map[string]string{
+									"node_id": "other-id", "login": "github-actions[bot]", "type": "Bot",
+								},
 							})
 							comments = append(comments, map[string]any{
 								"id": 4, "body": marker,
-								"user": map[string]string{"node_id": "participant-id", "login": "participant", "type": "User"},
+								"user": map[string]string{
+									"node_id": "participant-id", "login": "participant", "type": "User",
+								},
 							})
 						}
 
@@ -176,13 +183,16 @@ func TestCoverageComment(t *testing.T) {
 			eventFile := filepath.Join(t.TempDir(), "event.json")
 			require.NoError(t, os.WriteFile(eventFile, []byte(`{"pull_request":{"number":42}}`), 0o600))
 			t.Setenv("GITHUB_API_URL", server.URL+"/")
+
 			graphqlURL := ""
 			if tc.event == "push" {
 				graphqlURL = server.URL + "/graphql"
 			}
+
 			if tc.failStage == "identity-request" {
 				graphqlURL = ":"
 			}
+
 			t.Setenv("GITHUB_GRAPHQL_URL", graphqlURL)
 			t.Setenv("GITHUB_REPOSITORY", "owner/repo")
 			t.Setenv("GITHUB_EVENT_NAME", tc.event)

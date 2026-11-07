@@ -133,6 +133,7 @@ steps:
 The action uses the pull request number from pull request events. For branch pushes, it finds the first open pull request for that branch. It skips commenting when there is no open pull request or the event is not a pull request or branch push.
 
 Each run updates the existing `coverage-report` comment, including comments created by the previous workflow. The comment contains the same report as the `report` output, including coverage differences when configured. Reports are posted even when coverage thresholds fail; the action then fails normally, so no separate final coverage check is needed.
+Only report comments authored by the account associated with the posting token are updated. The action verifies that identity before selecting a comment; comments from other authors are ignored even when they contain the report marker.
 
 `comment` defaults to `false`. The token needs `pull-requests: write` permission.
 For fork pull requests and other runs with read-only tokens, leave commenting disabled, for example with `comment: ${{ github.event_name == 'push' }}`.
