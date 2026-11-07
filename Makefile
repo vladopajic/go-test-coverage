@@ -1,6 +1,7 @@
 GOBIN ?= $$(go env GOPATH)/bin
 GOLANGCI_LINT ?= $(GOBIN)/golangci-lint
-GOLANGCI_LINT_VERSION ?= v2.14.0 # LINT_VERSION: update version in other places
+# LINT_VERSION: update version in other places
+GOLANGCI_LINT_VERSION ?= v2.14.0
 
 # Code tidy
 .PHONY: tidy
@@ -10,7 +11,7 @@ tidy:
 
 .PHONY: get-golangcilint
 get-golangcilint:
-	test -f "$(GOLANGCI_LINT)" || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/$(GOLANGCI_LINT_VERSION)/install.sh | sh -s -- -b "$(GOBIN)" $(GOLANGCI_LINT_VERSION) 
+	test -x "$(GOLANGCI_LINT)" || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/$(GOLANGCI_LINT_VERSION)/install.sh | sh -s -- -b "$(GOBIN)" $(GOLANGCI_LINT_VERSION)
 	test -x "$(GOLANGCI_LINT)"
 
 # Runs lint on entire repo
@@ -45,10 +46,9 @@ new-branch-badges-integration-test:
 		test -z "$$(git status --porcelain)" || { echo "working tree is dirty - commit, stash, or remove untracked files first"; exit 1; }; \
 		trap 'git checkout "$$original_ref"' EXIT; \
 		git branch -D badges-integration-test 2>/dev/null || true; \
-		git push origin --delete badges-integration-test 2>/dev/null || true; \
 		git checkout --orphan badges-integration-test; \
 		git rm -rf .; \
 		echo "# Badges from Integration Tests" > README.md; \
 		git add README.md; \
 		git commit -m "initial commit"; \
-		git push origin badges-integration-test
+		git push --force origin badges-integration-test
