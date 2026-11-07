@@ -289,8 +289,8 @@ func Test_Format(t *testing.T) {
 		format := "files-above,"
 
 		result, err := formatFromStr(&format)
-		assert.NoError(t, err)
-		assert.Equal(t, testcoverage.ShowFilesAboveThreshold, result)
+		assert.Error(t, err)
+		assert.Equal(t, testcoverage.Invalid, result)
 	})
 
 	t.Run("Diff", func(t *testing.T) {

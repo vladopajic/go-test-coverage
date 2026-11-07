@@ -10,6 +10,7 @@ RUN go mod download all
 
 COPY ./ ./
 
+# TOOL_VERSION: when changing version update version in other places
 ARG VERSION=v2.22.0
 ARG TARGETOS
 ARG TARGETARCH

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"regexp"
@@ -205,7 +206,7 @@ func ConfigFromFile(cfg *Config, filename string) error {
 	decoder := yaml.NewDecoder(bytes.NewReader(source))
 	decoder.KnownFields(true)
 
-	if err = decoder.Decode(cfg); err != nil {
+	if err = decoder.Decode(cfg); err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("failed parsing config file: %w", err)
 	}
 

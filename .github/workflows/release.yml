@@ -87,7 +87,7 @@ jobs:
 
             GOOS=$os GOARCH=$arch CGO_ENABLED=0 go build \
               -trimpath \
-              -ldflags="-s -w" \
+              -ldflags="-s -w -X main.Version=${RELEASE_VERSION}" \
               -o "dist/${asset_name}/${binary_name}" \
               .
 

@@ -8,6 +8,7 @@ jobs:
   test:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -34,6 +35,7 @@ jobs:
   
   check-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: test
     permissions:
       contents: write
@@ -102,6 +104,10 @@ jobs:
           name: main.breakdown
           if_no_artifact_found: warn
 
+      - name: warn when diff base is missing
+        if: steps.download-main-breakdown.outputs.found_artifact != 'true'
+        run: echo "::warning::main.breakdown artifact not found, coverage diff check skipped"
+
       - name: check test coverage
         id: coverage
         uses: vladopajic/go-test-coverage@v2
@@ -135,9 +141,9 @@ jobs:
           if [ "$EVENT_NAME" = "pull_request" ]; then
             echo "pull_request_id=$PULL_REQUEST_NUMBER" >> "$GITHUB_ENV"
           else
-            PR_DATA=$(curl -s -H "Authorization: token $GH_TOKEN" \
+            PR_DATA=$(curl -sf -H "Authorization: token $GH_TOKEN" \
               "https://api.github.com/repos/$REPO/pulls?head=$OWNER:$REF_NAME&state=open")
-            PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
+            PR_ID=$(printf '%s' "$PR_DATA" | jq -r 'if type == "array" and length > 0 then .[0].number else "null" end')
             if [ "$PR_ID" != "null" ]; then
               echo "pull_request_id=$PR_ID" >> "$GITHUB_ENV"
             else
