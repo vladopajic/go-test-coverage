@@ -21,6 +21,10 @@ import (
 //
 //nolint:cyclop,gocognit,gocyclo // Table-driven mock API exercises multiple request sequences.
 func TestCoverageComment(t *testing.T) {
+	if testing.Short() {
+		t.Skip("coverage comment tests run full coverage checks against a mock GitHub API")
+	}
+
 	const marker = `<!-- go-test-coverage "report" -->`
 
 	for _, tc := range []struct {
