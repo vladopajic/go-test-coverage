@@ -124,15 +124,22 @@ jobs:
 
       - name: find pull request ID
         if: steps.write-access.outputs.allowed == 'true'
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
+          REF_NAME: ${{ github.ref_name }}
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "pull_request_id=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            echo "pull_request_id=$PULL_REQUEST_NUMBER" >> "$GITHUB_ENV"
           else
-            PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
+            PR_DATA=$(curl -s -H "Authorization: token $GH_TOKEN" \
+              "https://api.github.com/repos/$REPO/pulls?head=$OWNER:$REF_NAME&state=open")
             PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
             if [ "$PR_ID" != "null" ]; then
-              echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
+              echo "pull_request_id=$PR_ID" >> "$GITHUB_ENV"
             else
               echo "No open pull request found for this branch."
             fi
