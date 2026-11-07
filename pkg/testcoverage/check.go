@@ -63,7 +63,7 @@ func Check(wout io.Writer, cfg Config) (bool, error) {
 		}
 	}
 
-	if cfg.Comment {
+	if cfg.GithubComment {
 		if err = postCoverageComment(w, cfg.GithubToken, report); err != nil {
 			return handleErr(err, "failed to post coverage comment")
 		}

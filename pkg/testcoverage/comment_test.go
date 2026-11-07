@@ -141,7 +141,7 @@ func TestCoverageComment(t *testing.T) {
 
 			pass, err := Check(&out, Config{
 				Profile: profileOK, SourceDir: sourceDir, Format: ShowDefault,
-				Comment: !tc.disabled, GithubToken: "test-token",
+				GithubComment: !tc.disabled, GithubToken: "test-token",
 				Threshold: Threshold{Total: tc.threshold},
 			})
 			if tc.failStage != "" && tc.failStage != "lookup" {
@@ -160,10 +160,91 @@ func TestCoverageComment(t *testing.T) {
 	}
 }
 
+func TestCoverageCommentInvalidEnvironment(t *testing.T) {
+	if testing.Short() {
+		t.Skip("coverage comment tests run full coverage checks against a mock GitHub API")
+	}
+
+	for _, tc := range []struct {
+		name         string
+		repository   string
+		apiURL       string
+		event        string
+		missingEvent bool
+		wantError    string
+		wantWarning  string
+	}{
+		{
+			name: "invalid API URL", repository: "owner/repo", apiURL: ":",
+			wantError: "create GitHub client",
+		},
+		{name: "missing repository", wantError: "GITHUB_REPOSITORY must have format"},
+		{
+			name: "repository without separator", repository: "repo",
+			wantError: "GITHUB_REPOSITORY must have format",
+		},
+		{
+			name: "missing repository owner", repository: "/repo",
+			wantError: "GITHUB_REPOSITORY must have format",
+		},
+		{
+			name: "missing repository name", repository: "owner/",
+			wantError: "GITHUB_REPOSITORY must have format",
+		},
+		{
+			name: "missing event file", repository: "owner/repo", missingEvent: true,
+			wantWarning: "read GitHub event",
+		},
+		{
+			name: "malformed event JSON", repository: "owner/repo", event: "{",
+			wantWarning: "decode GitHub event",
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				t.Errorf("unexpected GitHub request: %s %s", r.Method, r.URL)
+				http.NotFound(w, r)
+			}))
+			t.Cleanup(server.Close)
+
+			apiURL := server.URL + "/"
+			if tc.apiURL != "" {
+				apiURL = tc.apiURL
+			}
+
+			eventFile := filepath.Join(t.TempDir(), "event.json")
+			if !tc.missingEvent {
+				require.NoError(t, os.WriteFile(eventFile, []byte(tc.event), 0o600))
+			}
+
+			t.Setenv("GITHUB_API_URL", apiURL)
+			t.Setenv("GITHUB_REPOSITORY", tc.repository)
+			t.Setenv("GITHUB_EVENT_NAME", "pull_request")
+			t.Setenv("GITHUB_EVENT_PATH", eventFile)
+
+			var out bytes.Buffer
+
+			pass, err := Check(&out, Config{
+				Profile: profileOK, SourceDir: sourceDir, Format: ShowDefault,
+				GithubComment: true, GithubToken: "test-token",
+			})
+			if tc.wantError != "" {
+				require.ErrorContains(t, err, tc.wantError)
+				assert.False(t, pass)
+			} else {
+				require.NoError(t, err)
+				assert.True(t, pass)
+				assert.Contains(t, out.String(), "Warning: pull request lookup failed")
+				assert.Contains(t, out.String(), tc.wantWarning)
+			}
+		})
+	}
+}
+
 func TestCommentConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := Config{Profile: "cover.out", Comment: true}
+	cfg := Config{Profile: "cover.out", GithubComment: true}
 	assert.ErrorContains(t, cfg.Validate(), "github-token is required")
 	cfg.GithubToken = "secret"
 	assert.NoError(t, cfg.Validate())

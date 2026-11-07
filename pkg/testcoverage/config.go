@@ -42,7 +42,7 @@ var (
 )
 
 type Config struct {
-	Comment                bool       `yaml:"-"`
+	GithubComment          bool       `yaml:"-"`
 	GithubToken            string     `yaml:"-"`
 	Profile                string     `yaml:"profile"`
 	Debug                  bool       `yaml:"-"`
@@ -149,7 +149,7 @@ func (c Config) Validate() error {
 }
 
 func (c Config) validateComment() error {
-	if c.Comment && c.GithubToken == "" {
+	if c.GithubComment && c.GithubToken == "" {
 		return errors.New("github-token is required when comment is enabled")
 	}
 
