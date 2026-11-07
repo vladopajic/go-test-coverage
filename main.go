@@ -14,7 +14,7 @@ const Name = "go-test-coverage"
 // Version is overridden at image build time with -ldflags.
 //
 //nolint:gochecknoglobals // realx
-var Version = "v2.22.0"
+var Version = "v2.23.0"
 
 //nolint:forbidigo,wsl // relax
 func main() {
