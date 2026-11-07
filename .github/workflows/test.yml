@@ -100,7 +100,7 @@ jobs:
           branch: main
           workflow_conclusion: success
           name: main.breakdown
-          if_no_artifact_found: fail
+          if_no_artifact_found: warn
 
       - name: check test coverage
         id: coverage

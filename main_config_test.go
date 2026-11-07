@@ -283,6 +283,16 @@ func Test_Format(t *testing.T) {
 		assert.Equal(t, testcoverage.ShowFilesAboveThreshold|testcoverage.ShowFilesBelowThreshold, result)
 	})
 
+	t.Run("Empty", func(t *testing.T) {
+		t.Parallel()
+
+		format := "files-above,"
+
+		result, err := formatFromStr(&format)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowFilesAboveThreshold, result)
+	})
+
 	t.Run("Diff", func(t *testing.T) {
 		t.Parallel()
 
