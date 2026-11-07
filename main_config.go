@@ -11,16 +11,16 @@ import (
 )
 
 type args struct {
-	GithubComment      *bool   `arg:"--comment"                       help:"post PR report"`
-	GithubToken        *string `arg:"--github-token,env:GITHUB_TOKEN"`
-	ConfigPath         *string `arg:"-c,--config"`
-	Profile            *string `arg:"-p,--profile"                    help:"path to coverage profile"`
-	Debug              *bool   `arg:"-d,--debug"`
-	SourceDir          *string `arg:"-s,--source-dir"`
-	GithubActionOutput *bool   `arg:"-o,--github-action-output"`
-	ThresholdFile      *int    `arg:"-f,--threshold-file"`
-	ThresholdPackage   *int    `arg:"-k,--threshold-package"`
-	ThresholdTotal     *int    `arg:"-t,--threshold-total"`
+	GithubCommentReport *bool   `arg:"--comment"                       help:"post PR report"`
+	GithubToken         *string `arg:"--github-token,env:GITHUB_TOKEN"`
+	ConfigPath          *string `arg:"-c,--config"`
+	Profile             *string `arg:"-p,--profile"                    help:"path to coverage profile"`
+	Debug               *bool   `arg:"-d,--debug"`
+	SourceDir           *string `arg:"-s,--source-dir"`
+	GithubActionOutput  *bool   `arg:"-o,--github-action-output"`
+	ThresholdFile       *int    `arg:"-f,--threshold-file"`
+	ThresholdPackage    *int    `arg:"-k,--threshold-package"`
+	ThresholdTotal      *int    `arg:"-t,--threshold-total"`
 
 	Format *string `arg:"--format"`
 
@@ -50,7 +50,7 @@ func (*args) Version() string {
 
 //nolint:maintidx // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
-	setValue(&cfg.GithubComment, a.GithubComment)
+	setValue(&cfg.GithubCommentReport, a.GithubCommentReport)
 	setValue(&cfg.GithubToken, a.GithubToken)
 	setValue(&cfg.Profile, a.Profile)
 	setValue(&cfg.Debug, a.Debug)

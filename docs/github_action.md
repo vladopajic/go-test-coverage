@@ -113,7 +113,7 @@ Example of report that includes coverage difference is [this PR](https://github.
 
 ## Post Coverage Report to PR
 
-Enable `comment` to post the coverage report directly from either the Docker or source-based action:
+Enable `comment-report` to post the coverage report directly from either the Docker or source-based action:
 
 ```yml
 permissions:
@@ -125,7 +125,7 @@ steps:
     uses: vladopajic/go-test-coverage@v2
     with:
       config: ./.github/.testcoverage.yml
-      comment: true
+      comment-report: true
       # Optional: defaults to github.token.
       github-token: ${{ secrets.GITHUB_TOKEN }}
 ```
@@ -135,8 +135,8 @@ The action uses the pull request number from pull request events. For branch pus
 Each run updates the existing `coverage-report` comment, including comments created by the previous workflow. The comment contains the same report as the `report` output, including coverage differences when configured. Reports are posted even when coverage thresholds fail; the action then fails normally, so no separate final coverage check is needed.
 Only report comments authored by the account associated with the posting token are updated. The action verifies that identity before selecting a comment; comments from other authors are ignored even when they contain the report marker.
 
-`comment` defaults to `false`. The token needs `pull-requests: write` permission.
-For fork pull requests and other runs with read-only tokens, leave commenting disabled, for example with `comment: ${{ github.event_name == 'push' }}`.
+`comment-report` defaults to `false`. The token needs `pull-requests: write` permission.
+For fork pull requests and other runs with read-only tokens, leave commenting disabled, for example with `comment-report: ${{ github.event_name == 'push' }}`.
 Comment API errors fail the action. Pull request lookup failures print a warning and skip commenting, preserving the coverage check result.
 
 For CLI use in a GitHub Actions environment, pass `--comment=true` and provide

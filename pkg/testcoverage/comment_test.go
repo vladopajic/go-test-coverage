@@ -227,7 +227,7 @@ func TestCoverageComment(t *testing.T) {
 
 			pass, err := Check(&out, Config{
 				Profile: profileOK, SourceDir: sourceDir, Format: ShowDefault,
-				GithubComment: !tc.disabled, GithubToken: "test-token",
+				GithubCommentReport: !tc.disabled, GithubToken: "test-token",
 				Threshold: Threshold{Total: tc.threshold},
 				Badge:     Badge{FileName: badgeFile},
 			})
@@ -314,7 +314,7 @@ func TestCoverageCommentInvalidEnvironment(t *testing.T) {
 
 			pass, err := Check(&out, Config{
 				Profile: profileOK, SourceDir: sourceDir, Format: ShowDefault,
-				GithubComment: true, GithubToken: "test-token",
+				GithubCommentReport: true, GithubToken: "test-token",
 			})
 			if tc.wantError != "" {
 				require.ErrorContains(t, err, tc.wantError)
@@ -332,7 +332,7 @@ func TestCoverageCommentInvalidEnvironment(t *testing.T) {
 func TestCommentConfig(t *testing.T) {
 	t.Parallel()
 
-	cfg := Config{Profile: "cover.out", GithubComment: true}
+	cfg := Config{Profile: "cover.out", GithubCommentReport: true}
 	assert.ErrorContains(t, cfg.Validate(), "github-token is required")
 	cfg.GithubToken = "secret"
 	assert.NoError(t, cfg.Validate())

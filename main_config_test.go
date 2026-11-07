@@ -357,13 +357,13 @@ func Test_readConfig(t *testing.T) {
 func TestCommentArgs(t *testing.T) {
 	t.Parallel()
 
-	a := &args{GithubComment: ptr(true), GithubToken: ptr("secret")}
+	a := &args{GithubCommentReport: ptr(true), GithubToken: ptr("secret")}
 	cfg, err := a.overrideConfig(testcoverage.Config{})
 	assert.NoError(t, err)
-	assert.True(t, cfg.GithubComment)
+	assert.True(t, cfg.GithubCommentReport)
 	assert.Equal(t, "secret", cfg.GithubToken)
 
-	cfg, err = (&args{GithubComment: ptr(false)}).overrideConfig(cfg)
+	cfg, err = (&args{GithubCommentReport: ptr(false)}).overrideConfig(cfg)
 	assert.NoError(t, err)
-	assert.False(t, cfg.GithubComment)
+	assert.False(t, cfg.GithubCommentReport)
 }

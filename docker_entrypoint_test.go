@@ -90,7 +90,7 @@ func TestActionTokenEnvironment(t *testing.T) {
 					}
 
 					command.Env = append(command.Env, "GTC_TEST_BINARY="+filepath.ToSlash(mock),
-						"GITHUB_TOKEN="+tc.existing, "INPUT_COMMENT=true")
+						"GITHUB_TOKEN="+tc.existing, "INPUT_COMMENT_REPORT=true")
 					if tc.present {
 						command.Env = append(command.Env, "INPUT_GITHUB_TOKEN="+tc.input)
 					}
