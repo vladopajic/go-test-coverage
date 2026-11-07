@@ -1,5 +1,4 @@
-GO ?= go
-GOBIN ?= $$($(GO) env GOPATH)/bin
+GOBIN ?= $$(go env GOPATH)/bin
 GOLANGCI_LINT ?= $(GOBIN)/golangci-lint
 GOLANGCI_LINT_VERSION ?= v2.14.0 # LINT_VERSION: update version in other places
 
@@ -11,7 +10,8 @@ tidy:
 
 .PHONY: get-golangcilint
 get-golangcilint:
-	test -f $(GOLANGCI_LINT) || curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $$($(GO) env GOPATH)/bin $(GOLANGCI_LINT_VERSION)
+	test -f "$(GOLANGCI_LINT)" || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/$(GOLANGCI_LINT_VERSION)/install.sh | sh -s -- -b "$(GOBIN)" $(GOLANGCI_LINT_VERSION) 
+	test -x "$(GOLANGCI_LINT)"
 
 # Runs lint on entire repo
 .PHONY: lint

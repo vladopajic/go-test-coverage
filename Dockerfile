@@ -10,9 +10,11 @@ RUN go mod download all
 
 COPY ./ ./
 
-ARG VERSION
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -o go-test-coverage .
+ARG VERSION=v2.22.0
+ARG TARGETOS
+ARG TARGETARCH
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} \
+    go build -trimpath -ldflags "-X main.Version=${VERSION}" -o go-test-coverage .
 
 RUN chmod +x docker-entrypoint.sh
 
@@ -23,7 +25,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates
 WORKDIR /
 
 COPY --from=builder /workspace/docker-entrypoint.sh /docker-entrypoint.sh
-COPY --from=builder /workspace/go-test-coverage .
-COPY --from=builder /usr/local/go/bin/go /usr/local/go/bin/go
-ENV PATH="${PATH}:/usr/local/go/bin"
+COPY --from=builder /workspace/go-test-coverage /go-test-coverage
 ENTRYPOINT ["/docker-entrypoint.sh"]

@@ -8,11 +8,13 @@ import (
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 )
 
-const (
-	// TOOL_VERSION: when changing version update version in other places
-	Version = "v2.22.0"
-	Name    = "go-test-coverage"
-)
+const Name = "go-test-coverage"
+
+// TOOL_VERSION: when changing version update version in other places
+// Version is overridden at image build time with -ldflags.
+//
+//nolint:gochecknoglobals // realx
+var Version = "v2.22.0"
 
 //nolint:forbidigo,wsl // relax
 func main() {

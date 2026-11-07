@@ -1,0 +1,15 @@
+.git
+.github
+.idea
+.vscode
+
+*.out
+cover.profile
+cover.html
+go-test-coverage
+dist/
+
+.env
+.env.*
+*.key
+*.pem
