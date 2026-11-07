@@ -2,11 +2,14 @@ name: lint
 on:
   push:
   pull_request:
+permissions:
+  contents: read
 jobs:
   lint:
     name: lint
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: checkout
         uses: actions/checkout@v7
@@ -23,7 +26,7 @@ jobs:
         with:
           version: v2.14.0 # LINT_VERSION: update version in other places
       
-      - id: govulncheck
+      - name: govulncheck
         uses: golang/govulncheck-action@v1
         with:
           repo-checkout: false
