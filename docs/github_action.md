@@ -148,6 +148,20 @@ For CLI use in a GitHub Actions environment, pass `--comment=true` and provide
 
 # Advanced
 
+## Multi-platform container image
+
+The `ghcr.io/vladopajic/go-test-coverage-multiarch` image supports Linux AMD64 and ARM64.
+From a project with a coverage profile and configuration, run:
+
+```sh
+docker run --rm -v "$PWD:/workspace" -w /workspace \
+  --entrypoint /go-test-coverage \
+  ghcr.io/vladopajic/go-test-coverage-multiarch:latest \
+  --config=.testcoverage.yml
+```
+
+Each release also tags the image with its full version.
+
 ## Types of GitHub Actions
 
 The `go-test-coverage` project provides two types of GitHub Actions:
