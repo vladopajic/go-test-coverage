@@ -41,6 +41,12 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+  # (optional; default false)
+  # Exclude error checks with a single return statement referencing the error.
+  # Only the body is excluded; the condition is still counted.
+  # e.g. `if err != nil { return ..., err }`.
+  single-return-error-checks: false
+
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
 force-annotation-comment: false

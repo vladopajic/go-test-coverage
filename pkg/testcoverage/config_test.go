@@ -33,7 +33,7 @@ func Test_Config_Redacted(t *testing.T) {
 	// redacted should have hidden values
 	assert.Equal(t, HiddenValue, r.Badge.Git.Token)
 	assert.Equal(t, HiddenValue, r.Badge.CDN.Secret)
-	assert.Equal(t, nonEmptyStr+HiddenValue, r.Badge.CDN.Key)
+	assert.Equal(t, HiddenValue, r.Badge.CDN.Key)
 
 	// redacted config of empty field should not do anything
 	r = Config{}.Redacted()
@@ -198,6 +198,19 @@ func Test_ConfigFromFile(t *testing.T) {
 		assert.Equal(t, Config{}, cfg)
 	})
 
+	//nolint:misspell // testing misspells in configuration
+	t.Run("unknown field", func(t *testing.T) {
+		t.Parallel()
+
+		fileName := t.TempDir() + "file.yml"
+		setFileWithContent(fileName, []byte("threshhold: 100\n"))
+
+		cfg := Config{}
+		err := ConfigFromFile(&cfg, fileName)
+		assert.ErrorContains(t, err, "field threshhold not found")
+		assert.Equal(t, Config{}, cfg)
+	})
+
 	t.Run("ok file", func(t *testing.T) {
 		t.Parallel()
 
@@ -244,7 +257,8 @@ func nonZeroConfig() Config {
 		Threshold: Threshold{100, 100, 100},
 		Override:  []Override{{Path: "pathToFile", Threshold: 99}},
 		Exclude: Exclude{
-			Paths: []string{"path1", "path2"},
+			Paths:                   []string{"path1", "path2"},
+			SingleReturnErrorChecks: true,
 		},
 		BreakdownFileName: "breakdown.testcoverage",
 		Diff: Diff{
@@ -271,6 +285,7 @@ exclude:
   paths:
     - path1
     - path2
+  single-return-error-checks: true
 breakdown-file-name: 'breakdown.testcoverage'
 diff:
   base-breakdown-file-name: 'breakdown.testcoverage'

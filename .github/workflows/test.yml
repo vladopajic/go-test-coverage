@@ -3,12 +3,12 @@ on:
   push:
   pull_request:
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
 jobs:
   test:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
@@ -16,14 +16,14 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: setup go
         uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
       
       - name: test
-        env:
-          GITHUB_TOKEN: ${{ matrix.os == 'ubuntu-latest' && secrets.GITHUB_TOKEN || '' }} # Needed for GitHub badge storer integration test
         run: go test -race -count=1 -failfast -shuffle=on -coverprofile=${{ matrix.os }}-profile -covermode=atomic -coverpkg=./... ./... 
 
       - name: upload cover profile artifact
@@ -35,11 +35,52 @@ jobs:
   
   check-coverage:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: test
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - name: checkout
         uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: check repository write access
+        id: write-access
+        uses: actions/github-script@v9
+        with:
+          script: |
+            core.setOutput('allowed', 'false');
+            // Fork PRs and Dependabot runs receive a read-only token.
+            if ((context.eventName === 'pull_request' &&
+                 context.payload.pull_request.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`) ||
+                context.actor === 'dependabot[bot]') {
+              return;
+            }
+            try {
+              const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+                ...context.repo,
+                username: context.actor,
+              });
+              core.setOutput('allowed', ['write', 'admin'].includes(data.permission));
+            } catch (error) {
+              if (![403, 404].includes(error.status)) throw error;
+              core.info('Write access could not be verified; skipping integration tests.');
+            }
+
+      - name: setup go
+        if: steps.write-access.outputs.allowed == 'true'
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+
+      - name: test with GitHub integration
+        if: steps.write-access.outputs.allowed == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed for GitHub badge storer integration test
+        run: go test -race -count=1 -failfast -shuffle=on -coverprofile=integration-profile -covermode=atomic -coverpkg=./... ./...
 
       - name: download ubuntu-latest-profile
         uses: actions/download-artifact@v8
@@ -56,24 +97,28 @@ jobs:
   
       - name: download artifact (main.breakdown)
         id: download-main-breakdown
-        uses: dawidd6/action-download-artifact@v25
+        uses: dawidd6/action-download-artifact@v28
         with:
           branch: main
           workflow_conclusion: success
           name: main.breakdown
-          if_no_artifact_found: fail
+          if_no_artifact_found: warn
+
+      - name: warn when diff base is missing
+        if: steps.download-main-breakdown.outputs.found_artifact != 'true'
+        run: echo "::warning::main.breakdown artifact not found, coverage diff check skipped"
 
       - name: check test coverage
         id: coverage
         uses: vladopajic/go-test-coverage@v2
-        continue-on-error: true # Should fail after coverage comment is posted
         with:
-          config: ./.github/.testcoverage.yml
-          profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile
+          config: ${{ steps.write-access.outputs.allowed == 'true' && './.github/.testcoverage.yml' || './.github/.testcoverage-local.yml' }}
+          profile: ubuntu-latest-profile,macos-latest-profile,windows-latest-profile${{ steps.write-access.outputs.allowed == 'true' && ',integration-profile' || '' }}
           git-branch: badges
-          git-token: ${{ github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
+          git-token: ${{ steps.write-access.outputs.allowed == 'true' && github.ref_name == 'main' && secrets.GITHUB_TOKEN || '' }}
           breakdown-file-name: ${{ github.ref_name == 'main' && 'main.breakdown' || '' }}
           diff-base-breakdown-file-name: ${{ steps.download-main-breakdown.outputs.found_artifact == 'true' && 'main.breakdown' || '' }}
+          comment-report: true
  
       - name: upload artifact (main.breakdown)
         uses: actions/upload-artifact@v7
@@ -82,34 +127,3 @@ jobs:
           name: main.breakdown
           path: main.breakdown
           if-no-files-found: error
-
-      - name: find pull request ID
-        run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
-            echo "pull_request_id=${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-          else
-            PR_DATA=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              "https://api.github.com/repos/${{ github.repository }}/pulls?head=${{ github.repository_owner }}:${{ github.ref_name }}&state=open")
-            PR_ID=$(echo "$PR_DATA" | jq -r '.[0].number')
-            if [ "$PR_ID" != "null" ]; then
-              echo "pull_request_id=$PR_ID" >> $GITHUB_ENV
-            else
-              echo "No open pull request found for this branch."
-            fi
-          fi
-      - name: post coverage report
-        if: env.pull_request_id
-        uses: thollander/actions-comment-pull-request@v3
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          comment-tag: coverage-report
-          pr-number: ${{ env.pull_request_id }}
-          message: |
-            go-test-coverage report:
-            ``` 
-            ${{ fromJSON(steps.coverage.outputs.report) }}```
-      
-      - name: "finally check coverage"
-        if: steps.coverage.outcome == 'failure'
-        shell: bash
-        run: echo "coverage check failed" && exit 1

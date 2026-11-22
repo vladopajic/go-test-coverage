@@ -11,4 +11,4 @@ override:
   threshold: 66
 exclude:
   paths:
-    - main\.go$
+    - (^|/)main\.go$

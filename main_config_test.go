@@ -19,7 +19,7 @@ func Test_args_overrideConfig(t *testing.T) {
 	t.Run("no args leaves config unchanged", func(t *testing.T) {
 		t.Parallel()
 
-		cfg := testcoverage.Config{Profile: "cover.out"}
+		cfg := testcoverage.Config{Profile: "cover.out", Format: testcoverage.ShowDefault}
 		result, err := (&args{}).overrideConfig(cfg)
 		assert.NoError(t, err)
 		assert.Equal(t, cfg, result)
@@ -227,10 +227,80 @@ func Test_args_overrideConfig(t *testing.T) {
 				Package: 20,
 				Total:   30,
 			},
+			Format: testcoverage.ShowDefault,
 		}
 		result, err := (&args{}).overrideConfig(cfg)
 		assert.NoError(t, err)
 		assert.Equal(t, cfg, result)
+	})
+
+	t.Run("Default format string", func(t *testing.T) {
+		t.Parallel()
+
+		cfg := testcoverage.Config{}
+		result, err := (&args{}).overrideConfig(cfg)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowDefault, result.Format)
+	})
+
+	t.Run("Invalid format string", func(t *testing.T) {
+		t.Parallel()
+
+		cfg := testcoverage.Config{}
+		invalid := "invalid"
+		_, err := (&args{Format: &invalid}).overrideConfig(cfg)
+		assert.Error(t, err)
+	})
+}
+
+func Test_Format(t *testing.T) {
+	t.Parallel()
+	t.Run("Missing", func(t *testing.T) {
+		t.Parallel()
+
+		result, err := formatFromStr(nil)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowDefault, result)
+	})
+
+	t.Run("Invalid", func(t *testing.T) {
+		t.Parallel()
+
+		format := ""
+
+		result, err := formatFromStr(&format)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowDefault, result)
+	})
+
+	t.Run("Files", func(t *testing.T) {
+		t.Parallel()
+
+		format := "files-above,files-below"
+
+		result, err := formatFromStr(&format)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowFilesAboveThreshold|testcoverage.ShowFilesBelowThreshold, result)
+	})
+
+	t.Run("Empty", func(t *testing.T) {
+		t.Parallel()
+
+		format := "files-above,"
+
+		result, err := formatFromStr(&format)
+		assert.Error(t, err)
+		assert.Equal(t, testcoverage.Invalid, result)
+	})
+
+	t.Run("Diff", func(t *testing.T) {
+		t.Parallel()
+
+		format := "diff"
+
+		result, err := formatFromStr(&format)
+		assert.NoError(t, err)
+		assert.Equal(t, testcoverage.ShowDiff, result)
 	})
 }
 
@@ -266,7 +336,7 @@ func Test_readConfig(t *testing.T) {
 		os.Args = []string{"cmd"}
 
 		_, err := readConfig()
-		assert.ErrorContains(t, err, "config file is not valid")
+		assert.ErrorContains(t, err, "coverage profile file not specified")
 	})
 
 	t.Run("invalid git repository returns override error", func(t *testing.T) {
@@ -282,4 +352,18 @@ func Test_readConfig(t *testing.T) {
 		_, err := readConfig()
 		assert.ErrorContains(t, err, "failed loading config from file")
 	})
+}
+
+func TestCommentArgs(t *testing.T) {
+	t.Parallel()
+
+	a := &args{GithubCommentReport: ptr(true), GithubToken: ptr("secret")}
+	cfg, err := a.overrideConfig(testcoverage.Config{})
+	assert.NoError(t, err)
+	assert.True(t, cfg.GithubCommentReport)
+	assert.Equal(t, "secret", cfg.GithubToken)
+
+	cfg, err = (&args{GithubCommentReport: ptr(false)}).overrideConfig(cfg)
+	assert.NoError(t, err)
+	assert.False(t, cfg.GithubCommentReport)
 }

@@ -1,11 +1,13 @@
 package coverage
 
 import (
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/build"
 	"go/parser"
 	"go/token"
+	"go/types"
 	"math"
 	"os"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 	"strings"
 
 	"golang.org/x/tools/cover"
+	"golang.org/x/tools/go/packages"
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/logger"
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/path"
@@ -21,10 +24,11 @@ import (
 const IgnoreText = "coverage-ignore"
 
 type Config struct {
-	Profiles               []string
-	ExcludePaths           []string
-	SourceDir              string
-	ForceAnnotationComment bool
+	Profiles                       []string
+	ExcludePaths                   []string
+	SourceDir                      string
+	ForceAnnotationComment         bool
+	ExcludeSingleReturnErrorChecks bool
 }
 
 func GenerateCoverageStats(cfg Config) ([]Stats, error) {
@@ -40,6 +44,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 
 	fileStats := make([]Stats, 0, len(profiles))
 	excludeRules := compileExcludePathRules(cfg.ExcludePaths)
+	loader := newTypedLoader()
 
 	for _, profile := range profiles {
 		fi, ok := files[profile.FileName]
@@ -53,7 +58,7 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 			continue // this file is excluded
 		}
 
-		s, err := coverageForFile(profile, fi, cfg.ForceAnnotationComment)
+		s, err := coverageForFile(profile, fi, cfg, loader)
 		if err != nil {
 			return nil, err
 		}
@@ -79,7 +84,9 @@ func GenerateCoverageStats(cfg Config) ([]Stats, error) {
 	return fileStats, nil
 }
 
-func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (Stats, error) {
+func coverageForFile(
+	profile *cover.Profile, fi fileInfo, cfg Config, loader *typedLoader,
+) (Stats, error) {
 	source, err := os.ReadFile(fi.path)
 	if err != nil { // coverage-ignore
 		return Stats{}, fmt.Errorf("failed reading file source [%s]: %w", fi.path, err)
@@ -90,10 +97,23 @@ func coverageForFile(profile *cover.Profile, fi fileInfo, forceComment bool) (St
 		return Stats{}, err
 	}
 
-	funcs, blocks := funcsAndBlocksFromAST(fset, node)
-	annotations, withoutComment := annotationsFromAST(fset, node, forceComment)
+	var excluded []extent
 
-	s := sumCoverage(profile, funcs, blocks, annotations)
+	if cfg.ExcludeSingleReturnErrorChecks {
+		var info *types.Info
+
+		fset, node, info, err = loader.loadFile(fi.path)
+		if err != nil {
+			return Stats{}, err
+		}
+
+		excluded = singleReturnErrorChecksFromAST(fset, node, info)
+	}
+
+	funcs, blocks := funcsAndBlocksFromAST(fset, node)
+	annotations, withoutComment := annotationsFromAST(fset, node, cfg.ForceAnnotationComment)
+
+	s := sumCoverage(profile, funcs, blocks, annotations, excluded)
 	s.Name = fi.name
 	s.AnnotationsWithoutComments = pluckStartLine(withoutComment)
 
@@ -112,7 +132,11 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	for _, profile := range profiles {
 		path, noPrefixName, found := findFile(profile.FileName)
 		if !found {
-			return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
+			path, noPrefixName, found = findDependencyFile(profile.FileName, rootDir)
+
+			if !found {
+				return nil, fmt.Errorf("could not find file [%s]", profile.FileName)
+			}
 		}
 
 		result[profile.FileName] = fileInfo{
@@ -122,6 +146,26 @@ func findFiles(profiles []*cover.Profile, rootDir string) (map[string]fileInfo, 
 	}
 
 	return result, nil
+}
+
+func findDependencyFile(filename, rootDir string) (string, string, bool) {
+	dir, name := filepath.Split(filename)
+	cfg := &packages.Config{Mode: packages.NeedFiles, Dir: defaultRootDir(rootDir)}
+
+	pkgs, err := packages.Load(cfg, strings.TrimSuffix(filepath.ToSlash(dir), "/"))
+	if err != nil {
+		return "", "", false
+	}
+
+	for _, pkg := range pkgs {
+		for _, file := range pkg.GoFiles {
+			if filepath.Base(file) == name {
+				return file, filename, true
+			}
+		}
+	}
+
+	return "", "", false
 }
 
 func findFileCreator(rootDirUser string) func(file string) (string, string, bool) {
@@ -312,6 +356,167 @@ func hasComment(text string) bool {
 	return len(trimmedComment) > len(IgnoreText)
 }
 
+func findSingleReturnErrorChecks(path string) ([]extent, error) {
+	fset, node, info, err := newTypedLoader().loadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	return singleReturnErrorChecksFromAST(fset, node, info), nil
+}
+
+// singleReturnErrorChecksFromAST returns extents of bodies of single return error checks,
+// that is `if err != nil { return ..., err }` statements where the body consists
+// solely of a return statement propagating (optionally wrapping) the checked error.
+func singleReturnErrorChecksFromAST(
+	fset *token.FileSet,
+	node *ast.File,
+	info *types.Info,
+) []extent {
+	var result []extent
+
+	ast.Inspect(node, func(n ast.Node) bool {
+		if ifStmt, ok := n.(*ast.IfStmt); ok &&
+			isSingleReturnErrorCheck(ifStmt, info) {
+			result = append(result, newExtent(fset, ifStmt.Body))
+		}
+
+		return true
+	})
+
+	return result
+}
+
+func isSingleReturnErrorCheck(n *ast.IfStmt, info *types.Info) bool {
+	ident, ok := nonNilCheckedErrIdent(n.Cond)
+	if !ok || len(n.Body.List) != 1 {
+		return false
+	}
+
+	variable, ok := info.Uses[ident].(*types.Var)
+	if !ok {
+		return false // coverage-ignore: Can't force this case
+	}
+
+	errorType, ok := types.Universe.Lookup("error").Type().Underlying().(*types.Interface)
+	if !ok || !types.Implements(variable.Type(), errorType) {
+		return false
+	}
+
+	ret, ok := n.Body.List[0].(*ast.ReturnStmt)
+	if !ok {
+		return false
+	}
+
+	for _, r := range ret.Results {
+		if referencesVar(r, variable, info) {
+			return true
+		}
+	}
+
+	return false
+}
+
+// nonNilCheckedErrName returns name of error variable when expression
+// has form `err != nil` (or `nil != err`).
+func nonNilCheckedErrIdent(expr ast.Expr) (*ast.Ident, bool) {
+	bin, ok := expr.(*ast.BinaryExpr)
+	if !ok || bin.Op != token.NEQ {
+		return nil, false
+	}
+
+	x, y := bin.X, bin.Y
+	if isNilIdent(x) {
+		x, y = y, x
+	}
+
+	ident, ok := x.(*ast.Ident)
+	if !ok || !isNilIdent(y) {
+		return nil, false
+	}
+
+	return ident, true
+}
+
+func referencesVar(expr ast.Expr, variable *types.Var, info *types.Info) bool {
+	found := false
+
+	ast.Inspect(expr, func(n ast.Node) bool {
+		if ident, ok := n.(*ast.Ident); ok && info.Uses[ident] == variable {
+			found = true
+		}
+
+		return !found
+	})
+
+	return found
+}
+
+func isNilIdent(expr ast.Expr) bool {
+	ident, ok := expr.(*ast.Ident)
+	return ok && ident.Name == "nil"
+}
+
+// typedLoader caches packages only for the duration of a single analysis.
+type typedLoader struct {
+	packages map[string][]*packages.Package
+}
+
+func newTypedLoader() *typedLoader {
+	return &typedLoader{packages: make(map[string][]*packages.Package)}
+}
+
+//nolint:lll // relax
+func (l *typedLoader) loadFile(filename string) (*token.FileSet, *ast.File, *types.Info, error) {
+	abs, err := filepath.Abs(filename)
+	if err != nil { // coverage-ignore: requires the current directory to be inaccessible
+		return nil, nil, nil, fmt.Errorf("absolute path for %s: %w", filename, err)
+	}
+
+	dir := filepath.Dir(abs)
+
+	pkgs, found := l.packages[dir]
+	if !found {
+		cfg := &packages.Config{Dir: dir, Mode: packages.NeedName | packages.NeedFiles | packages.NeedCompiledGoFiles |
+			packages.NeedImports | packages.NeedDeps | packages.NeedTypes |
+			packages.NeedSyntax | packages.NeedTypesInfo | packages.NeedTypesSizes}
+
+		pkgs, err = packages.Load(cfg, ".")
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("loading package for %s (ensure build tags, GOOS and GOARCH match the coverage profile): %w", abs, err)
+		}
+
+		err = packageErrors(pkgs)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("loading package for %s (ensure build tags, GOOS and GOARCH match the coverage profile): %w", abs, err)
+		}
+
+		l.packages[dir] = pkgs
+	}
+
+	for _, pkg := range pkgs {
+		for i, file := range pkg.CompiledGoFiles {
+			if filepath.Clean(file) == abs && i < len(pkg.Syntax) {
+				return pkg.Fset, pkg.Syntax[i], pkg.TypesInfo, nil
+			}
+		}
+	}
+
+	return nil, nil, nil, fmt.Errorf("file not found in package: %s; ensure build tags, GOOS and GOARCH match the coverage profile", abs)
+}
+
+func packageErrors(pkgs []*packages.Package) error {
+	var err error
+
+	for _, pkg := range pkgs {
+		for _, e := range pkg.Errors {
+			err = errors.Join(err, e)
+		}
+	}
+
+	return err
+}
+
 func findFuncsAndBlocks(source []byte) ([]extent, []extent, error) {
 	fset, node, err := parseSource(source)
 	if err != nil {
@@ -340,6 +545,10 @@ type visitor struct {
 func (v *visitor) Visit(node ast.Node) ast.Visitor {
 	switch n := node.(type) {
 	case *ast.FuncDecl:
+		if n.Body == nil {
+			return v
+		}
+
 		v.funcs = append(v.funcs, newExtent(v.fset, n.Body))
 
 	case *ast.IfStmt:
@@ -348,6 +557,8 @@ func (v *visitor) Visit(node ast.Node) ast.Visitor {
 		v.addBlock(n.Body)
 	case *ast.TypeSwitchStmt:
 		v.addBlock(n.Body)
+	case *ast.CaseClause:
+		v.addBlock(n)
 	case *ast.SelectStmt: // coverage-ignore
 		v.addBlock(n.Body)
 	case *ast.ForStmt:
@@ -397,6 +608,17 @@ func hasExtentWithStartLine(ee []extent, startLine int) bool {
 	return found
 }
 
+func findAnnotatedBlock(blocks, annotations []extent, line int) (extent, bool) {
+	for _, block := range blocks {
+		if block.StartLine <= line && block.EndLine >= line &&
+			hasExtentWithStartLine(annotations, block.StartLine) {
+			return block, true
+		}
+	}
+
+	return extent{}, false
+}
+
 func pluckStartLine(extents []extent) []int {
 	res := make([]int, len(extents))
 	for i, e := range extents {
@@ -406,11 +628,11 @@ func pluckStartLine(extents []extent) []int {
 	return res
 }
 
-func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) Stats {
+func sumCoverage(profile *cover.Profile, funcs, blocks, annotations, excluded []extent) Stats {
 	s := Stats{}
 
 	for _, f := range funcs {
-		c, t, ul := coverage(profile, f, blocks, annotations)
+		c, t, ul := coverage(profile, f, blocks, annotations, excluded)
 		s.Total += t
 		s.Covered += c
 		s.UncoveredLines = append(s.UncoveredLines, ul...)
@@ -428,7 +650,7 @@ func sumCoverage(profile *cover.Profile, funcs, blocks, annotations []extent) St
 func coverage(
 	profile *cover.Profile,
 	f extent,
-	blocks, annotations []extent,
+	blocks, annotations, excluded []extent,
 ) (int64, int64, []int) {
 	if hasExtentWithStartLine(annotations, f.StartLine) {
 		// case when entire function is ignored
@@ -459,12 +681,25 @@ func coverage(
 			continue
 		}
 
-		// add block to coverage statistics only if it was not ignored using comment annotations
+		// A direct annotation also supports statements that are not blocks.
+		if isBlockInsideAnyExtent(excluded, b) {
+			// this block is automatically excluded (eg. single return error check)
+			continue
+		}
+
+		// A direct annotation also supports statements that are not blocks.
 		if hasExtentWithStartLine(annotations, b.StartLine) {
 			if e, found := findExtentWithStartLine(blocks, b.StartLine); found {
 				skip = e
 			}
 
+			continue
+		}
+
+		// Go 1.27 can start a profile block on the first statement inside an
+		// annotated block instead of on the annotation line itself.
+		if e, found := findAnnotatedBlock(blocks, annotations, b.StartLine); found {
+			skip = e
 			continue
 		}
 
@@ -480,6 +715,21 @@ func coverage(
 	}
 
 	return covered, total, uncoveredLines
+}
+
+func isBlockInsideAnyExtent(ee []extent, b cover.ProfileBlock) bool {
+	for _, e := range ee {
+		startsAfter := b.StartLine > e.StartLine ||
+			(b.StartLine == e.StartLine && b.StartCol >= e.StartCol)
+		endsBefore := b.EndLine < e.EndLine ||
+			(b.EndLine == e.EndLine && b.EndCol <= e.EndCol)
+
+		if startsAfter && endsBefore {
+			return true
+		}
+	}
+
+	return false
 }
 
 func dedup(ss []int) []int {

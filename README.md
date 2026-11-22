@@ -5,7 +5,9 @@
 [![action-test-source](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-source-test.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/action-source-test.yml)
 [![lint](https://github.com/vladopajic/go-test-coverage/actions/workflows/lint.yml/badge.svg?branch=main)](https://github.com/vladopajic/go-test-coverage/actions/workflows/lint.yml)
 [![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)](/.github/.testcoverage.yml)
+
 [![Release](https://img.shields.io/github/release/vladopajic/go-test-coverage.svg?color=%23007ec6)](https://github.com/vladopajic/go-test-coverage/releases/latest)
+[![GHCR pulls](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fghcr-badge.elias.eu.org%2Fapi%2Fvladopajic%2Fgo-test-coverage%2Fgo-test-coverage&query=downloadCount&label=GHCR%20pulls&style=flat)](https://github.com/vladopajic/go-test-coverage/pkgs/container/go-test-coverage)
 
 ![go-test-coverage cover image](https://github.com/user-attachments/assets/7e8ceb77-efb3-4b4d-ae7e-0cece3b49494)
 
@@ -124,6 +126,13 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - ^pkg/bar     # exclude package `pkg/bar`
 
+  # (optional; default false)
+  # Exclude error checks with a single return statement referencing the error.
+  # Only the body is excluded; the condition is still counted.
+  # e.g. `if err != nil { return ..., err }`.
+  # See "Exclude Single Return Error Checks" below.
+  single-return-error-checks: false
+
 # (optional; default false)
 # When true, requires all coverage-ignore annotations to include explanatory comments
 force-annotation-comment: false
@@ -178,6 +187,32 @@ func bar() { // coverage-ignore
 }
 ```
 
+#### Exclude Single Return Error Checks
+
+Set `exclude.single-return-error-checks: true` to automatically exclude error checks whose condition is `<err> != nil` (or `nil != <err>`),
+where `<err>` is a variable implementing `error`, and whose body contains only a single return statement referencing that error.
+
+Only the body of the if statement is excluded; the condition itself is still counted.
+
+```go
+if err != nil {
+	return err // excluded
+}
+
+if err := foo(); err != nil {
+	return nil, fmt.Errorf("doing foo: %w", err) // excluded
+}
+
+if val == 0 {
+	return errors.New("invalid value") // not excluded: not an error check
+}
+
+if err != nil {
+	log.Print(err)
+	return err // not excluded: body contains multiple statements
+}
+```
+
 ## Generate Coverage Badge
 
 You can easily generate a stylish coverage badge for your repository and embed it in your markdown files. Here’s an example badge: ![coverage](https://raw.githubusercontent.com/vladopajic/go-test-coverage/badges/.badges/main/coverage.svg)
@@ -193,9 +228,6 @@ go tool cover -html=cover.out -o=cover.html
 ```
 
 ## Support the Project
-
-`go-test-coverage` is freely available for all users. If your organization benefits from this tool, especially if you’ve transitioned from a paid coverage service, consider [sponsoring the project](https://github.com/sponsors/vladopajic). 
-Your sponsorship will help sustain development, introduce new features, and maintain high-quality support. Every contribution directly impacts the future growth and stability of this project.
 
 ⭐ Love this project? Star it!
 

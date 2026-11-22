@@ -64,6 +64,7 @@ func findGoModWithWalk(rootDir string) string { // coverage-ignore
 	})
 	if err != nil {
 		logger.L.Error().Err(err).Msg("listing files (go.mod search)")
+		return ""
 	}
 
 	if len(goModFiles) == 0 {
@@ -105,9 +106,13 @@ func readModuleDirective(filename string) string {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
-		if strings.HasPrefix(line, "module ") {
-			return strings.TrimSpace(strings.TrimPrefix(line, "module "))
+		if fields := strings.Fields(line); len(fields) >= 2 && fields[0] == "module" {
+			return strings.Trim(fields[1], `"`)
 		}
+	}
+
+	if err := scanner.Err(); err != nil { // coverage-ignore
+		logger.L.Error().Err(err).Str("file", filename).Msg("reading go.mod")
 	}
 
 	return "" // coverage-ignore

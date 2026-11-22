@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/credentials"
@@ -12,6 +13,8 @@ import (
 
 	"github.com/vladopajic/go-test-coverage/v2/pkg/testcoverage/badge"
 )
+
+const s3RequestTimeout = time.Second * 90
 
 type CDN struct {
 	Key            string
@@ -33,7 +36,9 @@ func NewCDN(cfg CDN) Storer {
 
 func (s *cdnStorer) Store(data []byte) (bool, error) {
 	s3Client := createS3Client(s.cfg)
-	ctx := context.Background()
+
+	ctx, cancel := context.WithTimeout(context.Background(), s3RequestTimeout)
+	defer cancel()
 
 	// First get object and check if data differs that currently uploaded
 	result, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -43,10 +48,8 @@ func (s *cdnStorer) Store(data []byte) (bool, error) {
 	if err == nil {
 		defer result.Body.Close()
 
-		//nolint:errcheck // error is intentionally swallowed because if response (badge data)
-		// is not the same we will upload new badge anyway
-		resp, _ := io.ReadAll(result.Body)
-		if bytes.Equal(resp, data) {
+		resp, readErr := io.ReadAll(result.Body)
+		if readErr == nil && bytes.Equal(resp, data) {
 			return false, nil // has not changed
 		}
 	}

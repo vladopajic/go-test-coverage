@@ -1,14 +1,15 @@
 package coverage
 
 var (
-	FindFileCreator            = findFileCreator
-	FindAnnotations            = findAnnotations
-	FindFuncsAndBlocks         = findFuncsAndBlocks
-	ParseProfiles              = parseProfiles
-	SumCoverage                = sumCoverage
-	FindGoModFile              = findGoModFile
-	PluckStartLine             = pluckStartLine
-	FindFilePathMatchingSearch = findFilePathMatchingSearch
+	FindFileCreator             = findFileCreator
+	FindAnnotations             = findAnnotations
+	FindFuncsAndBlocks          = findFuncsAndBlocks
+	FindSingleReturnErrorChecks = findSingleReturnErrorChecks
+	ParseProfiles               = parseProfiles
+	SumCoverage                 = sumCoverage
+	FindGoModFile               = findGoModFile
+	PluckStartLine              = pluckStartLine
+	FindFilePathMatchingSearch  = findFilePathMatchingSearch
 )
 
 type (

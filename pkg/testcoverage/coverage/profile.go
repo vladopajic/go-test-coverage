@@ -38,8 +38,13 @@ func parseProfiles(paths []string) ([]*cover.Profile, error) {
 }
 
 func mergeProfiles(a, b []*cover.Profile) ([]*cover.Profile, error) {
+	index := make(map[string]int, len(a))
+	for i, profile := range a {
+		index[profile.FileName] = i
+	}
+
 	for _, pb := range b {
-		if idx, found := findProfileForFile(a, pb.FileName); found {
+		if idx, found := index[pb.FileName]; found {
 			m, err := mergeSameFileProfile(a[idx], pb)
 			if err != nil {
 				return nil, err
@@ -48,20 +53,11 @@ func mergeProfiles(a, b []*cover.Profile) ([]*cover.Profile, error) {
 			a[idx] = m
 		} else {
 			a = append(a, pb)
+			index[pb.FileName] = len(a) - 1
 		}
 	}
 
 	return a, nil
-}
-
-func findProfileForFile(profiles []*cover.Profile, file string) (int, bool) {
-	for i, p := range profiles {
-		if p.FileName == file {
-			return i, true
-		}
-	}
-
-	return -1, false
 }
 
 func mergeSameFileProfile(ap, bp *cover.Profile) (*cover.Profile, error) {

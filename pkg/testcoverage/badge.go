@@ -11,7 +11,7 @@ import (
 )
 
 func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
-	badge, err := badge.Generate(totalCoverage)
+	badgeData, err := badge.Generate(totalCoverage)
 	if err != nil { // coverage-ignore // should never happen
 		return fmt.Errorf("generate badge: %w", err)
 	}
@@ -32,7 +32,7 @@ func generateAndSaveBadge(w io.Writer, cfg Config, totalCoverage int) error {
 		}
 	}()
 
-	return storeBadge(out, defaultStorerFactories(), cfg, badge)
+	return storeBadge(out, defaultStorerFactories(), cfg, badgeData)
 }
 
 type storerFactories struct {

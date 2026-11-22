@@ -11,14 +11,18 @@ import (
 )
 
 type args struct {
-	ConfigPath         *string `arg:"-c,--config"`
-	Profile            *string `arg:"-p,--profile"              help:"path to coverage profile"`
-	Debug              *bool   `arg:"-d,--debug"`
-	SourceDir          *string `arg:"-s,--source-dir"`
-	GithubActionOutput *bool   `arg:"-o,--github-action-output"`
-	ThresholdFile      *int    `arg:"-f,--threshold-file"`
-	ThresholdPackage   *int    `arg:"-k,--threshold-package"`
-	ThresholdTotal     *int    `arg:"-t,--threshold-total"`
+	GithubCommentReport *bool   `arg:"--comment"                       help:"post PR report"`
+	GithubToken         *string `arg:"--github-token,env:GITHUB_TOKEN"`
+	ConfigPath          *string `arg:"-c,--config"`
+	Profile             *string `arg:"-p,--profile"                    help:"path to coverage profile"`
+	Debug               *bool   `arg:"-d,--debug"`
+	SourceDir           *string `arg:"-s,--source-dir"`
+	GithubActionOutput  *bool   `arg:"-o,--github-action-output"`
+	ThresholdFile       *int    `arg:"-f,--threshold-file"`
+	ThresholdPackage    *int    `arg:"-k,--threshold-package"`
+	ThresholdTotal      *int    `arg:"-t,--threshold-total"`
+
+	Format *string `arg:"--format"`
 
 	BreakdownFileName         *string  `arg:"--breakdown-file-name"`
 	DiffBaseBreakdownFileName *string  `arg:"--diff-base-breakdown-file-name"`
@@ -44,7 +48,10 @@ func (*args) Version() string {
 	return Name + " " + Version
 }
 
+//nolint:maintidx // relax
 func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, error) {
+	setValue(&cfg.GithubCommentReport, a.GithubCommentReport)
+	setValue(&cfg.GithubToken, a.GithubToken)
 	setValue(&cfg.Profile, a.Profile)
 	setValue(&cfg.Debug, a.Debug)
 	setValue(&cfg.SourceDir, a.SourceDir)
@@ -52,6 +59,13 @@ func (a *args) overrideConfig(cfg testcoverage.Config) (testcoverage.Config, err
 	setValue(&cfg.Threshold.File, a.ThresholdFile)
 	setValue(&cfg.Threshold.Package, a.ThresholdPackage)
 	setValue(&cfg.Threshold.Total, a.ThresholdTotal)
+
+	format, err := formatFromStr(a.Format)
+	if err != nil {
+		return cfg, err
+	}
+
+	setValue(&cfg.Format, &format)
 
 	setValue(&cfg.BreakdownFileName, a.BreakdownFileName)
 	setValue(&cfg.Diff.BaseBreakdownFileName, a.DiffBaseBreakdownFileName)
@@ -110,7 +124,7 @@ func readConfig() (testcoverage.Config, error) {
 
 	// Validate config
 	if err := cfg.Validate(); err != nil {
-		return testcoverage.Config{}, fmt.Errorf("config file is not valid: %w", err)
+		return testcoverage.Config{}, fmt.Errorf("configuration is not valid: %w", err)
 	}
 
 	return cfg, nil
@@ -129,4 +143,40 @@ func setPointer[T any](dest **T, source *T) {
 	if source != nil {
 		*dest = source
 	}
+}
+
+// Converts format string into bitflag
+func formatFromStr(format *string) (testcoverage.Format, error) {
+	if format == nil || strings.TrimSpace(*format) == "" {
+		return testcoverage.ShowDefault, nil
+	}
+
+	res := testcoverage.Invalid
+
+	mapping := map[string]testcoverage.Format{
+		"files-above":          testcoverage.ShowFilesAboveThreshold,
+		"files-below":          testcoverage.ShowFilesBelowThreshold,
+		"packages-above":       testcoverage.ShowPackagesAboveThreshold,
+		"packages-below":       testcoverage.ShowPackagesBelowThreshold,
+		"uncovered-lines":      testcoverage.ShowUncoveredLines,
+		"missing-explanations": testcoverage.ShowMissingExplanations,
+		"diff":                 testcoverage.ShowDiff,
+	}
+
+	for _, entry := range strings.Split(*format, ",") {
+		entry = strings.TrimSpace(entry)
+		if entry == "" {
+			return 0, errors.New("format option should not be empty")
+		}
+
+		flag, ok := mapping[entry]
+
+		if !ok {
+			return 0, fmt.Errorf("unexpected format option: %s", entry)
+		}
+
+		res |= flag
+	}
+
+	return res, nil
 }

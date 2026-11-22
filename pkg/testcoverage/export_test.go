@@ -20,6 +20,7 @@ var (
 	CompressUncoveredLines    = compressUncoveredLines
 	ReportUncoveredLines      = reportUncoveredLines
 	StatusStr                 = statusStr
+	CoverageCommentBody       = coverageCommentBody
 )
 
 type (

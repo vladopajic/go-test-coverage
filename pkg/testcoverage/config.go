@@ -1,8 +1,10 @@
 package testcoverage
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"reflect"
 	"regexp"
@@ -15,6 +17,22 @@ import (
 
 const HiddenValue = "***"
 
+type Format int
+
+const (
+	Invalid                 Format = 0
+	ShowFilesAboveThreshold Format = 1 << iota
+	ShowFilesBelowThreshold
+	ShowPackagesAboveThreshold
+	ShowPackagesBelowThreshold
+	ShowUncoveredLines
+	ShowMissingExplanations
+	ShowDiff
+)
+
+const ShowDefault = ShowFilesBelowThreshold | ShowPackagesBelowThreshold |
+	ShowUncoveredLines | ShowMissingExplanations | ShowDiff
+
 var (
 	ErrThresholdNotInRange         = errors.New("threshold must be in range [0 - 100]")
 	ErrCoverageProfileNotSpecified = errors.New("coverage profile file not specified")
@@ -24,6 +42,8 @@ var (
 )
 
 type Config struct {
+	GithubCommentReport    bool       `yaml:"-"`
+	GithubToken            string     `yaml:"-"`
 	Profile                string     `yaml:"profile"`
 	Debug                  bool       `yaml:"-"`
 	SourceDir              string     `yaml:"-"`
@@ -35,8 +55,8 @@ type Config struct {
 	Diff                   Diff       `yaml:"diff"`
 	Badge                  Badge      `yaml:"-"`
 	ForceAnnotationComment bool       `yaml:"force-annotation-comment"`
+	Format                 Format     `yaml:"-"`
 }
-
 type Threshold struct {
 	File    int `yaml:"file"`
 	Package int `yaml:"package"`
@@ -49,7 +69,8 @@ type Override struct {
 }
 
 type Exclude struct {
-	Paths []string `yaml:"paths,omitempty"`
+	Paths                   []string `yaml:"paths,omitempty"`
+	SingleReturnErrorChecks bool     `yaml:"single-return-error-checks,omitempty"`
 }
 
 type Diff struct {
@@ -64,13 +85,15 @@ type Badge struct {
 }
 
 // Redacted returns a copy of Config with sensitive credentials obscured.
-//
-//nolint:wsl,mnd // relax
 func (c Config) Redacted() Config {
 	r := c
 
+	if r.GithubToken != "" {
+		r.GithubToken = HiddenValue
+	}
+
 	if r.Badge.CDN.Key != "" {
-		r.Badge.CDN.Key = r.Badge.CDN.Key[0:min(len(r.Badge.CDN.Key), 5)] + HiddenValue
+		r.Badge.CDN.Key = HiddenValue
 	}
 
 	if r.Badge.CDN.Secret != "" {
@@ -120,6 +143,14 @@ func (c Config) Validate() error {
 
 	if err := c.validateGit(); err != nil {
 		return fmt.Errorf("%w: %s", ErrGitOptionNotSet, err.Error())
+	}
+
+	return c.validateComment()
+}
+
+func (c Config) validateComment() error {
+	if c.GithubCommentReport && c.GithubToken == "" {
+		return errors.New("github-token is required when comment is enabled")
 	}
 
 	return nil
@@ -186,8 +217,10 @@ func ConfigFromFile(cfg *Config, filename string) error {
 		return fmt.Errorf("failed reading file: %w", err)
 	}
 
-	err = yaml.Unmarshal(source, cfg)
-	if err != nil {
+	decoder := yaml.NewDecoder(bytes.NewReader(source))
+	decoder.KnownFields(true)
+
+	if err = decoder.Decode(cfg); err != nil && !errors.Is(err, io.EOF) {
 		return fmt.Errorf("failed parsing config file: %w", err)
 	}
 
